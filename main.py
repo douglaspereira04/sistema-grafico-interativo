@@ -1,7 +1,44 @@
 import sys
+import re
 from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtWidgets import QApplication, QLineEdit
+from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, QFormLayout
 from PyQt5.QtGui import QPixmap
+from enum import Enum
+
+class ObjType(Enum):
+    POINT = 1
+    LINE = 2
+    WIREFRAME = 3
+
+class GObject:
+    def __init__(self, name, obj_type,coords):
+        self.name = name
+        self.obj_type = obj_type
+        self.coords = coords
+
+objects = []
+
+class InputDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.first = QLineEdit(self)
+        self.second = QPlainTextEdit(self)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
+
+        layout = QFormLayout(self)
+        layout.addRow("Name", self.first)
+        layout.addRow("Coordinates", self.second)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+        self.second.setPlainText("(100,100),(200,200)")
+
+    def getInputs(self):
+        return (self.first.text(), self.second.toPlainText())
+
 
 class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -25,16 +62,31 @@ class MyWindow(QtWidgets.QMainWindow):
         ## Connect the signal
         #self.widget_one.TitleClicked.connect(self.dob_click)
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
-        self.widget_two.addBtn.clicked.connect(lambda: self.windowForXY())
-        self.ui.button.clicked.connect(lambda: self.saveValues())
+        self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
 
-    def saveValues(self):
-        x1 = int(self.ui.textbox.text())
-        y1 = int(self.ui.textbox2.text())
-        x2 = int(self.ui.textbox3.text())
-        y2 = int(self.ui.textbox4.text())
-        self.widget_one.drawReta(x1,y1,x2,y2)
-        self.ui.close()
+    def saveValue(self):
+        dialog = InputDialog()
+
+        if dialog.exec():
+            (name, string_coords) = dialog.getInputs()
+            coords = list(eval(string_coords))
+
+            obj_type = ObjType(3)
+            if(isinstance(coords[0], int)):
+                obj_type = ObjType(1)
+            elif(len(coords)<3):
+                obj_type = ObjType(2)
+
+            obj = GObject(name, obj_type, coords)
+            objects.append(obj)
+
+            self.widget_one.draw(coords)
+            
+            for ob in objects:
+                print(ob.name)
+                print(ob.coords)
+                print(ob.obj_type)
+       
 
     def windowForXY(self):
         self.ui.show()
@@ -58,25 +110,12 @@ class WindowXY(QtWidgets.QMainWindow):
         #Basic Structure
         self.central_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget
         self.setGeometry(20,20,200,250)
-        self.textbox = QLineEdit(self)
-        self.textbox.move(40,20)
-        self.textbox2 = QLineEdit(self)
-        self.textbox2.move(40, 60)
-        self.textbox3 = QLineEdit(self)
-        self.textbox3.move(40, 100)
-        self.textbox4 = QLineEdit(self)
-        self.textbox4.move(40, 140)
+        self.coordinates_box = QLineEdit(self)
+        self.coordinates_box.move(40, 60)
         self.button = QtWidgets.QPushButton('Add',self)
         self.button.move(40,180)
-        self.labX1 = QtWidgets.QLabel('X1',self)
+        self.labX1 = QtWidgets.QLabel('Coordinates',self)
         self.labX1.move(20,20)
-        self.labX2 = QtWidgets.QLabel('Y1',self)
-        self.labX2.move(20, 60)
-        self.labY1 = QtWidgets.QLabel('X2',self)
-        self.labY1.move(20, 100)
-        self.labY2 = QtWidgets.QLabel('Y2',self)
-        self.labY2.move(20, 140)
-
 
 
 
@@ -93,17 +132,21 @@ class WidgetOne(QtWidgets.QWidget):
         self.label.setPixmap(canvas)
 
         self.layout.addWidget(self.label)
-        self.draw()
+        self.drawLine(300,100,200,200)
 
-    def draw(self):
-        painter = QtGui.QPainter(self.label.pixmap())
-        painter.drawLine(100,100,200,200)
-        painter.end()
-
-    def drawReta(self,x1,y1,x2,y2):
+    def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())
         painter.drawLine(x1, y1, x2, y2)
         painter.end()
+        self.update()
+
+    def draw(self, coordinates):
+        i=0
+        while(i+4 <= len(coordinates)):
+            self.drawLine(coordinates[i], coordinates[i+1], coordinates[i+2], coordinates[i+3])
+            i = i+2
+
+
 
 class WidgetTwo(QtWidgets.QWidget):
     def __init__(self):

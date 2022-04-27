@@ -132,7 +132,6 @@ class WidgetOne(QtWidgets.QWidget):
         self.label.setPixmap(canvas)
 
         self.layout.addWidget(self.label)
-        self.drawLine(300,100,200,200)
 
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())
@@ -142,9 +141,13 @@ class WidgetOne(QtWidgets.QWidget):
 
     def draw(self, coordinates):
         i=0
-        while(i+4 <= len(coordinates)):
-            self.drawLine(coordinates[i], coordinates[i+1], coordinates[i+2], coordinates[i+3])
-            i = i+2
+        while(i+1 < len(coordinates)):
+            self.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
+            i = i+1
+
+        if (len(coordinates) > 2):
+            self.drawLine(coordinates[i][0], coordinates[i][1], coordinates[0][0], coordinates[0][1])
+
 
 
 

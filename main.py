@@ -82,11 +82,13 @@ class MyWindow(QtWidgets.QMainWindow):
 
             self.widget_one.draw(coords)
             
+            obj_list = []
             for ob in objects:
-                print(ob.name)
-                print(ob.coords)
-                print(ob.obj_type)
-       
+                obj_list.append(ob.obj_type.name+'('+ob.name+')')
+
+            self.widget_two.makeList(obj_list)
+
+
 
     def windowForXY(self):
         self.ui.show()
@@ -176,6 +178,10 @@ class WidgetTwo(QtWidgets.QWidget):
         self.layout.addWidget(self.downBtn)
         self.layout.addWidget(self.ZinBtn)
         self.layout.addWidget(self.ZoutBtn)
+
+    def makeList(self,obj_list):
+        self.list.clear()
+        self.list.addItems(obj_list)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

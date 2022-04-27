@@ -2,7 +2,8 @@ import sys
 import re
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, QFormLayout
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtCore import Qt
 from enum import Enum
 
 class ObjType(Enum):
@@ -80,15 +81,22 @@ class MyWindow(QtWidgets.QMainWindow):
             obj = GObject(name, obj_type, coords)
             objects.append(obj)
 
-            self.widget_one.draw(coords)
+            self.drawEverything()
+            self.makeList()
             
-            obj_list = []
-            for ob in objects:
-                obj_list.append(ob.obj_type.name+'('+ob.name+')')
+    def drawEverything(self):
+        self.widget_one.clearDraw()
+        obj_list = []
+        for ob in objects:
+            if(ob.obj_type != ObjType.POINT):
+                self.widget_one.draw(ob.coords)
 
-            self.widget_two.makeList(obj_list)
+    def makeList(self):
+        obj_list = []
+        for ob in objects:
+            obj_list.append(ob.obj_type.name+'('+ob.name+')')
 
-
+        self.widget_two.makeList(obj_list)
 
     def windowForXY(self):
         self.ui.show()
@@ -135,13 +143,17 @@ class WidgetOne(QtWidgets.QWidget):
 
         self.layout.addWidget(self.label)
 
+    def clearDraw(self):
+        self.label.pixmap().fill(Qt.white)
+
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())
         painter.drawLine(x1, y1, x2, y2)
         painter.end()
-        self.update()
+        self.label.update()
 
     def draw(self, coordinates):
+
         i=0
         while(i+1 < len(coordinates)):
             self.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])

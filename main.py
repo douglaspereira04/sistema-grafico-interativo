@@ -19,16 +19,24 @@ class MyWindow(QtWidgets.QMainWindow):
         self.layout1.addLayout(self.layout2)
         self.layout2.addWidget(self.widget_two)
         self.layout2.addWidget(self.widget_one)
+        self.ui = WindowXY()
+
 
         ## Connect the signal
         #self.widget_one.TitleClicked.connect(self.dob_click)
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
         self.widget_two.addBtn.clicked.connect(lambda: self.windowForXY())
+        self.ui.button.clicked.connect(lambda: self.saveValues())
 
+    def saveValues(self):
+        x1 = int(self.ui.textbox.text())
+        y1 = int(self.ui.textbox2.text())
+        x2 = int(self.ui.textbox3.text())
+        y2 = int(self.ui.textbox4.text())
+        self.widget_one.drawReta(x1,y1,x2,y2)
+        self.ui.close()
 
     def windowForXY(self):
-        self.window = QtWidgets.QMainWindow()
-        self.ui = WindowXY()
         self.ui.show()
 
     def on_zoom_in(self):
@@ -62,12 +70,15 @@ class WindowXY(QtWidgets.QMainWindow):
         self.button.move(40,180)
         self.labX1 = QtWidgets.QLabel('X1',self)
         self.labX1.move(20,20)
-        self.labX2 = QtWidgets.QLabel('X2',self)
+        self.labX2 = QtWidgets.QLabel('Y1',self)
         self.labX2.move(20, 60)
-        self.labY1 = QtWidgets.QLabel('Y1',self)
+        self.labY1 = QtWidgets.QLabel('X2',self)
         self.labY1.move(20, 100)
         self.labY2 = QtWidgets.QLabel('Y2',self)
         self.labY2.move(20, 140)
+
+
+
 
 class WidgetOne(QtWidgets.QWidget):
     def __init__(self):
@@ -87,6 +98,11 @@ class WidgetOne(QtWidgets.QWidget):
     def draw(self):
         painter = QtGui.QPainter(self.label.pixmap())
         painter.drawLine(100,100,200,200)
+        painter.end()
+
+    def drawReta(self,x1,y1,x2,y2):
+        painter = QtGui.QPainter(self.label.pixmap())
+        painter.drawLine(x1, y1, x2, y2)
         painter.end()
 
 class WidgetTwo(QtWidgets.QWidget):

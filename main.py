@@ -107,6 +107,8 @@ class MyWindow(QtWidgets.QMainWindow):
         for ob in objects:
             if(ob.obj_type != ObjType.POINT):
                 self.widget_one.draw(ob.coords)
+            else:
+                self.widget_one.drawP(ob.coords)
 
     def makeList(self):
         obj_list = []
@@ -194,6 +196,15 @@ class WidgetOne(QtWidgets.QWidget):
 
     def clearDraw(self):
         self.label.pixmap().fill(Qt.white)
+
+    def drawP(self, coordinates):
+        painter = QtGui.QPainter(self.label.pixmap())
+        x1vp = int((coordinates[0] - x_wmin) * (x_vpmax - x_vpmin) / (x_wmax - x_wmin))
+        y1vp = int((1 - ((coordinates[1] - y_wmin) / (y_wmax - y_wmin))) * (y_vpmax - y_vpmin))
+
+        painter.drawPoint(x1vp, y1vp)
+        painter.end()
+        self.label.update()
 
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())

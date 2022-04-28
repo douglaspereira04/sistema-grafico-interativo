@@ -21,6 +21,16 @@ class GObject:
         self.coords = coords
 
 
+x_vpmax = 300
+x_vpmin = 0
+y_vpmax = 300
+y_vpmin = 0
+
+x_wmax = 300
+x_wmin = 0
+y_wmax = 300
+y_wmin = 0
+
 objects = []
 
 
@@ -69,121 +79,6 @@ class MyWindow(QtWidgets.QMainWindow):
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
         self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
         self.widget_two.upBtn.clicked.connect(lambda: self.up())
-        self.widget_two.downBtn.clicked.connect(lambda: self.down())
-        self.widget_two.leftBtn.clicked.connect(lambda: self.left())
-        self.widget_two.rightBtn.clicked.connect(lambda: self.right())
-
-    def up(self):
-        #reta por enquanto
-        name = []
-        type = []
-        coords = []
-
-        for ob in objects:
-            x1 = ob.coords[0][0]
-            y1 = ob.coords[0][1] + 10
-            x2 = ob.coords[1][0]
-            y2 = ob.coords[1][1] + 10
-            tuplaCoords1 = (x1, y1)
-            tuplaCoords2 = (x2, y2)
-            type.append(ob.obj_type)
-            coords.append(tuplaCoords1)
-            coords.append(tuplaCoords2)
-            name.append(ob.name)
-
-        objects.clear()
-        j = 0
-        h = 0
-        for x in name:
-            obj = GObject(name[j], type[j], (coords[h],coords[h+1]))
-            objects.append(obj)
-            j += 1
-            h += 2
-        self.drawEverything()
-
-    def down(self):
-        #reta por enquanto
-        name = []
-        type = []
-        coords = []
-
-        for ob in objects:
-            x1 = ob.coords[0][0]
-            y1 = ob.coords[0][1] - 10
-            x2 = ob.coords[1][0]
-            y2 = ob.coords[1][1] - 10
-            tuplaCoords1 = (x1, y1)
-            tuplaCoords2 = (x2, y2)
-            type.append(ob.obj_type)
-            coords.append(tuplaCoords1)
-            coords.append(tuplaCoords2)
-            name.append(ob.name)
-
-        objects.clear()
-        j = 0
-        h = 0
-        for x in name:
-            obj = GObject(name[j], type[j], (coords[h],coords[h+1]))
-            objects.append(obj)
-            j += 1
-            h += 2
-        self.drawEverything()
-
-    def left(self):
-        #reta por enquanto
-        name = []
-        type = []
-        coords = []
-
-        for ob in objects:
-            x1 = ob.coords[0][0] + 10
-            y1 = ob.coords[0][1]
-            x2 = ob.coords[1][0] + 10
-            y2 = ob.coords[1][1]
-            tuplaCoords1 = (x1, y1)
-            tuplaCoords2 = (x2, y2)
-            type.append(ob.obj_type)
-            coords.append(tuplaCoords1)
-            coords.append(tuplaCoords2)
-            name.append(ob.name)
-
-        objects.clear()
-        j = 0
-        h = 0
-        for x in name:
-            obj = GObject(name[j], type[j], (coords[h],coords[h+1]))
-            objects.append(obj)
-            j += 1
-            h += 2
-        self.drawEverything()
-
-    def right(self):
-        #reta por enquanto
-        name = []
-        type = []
-        coords = []
-
-        for ob in objects:
-            x1 = ob.coords[0][0] - 10
-            y1 = ob.coords[0][1]
-            x2 = ob.coords[1][0] - 10
-            y2 = ob.coords[1][1]
-            tuplaCoords1 = (x1, y1)
-            tuplaCoords2 = (x2, y2)
-            type.append(ob.obj_type)
-            coords.append(tuplaCoords1)
-            coords.append(tuplaCoords2)
-            name.append(ob.name)
-
-        objects.clear()
-        j = 0
-        h = 0
-        for x in name:
-            obj = GObject(name[j], type[j], (coords[h],coords[h+1]))
-            objects.append(obj)
-            j += 1
-            h += 2
-        self.drawEverything()
 
     def saveValue(self):
         dialog = InputDialog()
@@ -210,6 +105,8 @@ class MyWindow(QtWidgets.QMainWindow):
         for ob in objects:
             if (ob.obj_type != ObjType.POINT):
                 self.widget_one.draw(ob.coords)
+            else:
+                self.widget_one.drawP(ob.coords)
 
     def makeList(self):
         obj_list = []
@@ -233,6 +130,14 @@ class MyWindow(QtWidgets.QMainWindow):
     def on_zoom_out(self):
         x = 1
 
+    def up(self):
+        global y_vpmax
+        y_vpmax -= 10
+        #y_vpmin = 50
+        #y_wmax = 250
+        #y_wmin = 50
+        print(1)
+        self.drawEverything()
 
 class WindowXY(QtWidgets.QMainWindow):
     def __init__(self):
@@ -268,9 +173,26 @@ class WidgetOne(QtWidgets.QWidget):
 
     def drawLine(self, x1, y1, x2, y2):
         painter = QtGui.QPainter(self.label.pixmap())
-        painter.drawLine(x1, y1, x2, y2)
+
+        x1vp = int((x1 - x_wmin) * (x_vpmax - x_vpmin) / (x_wmax - x_wmin))
+        x2vp = int((x2 - x_wmin) * (x_vpmax - x_vpmin) / (x_wmax - x_wmin))
+        y1vp = int((1 - ((y1 - y_wmin) / (y_wmax - y_wmin))) * (y_vpmax - y_vpmin))
+        y2vp = int((1 - ((y2 - y_wmin) / (y_wmax - y_wmin))) * (y_vpmax - y_vpmin))
+
+        painter.drawLine(x1vp, y1vp, x2vp, y2vp)
         painter.end()
         self.label.update()
+
+    def drawP(self, coordinates):
+        painter = QtGui.QPainter(self.label.pixmap())
+        x1vp = int((coordinates[0] - x_wmin) * (x_vpmax - x_vpmin) / (x_wmax - x_wmin))
+        y1vp = int((1 - ((coordinates[1] - y_wmin) / (y_wmax - y_wmin))) * (y_vpmax - y_vpmin))
+
+        painter.drawPoint(x1vp, y1vp)
+        painter.end()
+        self.label.update()
+
+
 
     def draw(self, coordinates):
 

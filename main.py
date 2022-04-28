@@ -17,6 +17,17 @@ class GObject:
         self.obj_type = obj_type
         self.coords = coords
 
+x_vpmax = 300
+x_vpmin = 0
+y_vpmax = 300
+y_vpmin = 0
+
+x_wmax = 300
+x_wmin = 0
+y_wmax = 300
+y_wmin = 0
+
+
 objects = []
 
 class InputDialog(QDialog):
@@ -148,7 +159,13 @@ class WidgetOne(QtWidgets.QWidget):
 
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())
-        painter.drawLine(x1, y1, x2, y2)
+
+        x1vp = int( (x1 - x_wmin)*(x_vpmax - x_vpmin)/(x_wmax - x_wmin) )
+        x2vp = int( (x2 - x_wmin)*(x_vpmax - x_vpmin)/(x_wmax - x_wmin) )
+        y1vp = int( (1 - ( (y1 - y_wmin) / (y_wmax - y_wmin) ) )*(y_vpmax - y_vpmin) )
+        y2vp = int( (1 - ( (y2 - y_wmin) / (y_wmax - y_wmin) ) )*(y_vpmax - y_vpmin) )
+
+        painter.drawLine(x1vp, y1vp, x2vp, y2vp)
         painter.end()
         self.label.update()
 

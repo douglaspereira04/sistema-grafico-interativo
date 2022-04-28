@@ -77,6 +77,11 @@ class MyWindow(QtWidgets.QMainWindow):
         self.widget_two.ZoutBtn.clicked.connect(lambda: self.on_zoom_out())
         self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
 
+        self.widget_two.leftBtn.clicked.connect(lambda: self.pan_left())
+        self.widget_two.rightBtn.clicked.connect(lambda: self.pan_right())
+        self.widget_two.upBtn.clicked.connect(lambda: self.pan_up())
+        self.widget_two.downBtn.clicked.connect(lambda: self.pan_down())
+
     def saveValue(self):
         dialog = InputDialog()
 
@@ -125,6 +130,36 @@ class MyWindow(QtWidgets.QMainWindow):
         global y_wmax
         x_wmax = x_wmax +1
         y_wmax = y_wmax +1
+        self.drawEverything()
+
+
+    def pan_right(self):
+        global x_wmax
+        global x_wmin
+        x_wmax = x_wmax +1
+        x_wmin = x_wmin +1
+        self.drawEverything()
+
+
+    def pan_left(self):
+        global x_wmax
+        global x_wmin
+        x_wmax = x_wmax -1
+        x_wmin = x_wmin -1
+        self.drawEverything()
+
+    def pan_up(self):
+        global y_wmax
+        global y_wmin
+        y_wmax = y_wmax -1
+        y_wmin = y_wmin -1
+        self.drawEverything()
+
+    def pan_down(self):
+        global y_wmax
+        global y_wmin
+        y_wmax = y_wmax +1
+        y_wmin = y_wmin +1
         self.drawEverything()
 
 class WindowXY(QtWidgets.QMainWindow):
@@ -203,6 +238,7 @@ class WidgetTwo(QtWidgets.QWidget):
         self.list.setMaximumWidth(100)
         self.list.setMaximumHeight(100)
         self.addBtn = QtWidgets.QPushButton('Add')
+        self.factor = QLineEdit()
         self.leftBtn = QtWidgets.QPushButton('Left')
         self.rightBtn = QtWidgets.QPushButton('Right')
         self.upBtn = QtWidgets.QPushButton('Up')

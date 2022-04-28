@@ -239,6 +239,7 @@ class WidgetTwo(QtWidgets.QWidget):
         self.list.setMaximumHeight(100)
         self.addBtn = QtWidgets.QPushButton('Add')
         self.factor = QLineEdit()
+        self.factor.setPlaceholderText("Navigation multiplier");
         self.leftBtn = QtWidgets.QPushButton('Left')
         self.rightBtn = QtWidgets.QPushButton('Right')
         self.upBtn = QtWidgets.QPushButton('Up')
@@ -248,6 +249,7 @@ class WidgetTwo(QtWidgets.QWidget):
         self.layout.addWidget(self.title)
         self.layout.addWidget(self.list)
         self.layout.addWidget(self.addBtn)
+        self.layout.addWidget(self.factor)
         self.layout.addWidget(self.leftBtn)
         self.layout.addWidget(self.rightBtn)
         self.layout.addWidget(self.upBtn)

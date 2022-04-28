@@ -2,7 +2,7 @@ import sys
 import re
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, QFormLayout
-from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtGui import QPixmap, QColor, QIntValidator
 from PyQt5.QtCore import Qt
 from enum import Enum
 
@@ -120,47 +120,65 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.show()
 
     def on_zoom_in(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global x_wmax
         global y_wmax
-        x_wmax = x_wmax -1
-        y_wmax = y_wmax -1
+        x_wmax = x_wmax - factor
+        y_wmax = y_wmax - factor
         self.drawEverything()
 
     def on_zoom_out(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global x_wmax
         global y_wmax
-        x_wmax = x_wmax +1
-        y_wmax = y_wmax +1
+        x_wmax = x_wmax +factor
+        y_wmax = y_wmax +factor
         self.drawEverything()
 
 
     def pan_right(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global x_wmax
         global x_wmin
-        x_wmax = x_wmax +1
-        x_wmin = x_wmin +1
+        x_wmax = x_wmax +factor
+        x_wmin = x_wmin +factor
         self.drawEverything()
 
 
     def pan_left(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global x_wmax
         global x_wmin
-        x_wmax = x_wmax -1
-        x_wmin = x_wmin -1
+        x_wmax = x_wmax -factor
+        x_wmin = x_wmin -factor
         self.drawEverything()
 
     def pan_up(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global y_wmax
         global y_wmin
-        y_wmax = y_wmax -1
-        y_wmin = y_wmin -1
+        y_wmax = y_wmax -factor
+        y_wmin = y_wmin -factor
         self.drawEverything()
 
     def pan_down(self):
+        if (self.widget_two.factor.text().strip() == ""):
+            self.widget_two.factor.setText("10")
+        factor = int(self.widget_two.factor.text())
         global y_wmax
         global y_wmin
-        y_wmax = y_wmax +1
-        y_wmin = y_wmin +1
+        y_wmax = y_wmax +factor
+        y_wmin = y_wmin +factor
         self.drawEverything()
 
 class WindowXY(QtWidgets.QMainWindow):
@@ -247,6 +265,7 @@ class WidgetTwo(QtWidgets.QWidget):
         self.addBtn = QtWidgets.QPushButton('Add')
         self.factor = QLineEdit()
         self.factor.setPlaceholderText("Navigation multiplier");
+        self.factor.setValidator(QIntValidator());
         self.leftBtn = QtWidgets.QPushButton('Left')
         self.rightBtn = QtWidgets.QPushButton('Right')
         self.upBtn = QtWidgets.QPushButton('Up')
@@ -263,6 +282,7 @@ class WidgetTwo(QtWidgets.QWidget):
         self.layout.addWidget(self.downBtn)
         self.layout.addWidget(self.ZinBtn)
         self.layout.addWidget(self.ZoutBtn)
+
 
     def makeList(self,obj_list):
         self.list.clear()

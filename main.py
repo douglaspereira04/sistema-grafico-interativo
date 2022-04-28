@@ -1,22 +1,41 @@
 import sys
 import re
 from PyQt5 import QtGui, QtCore, QtWidgets
+<<<<<<< HEAD
 from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, QFormLayout
+=======
+from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, \
+    QFormLayout
+>>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtCore import Qt
 from enum import Enum
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 class ObjType(Enum):
     POINT = 1
     LINE = 2
     WIREFRAME = 3
 
+<<<<<<< HEAD
 class GObject:
     def __init__(self, name, obj_type,coords):
+=======
+
+class GObject:
+    def __init__(self, name, obj_type, coords):
+>>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
         self.name = name
         self.obj_type = obj_type
         self.coords = coords
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 x_vpmax = 300
 x_vpmin = 0
 y_vpmax = 300
@@ -27,9 +46,15 @@ x_wmin = 0
 y_wmax = 300
 y_wmin = 0
 
+<<<<<<< HEAD
 
 objects = []
 
+=======
+objects = []
+
+
+>>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 class InputDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -61,7 +86,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.layout2 = QtWidgets.QHBoxLayout()  # Horizontal Layout
         self.widget_one = WidgetOne()
         self.widget_two = WidgetTwo()
-        #self.exitBtn = QtWidgets.QPushButton('Exit')
+        # self.exitBtn = QtWidgets.QPushButton('Exit')
         ## Build the structure
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(self.layout1)
@@ -70,9 +95,8 @@ class MyWindow(QtWidgets.QMainWindow):
         self.layout2.addWidget(self.widget_one)
         self.ui = WindowXY()
 
-
         ## Connect the signal
-        #self.widget_one.TitleClicked.connect(self.dob_click)
+        # self.widget_one.TitleClicked.connect(self.dob_click)
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
         self.widget_two.ZoutBtn.clicked.connect(lambda: self.on_zoom_out())
         self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
@@ -100,7 +124,7 @@ class MyWindow(QtWidgets.QMainWindow):
 
             self.drawEverything()
             self.makeList()
-            
+
     def drawEverything(self):
         self.widget_one.clearDraw()
         obj_list = []
@@ -113,7 +137,7 @@ class MyWindow(QtWidgets.QMainWindow):
     def makeList(self):
         obj_list = []
         for ob in objects:
-            obj_list.append(ob.obj_type.name+'('+ob.name+')')
+            obj_list.append(ob.obj_type.name + '(' + ob.name + ')')
 
         self.widget_two.makeList(obj_list)
 
@@ -168,7 +192,7 @@ class WindowXY(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
         ## Generate the structure parts of the MainWindow
-        #Basic Structure
+        # Basic Structure
         self.central_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget
         self.setGeometry(20,20,200,250)
         self.coordinates_box = QLineEdit(self)
@@ -187,7 +211,7 @@ class WidgetOne(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout()  # Vertical Layout
         self.setLayout(self.layout)
         self.label = QtWidgets.QLabel()
-        canvas = QtGui.QPixmap(300,300)
+        canvas = QtGui.QPixmap(300, 300)
         canvas.fill(QtGui.QColor("white"))
 
         self.label.setPixmap(canvas)
@@ -235,9 +259,6 @@ class WidgetOne(QtWidgets.QWidget):
 
         if (len(coordinates) > 2):
             self.drawLine(coordinates[i][0], coordinates[i][1], coordinates[0][0], coordinates[0][1])
-
-
-
 
 class WidgetTwo(QtWidgets.QWidget):
     def __init__(self):

@@ -79,6 +79,9 @@ class MyWindow(QtWidgets.QMainWindow):
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
         self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
         self.widget_two.upBtn.clicked.connect(lambda: self.up())
+        self.widget_two.downBtn.clicked.connect(lambda: self.down())
+        self.widget_two.leftBtn.clicked.connect(lambda: self.left())
+        self.widget_two.rightBtn.clicked.connect(lambda: self.right())
 
     def saveValue(self):
         dialog = InputDialog()
@@ -132,12 +135,52 @@ class MyWindow(QtWidgets.QMainWindow):
 
     def up(self):
         global y_vpmax
+        global y_vpmin
+        global y_wmax
+        global y_wmin
+
         y_vpmax -= 10
-        #y_vpmin = 50
-        #y_wmax = 250
-        #y_wmin = 50
-        print(1)
+        y_vpmin -= 10
+        y_wmax -= 10
+        y_wmin -= 10
         self.drawEverything()
+
+    def down(self):
+        global y_vpmax
+        global y_vpmin
+        global y_wmax
+        global y_wmin
+
+        y_vpmax += 10
+        y_vpmin += 10
+        y_wmax += 10
+        y_wmin += 10
+        self.drawEverything()
+
+    def left(self):
+        global x_vpmax
+        global x_vpmin
+        global x_wmax
+        global x_wmin
+
+        x_vpmax += 10
+        x_vpmin += 10
+        x_wmax += 10
+        x_wmin += 10
+        self.drawEverything()
+
+    def right(self):
+        global x_vpmax
+        global x_vpmin
+        global x_wmax
+        global x_wmin
+
+        x_vpmax -= 10
+        x_vpmin -= 10
+        x_wmax -= 10
+        x_wmin -= 10
+        self.drawEverything()
+
 
 class WindowXY(QtWidgets.QMainWindow):
     def __init__(self):

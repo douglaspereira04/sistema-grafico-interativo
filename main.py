@@ -74,6 +74,7 @@ class MyWindow(QtWidgets.QMainWindow):
         ## Connect the signal
         #self.widget_one.TitleClicked.connect(self.dob_click)
         self.widget_two.ZinBtn.clicked.connect(lambda: self.on_zoom_in())
+        self.widget_two.ZoutBtn.clicked.connect(lambda: self.on_zoom_out())
         self.widget_two.addBtn.clicked.connect(lambda: self.saveValue())
 
     def saveValue(self):
@@ -113,16 +114,18 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.show()
 
     def on_zoom_in(self):
-        #isso coloca no lugar especifico da tela
-        #self.widget_one.setGeometry(100,100,self.widget_one.width() + 4, self.widget_one.height() + 4)
-        x=1
-
-        #size = self.widget_one.label.pixmap.size()
-        #scaled_pixmap = self.widget_one.label.pixmap.scaled(size * 2)
-        #self.widget_one.label.setPixmap(scaled_pixmap)
+        global x_wmax
+        global y_wmax
+        x_wmax = x_wmax -1
+        y_wmax = y_wmax -1
+        self.drawEverything()
 
     def on_zoom_out(self):
-        x=1
+        global x_wmax
+        global y_wmax
+        x_wmax = x_wmax +1
+        y_wmax = y_wmax +1
+        self.drawEverything()
 
 class WindowXY(QtWidgets.QMainWindow):
     def __init__(self):
@@ -160,6 +163,14 @@ class WidgetOne(QtWidgets.QWidget):
     def drawLine(self,x1,y1,x2,y2):
         painter = QtGui.QPainter(self.label.pixmap())
 
+        global x_wmax
+        global y_wmax
+        global x_wmin
+        global y_wmin
+        global x_vpmax
+        global y_vpmax
+        global x_vpmin
+        global y_vpmin
         x1vp = int( (x1 - x_wmin)*(x_vpmax - x_vpmin)/(x_wmax - x_wmin) )
         x2vp = int( (x2 - x_wmin)*(x_vpmax - x_vpmin)/(x_wmax - x_wmin) )
         y1vp = int( (1 - ( (y1 - y_wmin) / (y_wmax - y_wmin) ) )*(y_vpmax - y_vpmin) )

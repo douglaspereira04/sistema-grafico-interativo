@@ -1,41 +1,23 @@
 import sys
 import re
 from PyQt5 import QtGui, QtCore, QtWidgets
-<<<<<<< HEAD
 from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, QFormLayout
-=======
-from PyQt5.QtWidgets import QApplication, QLineEdit, QInputDialog, QDialog, QPlainTextEdit, QDialogButtonBox, \
-    QFormLayout
->>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtCore import Qt
 from enum import Enum
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 class ObjType(Enum):
     POINT = 1
     LINE = 2
     WIREFRAME = 3
 
-<<<<<<< HEAD
 class GObject:
     def __init__(self, name, obj_type,coords):
-=======
-
-class GObject:
-    def __init__(self, name, obj_type, coords):
->>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
         self.name = name
         self.obj_type = obj_type
         self.coords = coords
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 x_vpmax = 300
 x_vpmin = 0
 y_vpmax = 300
@@ -46,15 +28,8 @@ x_wmin = 0
 y_wmax = 300
 y_wmin = 0
 
-<<<<<<< HEAD
-
 objects = []
 
-=======
-objects = []
-
-
->>>>>>> 945d9ede193ece437c3df2618dda89f7c19c5e5f
 class InputDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

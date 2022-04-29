@@ -24,7 +24,6 @@ class Canvas(QtWidgets.QWidget):
         
         painter.drawPoint(x, y)
         painter.end()
-        self.label.update()
 
     def draw_line(self,x1,y1,x2,y2):
         global graphic
@@ -33,7 +32,6 @@ class Canvas(QtWidgets.QWidget):
 
         painter.drawLine(x1, y1, x2, y2)
         painter.end()
-        self.label.update()
 
     def draw(self, coordinates):
 

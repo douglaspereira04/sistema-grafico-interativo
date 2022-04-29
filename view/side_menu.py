@@ -12,9 +12,9 @@ class SideMenu(QtWidgets.QWidget):
         self.list.setMaximumWidth(100)
         self.list.setMaximumHeight(100)
         self.add_btn = QtWidgets.QPushButton('Add')
-        self.factor = QLineEdit()
-        self.factor.setPlaceholderText("Navigation multiplier");
-        self.factor.setValidator(QIntValidator());
+        self.step = QLineEdit()
+        self.step.setPlaceholderText("Navigation Steps");
+        self.step.setValidator(QIntValidator());
         self.left_btn = QtWidgets.QPushButton('Left')
         self.right_btn = QtWidgets.QPushButton('Right')
         self.up_btn = QtWidgets.QPushButton('Up')
@@ -24,7 +24,7 @@ class SideMenu(QtWidgets.QWidget):
         self.layout.addWidget(self.title)
         self.layout.addWidget(self.list)
         self.layout.addWidget(self.add_btn)
-        self.layout.addWidget(self.factor)
+        self.layout.addWidget(self.step)
         self.layout.addWidget(self.left_btn)
         self.layout.addWidget(self.right_btn)
         self.layout.addWidget(self.up_btn)

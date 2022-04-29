@@ -62,16 +62,20 @@ class GraphicsController:
         self.reset_multiplier()
         factor = int(self.view.side_menu.factor.text())
 
-        self.graphic.window["x_max"] -= factor
-        self.graphic.window["y_max"] -= factor
+        self.graphic.window["x_max"] -= int(factor/2)
+        self.graphic.window["y_max"] -= int(factor/2)
+        self.graphic.window["x_min"] += int(factor/2)
+        self.graphic.window["y_min"] += int(factor/2)
         self.draw()
 
     def zoom_out(self):
         self.reset_multiplier()
         factor = int(self.view.side_menu.factor.text())
         
-        self.graphic.window["x_max"] += factor
-        self.graphic.window["y_max"] += factor
+        self.graphic.window["x_max"] += int(factor/2)
+        self.graphic.window["y_max"] += int(factor/2)
+        self.graphic.window["x_min"] -= int(factor/2)
+        self.graphic.window["y_min"] -= int(factor/2)
 
         self.draw()
 
@@ -99,8 +103,8 @@ class GraphicsController:
         self.reset_multiplier()
         factor = int(self.view.side_menu.factor.text())
 
-        self.graphic.window["y_max"] -= factor
-        self.graphic.window["y_min"] -= factor
+        self.graphic.window["y_max"] += factor
+        self.graphic.window["y_min"] += factor
 
         self.draw()
 
@@ -108,7 +112,7 @@ class GraphicsController:
         self.reset_multiplier()
         factor = int(self.view.side_menu.factor.text())
 
-        self.graphic.window["y_max"] += factor
-        self.graphic.window["y_min"] += factor
+        self.graphic.window["y_max"] -= factor
+        self.graphic.window["y_min"] -= factor
 
         self.draw()

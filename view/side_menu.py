@@ -9,7 +9,6 @@ class SideMenu(QtWidgets.QWidget):
         self.setLayout(self.layout)
         self.title = QtWidgets.QLabel('Menu de funções')
         self.list = QtWidgets.QListWidget()
-        self.list.setMaximumHeight(100)
         self.add_btn = QtWidgets.QPushButton('Add')
         self.step = QLineEdit()
         self.step.setPlaceholderText("Navigation Steps");

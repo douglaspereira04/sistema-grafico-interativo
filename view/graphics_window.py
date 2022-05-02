@@ -13,6 +13,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.layout1 = QtWidgets.QVBoxLayout()  # Vertical Layout
         self.main_layout = QtWidgets.QHBoxLayout()  # Horizontal Layout
         self.canvas_layout = QtWidgets.QVBoxLayout()  # Vorizontal Layout
+        self.canvas_control_layout = QtWidgets.QHBoxLayout()  # Vorizontal Layout
         self.canvas = Canvas(300,300)
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
@@ -26,11 +27,17 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.main_layout.addWidget(self.side_menu)
         self.main_layout.addLayout(self.canvas_layout)
 
+        self.canvas_layout.addLayout(self.canvas_control_layout)
         self.canvas_layout.addWidget(self.canvas)
         self.canvas_layout.addWidget(self.log)
 
-        self.viewport_dimension_layout = QtWidgets.QHBoxLayout()
+        self.viewport_label = QtWidgets.QLabel('Viewport')
 
+        font = self.viewport_label.font()
+        size = font.pointSize()
+        self.viewport_label.setMaximumHeight(size+10)
+        self.canvas_control_layout.setAlignment(QtCore.Qt.AlignLeft)
+        self.canvas_control_layout.addWidget(self.viewport_label)
 
 
 

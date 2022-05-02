@@ -40,18 +40,18 @@ class Graphics:
     def zoom_in(self, step):
         aspect = self.window_aspect_ratio()
 
-        self.window["x_max"] -= int(step*aspect/2)
+        self.window["x_max"] -= int(step/2)*aspect
         self.window["y_max"] -= int(step/2)
-        self.window["x_min"] += int(step*aspect/2)
+        self.window["x_min"] += int(step/2)*aspect
         self.window["y_min"] += int(step/2)
 
 
     def zoom_out(self, step):
         aspect = self.window_aspect_ratio()
 
-        self.window["x_max"] += int(step*aspect/2)
+        self.window["x_max"] += int(step/2)*aspect
         self.window["y_max"] += int(step/2)
-        self.window["x_min"] -= int(step*aspect/2)
+        self.window["x_min"] -= int(step/2)*aspect
         self.window["y_min"] -= int(step/2)
 
 

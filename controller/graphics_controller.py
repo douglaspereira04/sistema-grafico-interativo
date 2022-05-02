@@ -94,7 +94,7 @@ class GraphicsController:
             if(delete):
                 del self.graphic.objects[item.row()]
             else:
-                (new_obj_type, new_coords) = self.string_to_obj(string_coords)
+                (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
                 self.graphic.objects[item.row()].name = new_name
                 self.graphic.objects[item.row()].obj_type = new_obj_type
                 self.graphic.objects[item.row()].coords = new_coords

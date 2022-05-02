@@ -41,12 +41,13 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
 
 
-
         self.log.setFixedHeight(60)
 
         self.load_from_file = QAction('Load from file', self)
+        self.save_to_file = QAction('Save to file', self)
 
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu('File')
         file_menu.addAction(self.load_from_file)
+        file_menu.addAction(self.save_to_file)
 

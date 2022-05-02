@@ -33,14 +33,14 @@ class SideMenu(QtWidgets.QWidget):
         self.layout.addLayout(self.navigation_layout)
 
         self.navigation_layout.addWidget(self.steps_label, 0,0)
-        self.navigation_layout.addWidget(self.step, 0,1,1,2)
-        self.navigation_layout.addWidget(self.up_btn, 1,1)
-        self.navigation_layout.addWidget(self.left_btn, 2,0)
-        self.navigation_layout.addWidget(self.right_btn,2,2)
-        self.navigation_layout.addWidget(self.down_btn, 3,1)
-        self.navigation_layout.addWidget(self.zoom_label, 4,0)
-        self.navigation_layout.addWidget(self.zin_btn, 4,1)
-        self.navigation_layout.addWidget(self.zout_btn, 4,2)
+        self.navigation_layout.addWidget(self.step, 0,1,1,3)
+        self.navigation_layout.addWidget(self.up_btn, 1,1,1,2)
+        self.navigation_layout.addWidget(self.left_btn, 2,0,1,2)
+        self.navigation_layout.addWidget(self.right_btn,2,2,1,2)
+        self.navigation_layout.addWidget(self.down_btn, 3,1,1,2)
+        self.navigation_layout.addWidget(self.zoom_label, 4,0, 1,2)
+        self.navigation_layout.addWidget(self.zin_btn, 4,2)
+        self.navigation_layout.addWidget(self.zout_btn, 4,3)
 
         self.setMaximumWidth(150)
 

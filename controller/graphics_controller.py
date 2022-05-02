@@ -28,11 +28,15 @@ class GraphicsController:
         self.bg_color = Qt.white
         self.line_color = Qt.black
 
+        self.view.load_from_file.triggered.connect(self.load_from_file)
+
+    def load_from_file(self):
+        print("load from file")
 
     def reset_window_viewport_state(self):
         self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
         self.graphic.window["x_max"] = self.view.canvas.canvas.width()/2
-        self.graphic.window["y_min"] = -self.view.canvas.canvas.width()/2
+        self.graphic.window["y_min"] = -self.view.canvas.canvas.height()/2
         self.graphic.window["y_max"] = self.view.canvas.canvas.height()/2
 
         self.graphic.viewport["x_min"] = -self.view.canvas.canvas.width()/2

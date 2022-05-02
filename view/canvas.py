@@ -16,16 +16,14 @@ class Canvas(QtWidgets.QLabel):
 
         self.setPixmap(self.canvas)
 
+        self.lock_size = False
+
 
     def resizeEvent(self, event):
-        size = 300
-        if(self.width() > self.height()):
-            size = self.height()
-        else:
-            self.width()
-        self.canvas = self.canvas.scaled(size, size)
-        self.setPixmap(self.canvas)
-        self.resize.emit(1)
+        if(self.lock_size == False):
+            self.canvas = self.canvas.scaled(self.width(), self.height())
+            self.setPixmap(self.canvas)
+            self.resize.emit(1)
 
     def draw_point(self, x, y, painter):
         painter.drawPoint(x, y)

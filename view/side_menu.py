@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QDoubleValidator
 
 class SideMenu(QtWidgets.QWidget):
     def __init__(self):
@@ -12,7 +12,7 @@ class SideMenu(QtWidgets.QWidget):
         self.add_btn = QtWidgets.QPushButton('Add')
         self.step = QLineEdit()
         self.step.setPlaceholderText("Navigation Steps");
-        self.step.setValidator(QIntValidator());
+        self.step.setValidator(QDoubleValidator());
 
         self.steps_label = QtWidgets.QLabel('Steps')
         self.zoom_label = QtWidgets.QLabel('Zoom')

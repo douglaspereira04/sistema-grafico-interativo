@@ -40,19 +40,30 @@ class Graphics:
     def zoom_in(self, step):
         aspect = self.window_aspect_ratio()
 
-        self.window["x_max"] -= int(step/2)*aspect
-        self.window["y_max"] -= int(step/2)
-        self.window["x_min"] += int(step/2)*aspect
-        self.window["y_min"] += int(step/2)
+        xmax = self.window["x_max"] - ((step/2)*aspect)
+        ymax = self.window["y_max"] - (step/2)
+        xmin = self.window["x_min"] + ((step/2)*aspect)
+        ymin = self.window["y_min"] + (step/2)
+
+        if (((xmax - xmin )<= 0) or ((ymax - ymin) <= 0)):
+
+            return False
+        else:
+            self.window["x_max"] = xmax
+            self.window["y_max"] = ymax
+            self.window["x_min"] = xmin
+            self.window["y_min"] = ymin
+            
+            return True
 
 
     def zoom_out(self, step):
         aspect = self.window_aspect_ratio()
 
-        self.window["x_max"] += int(step/2)*aspect
-        self.window["y_max"] += int(step/2)
-        self.window["x_min"] -= int(step/2)*aspect
-        self.window["y_min"] -= int(step/2)
+        self.window["x_max"] += (step/2)*aspect
+        self.window["y_max"] += (step/2)
+        self.window["x_min"] -= (step/2)*aspect
+        self.window["y_min"] -= (step/2)
 
 
     def pan_right(self, step):

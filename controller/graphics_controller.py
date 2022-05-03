@@ -2,6 +2,7 @@ from view.object_dialog import ObjectDialog
 from model.graphic_object import GraphicObject
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 
 class GraphicsController:
@@ -9,14 +10,14 @@ class GraphicsController:
         self.graphic = graphics
         self.view = view
 
-        self.view.side_menu.zin_btn.clicked.connect(lambda: self.zoom_in())
-        self.view.side_menu.zout_btn.clicked.connect(lambda: self.zoom_out())
-        self.view.side_menu.add_btn.clicked.connect(lambda: self.save_object())
+        self.view.side_menu.zin_btn.clicked.connect(self.zoom_in)
+        self.view.side_menu.zout_btn.clicked.connect(self.zoom_out)
+        self.view.side_menu.add_btn.clicked.connect(self.save_object)
 
-        self.view.side_menu.left_btn.clicked.connect(lambda: self.pan_left())
-        self.view.side_menu.right_btn.clicked.connect(lambda: self.pan_right())
-        self.view.side_menu.up_btn.clicked.connect(lambda: self.pan_up())
-        self.view.side_menu.down_btn.clicked.connect(lambda: self.pan_down())
+        self.view.side_menu.left_btn.clicked.connect(self.pan_left)
+        self.view.side_menu.right_btn.clicked.connect(self.pan_right)
+        self.view.side_menu.up_btn.clicked.connect(self.pan_up)
+        self.view.side_menu.down_btn.clicked.connect(self.pan_down)
         self.view.side_menu.list.clicked.connect(self.object_edit)
 
         self.view.show()
@@ -29,9 +30,13 @@ class GraphicsController:
         self.line_color = Qt.black
 
         self.view.load_from_file.triggered.connect(self.load_from_file)
+        self.view.save_to_file.triggered.connect(self.save_to_file)
 
     def load_from_file(self):
-        print("load from file")
+        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', 'c:\\',"Text files (*.txt)")
+
+    def save_to_file(self):
+        file_name = QFileDialog.getSaveFileName(self.view, 'Save file', 'c:\\',"Text file (*.txt)")
 
     def reset_window_viewport_state(self):
         self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
@@ -52,7 +57,7 @@ class GraphicsController:
         coords = list(eval(string_coords))
 
         obj_type = ObjType(3)
-        if(isinstance(coords[0], int)):
+        if(isinstance(coords[0], int) or isinstance(coords[0], float)):
             obj_type = ObjType(1)
             coords = [(coords[0], coords[1])]
         elif(len(coords)<3):
@@ -83,9 +88,9 @@ class GraphicsController:
     def object_edit(self, item):
 
         name = self.graphic.objects[item.row()].name
-        coords = str(self.graphic.objects[item.row()].coords)
+        coords = str(self.graphic.objects[item.row()].coords)[1:-1]
 
-        dialog = ObjectDialog(None, name, coords, False)
+        dialog = ObjectDialog(self.view, name, coords, False)
         result = dialog.exec()
         if (result):
             self.draw(self.bg_color)
@@ -129,9 +134,18 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
-        self.graphic.zoom_in(step)
+        zoomed = self.graphic.zoom_in(step)
+
+        if(not zoomed):
+            message_box = QMessageBox()
+            message_box.setWindowTitle("Zoom in")
+            message_box.setText("Too much zoom")
+            message_box.setInformativeText("Set a smaller step value")
+            message_box.setStandardButtons(QMessageBox.Ok)
+            ret = message_box.exec()
+
 
         self.draw(self.line_color)
 
@@ -140,7 +154,7 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
         self.graphic.zoom_out(step)
 
@@ -152,7 +166,7 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_right(step)
 
@@ -164,7 +178,7 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_left(step)
 
@@ -175,7 +189,7 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_up(step)
 
@@ -186,7 +200,7 @@ class GraphicsController:
         self.draw(self.bg_color)
 
         self.reset_multiplier()
-        step = int(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
 

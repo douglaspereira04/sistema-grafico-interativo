@@ -9,6 +9,12 @@ class ObjectDialog(QDialog):
         self.coordinates = QPlainTextEdit(self)
         self.buttonBox = None
         self.delete = False
+
+
+
+        self.name.setText("A")
+        self.coordinates.setPlainText("(100,100),(200,200)")
+
         if (is_new):
             buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
             buttonBox.accepted.connect(self.accept)
@@ -20,13 +26,13 @@ class ObjectDialog(QDialog):
             buttonBox.button(QDialogButtonBox.Discard).setText("Delete");
             buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.set_delete)
 
+            self.name.setText(name)
+            self.coordinates.setPlainText(coords)
+
         layout = QFormLayout(self)
         layout.addRow("Name", self.name)
         layout.addRow("Coordinates", self.coordinates)
         layout.addWidget(buttonBox)
-
-        self.name.setText("A")
-        self.coordinates.setPlainText("(100,100),(200,200)")
 
     def get_inputs(self):
         return (self.name.text(), self.coordinates.toPlainText(), self.delete)

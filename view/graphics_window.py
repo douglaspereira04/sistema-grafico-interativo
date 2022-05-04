@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QPlainTextEdit, QAction, QComboBox, QLineEdit
 from PyQt5.QtGui import QIntValidator
 from view.canvas import Canvas
@@ -45,6 +45,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
         self.load_from_file = QAction('Load from file', self)
         self.save_to_file = QAction('Save to file', self)
+
 
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu('File')

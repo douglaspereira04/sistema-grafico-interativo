@@ -14,7 +14,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.main_layout = QtWidgets.QHBoxLayout()  # Horizontal Layout
         self.canvas_layout = QtWidgets.QVBoxLayout()  # Vorizontal Layout
         self.canvas_control_layout = QtWidgets.QHBoxLayout()  # Vorizontal Layout
-        self.canvas = Canvas(300,300)
+        self.canvas = Canvas(300,300, "white")
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
 
@@ -51,4 +51,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         file_menu = menu_bar.addMenu('File')
         file_menu.addAction(self.load_from_file)
         file_menu.addAction(self.save_to_file)
+
+    def set_canvas_color(self, color):
+        self.canvas.canvas.fill(QtGui.QColor(color))
 

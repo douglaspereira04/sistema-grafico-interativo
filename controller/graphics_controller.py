@@ -21,6 +21,7 @@ class GraphicsController:
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
         self.view.side_menu.list.clicked.connect(self.object_edit)
 
+
         self.view.side_menu.rotate.valueChanged.connect(self.rotate)
 
         self.view.show()
@@ -32,10 +33,15 @@ class GraphicsController:
         self.bg_color = Qt.white
         self.line_color = Qt.black
 
+
+        self.view.set_canvas_color(self.bg_color)
+
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
 
     def load_from_file(self):
+        self.erase()
+
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Text files (*.txt)")
 
         if(file_name[0]!=''):
@@ -45,7 +51,7 @@ class GraphicsController:
 
             self.read_graphics_data(data)
 
-            self.draw(self.line_color)
+            self.draw()
             self.make_list()
 
     def save_to_file(self):
@@ -89,8 +95,9 @@ class GraphicsController:
         self.graphic.viewport["y_max"] = self.view.canvas.canvas.height()/2
 
     def on_window_resize(self):
+        self.erase()
         self.reset_window_viewport_state()
-        self.draw(self.line_color)
+        self.draw()
 
     def string_to_obj(self, string_coords):
         coords = list(eval(string_coords))
@@ -111,7 +118,7 @@ class GraphicsController:
         dialog = ObjectDialog()
 
         if dialog.exec():
-            self.draw(self.bg_color)
+            self.erase()
 
             (name, string_coords, delete) = dialog.get_inputs()
 
@@ -120,7 +127,7 @@ class GraphicsController:
             obj = GraphicObject(name, obj_type, coords)
             self.graphic.objects.append(obj)
 
-            self.draw(self.line_color)
+            self.draw()
             self.make_list()
 
 
@@ -132,7 +139,7 @@ class GraphicsController:
         dialog = ObjectDialog(self.view, name, coords, False)
         result = dialog.exec()
         if (result):
-            self.draw(self.bg_color)
+            self.erase()
             
             (new_name, new_string_coords, delete) = dialog.get_inputs()
             if(delete):
@@ -143,12 +150,12 @@ class GraphicsController:
                 self.graphic.objects[item.row()].obj_type = new_obj_type
                 self.graphic.objects[item.row()].coords = new_coords
         
-            self.draw(self.line_color)
+            self.draw()
             self.make_list()
 
 
 
-    def draw(self, color):
+    def draw_color(self, color):
 
         obj_list = []
         for ob in self.graphic.objects:
@@ -156,6 +163,12 @@ class GraphicsController:
             self.view.canvas.draw(viewport_coords, color)
 
         self.view.canvas.update()
+
+    def draw(self):
+        self.draw_color(self.line_color)
+
+    def erase(self):
+        self.draw_color(self.bg_color)
 
     def make_list(self):            
         obj_list = []
@@ -170,7 +183,7 @@ class GraphicsController:
 
     def zoom_in(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
@@ -186,65 +199,66 @@ class GraphicsController:
             ret = message_box.exec()
 
 
-        self.draw(self.line_color)
+        self.draw()
 
     def zoom_out(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
         self.graphic.zoom_out(step)
 
-        self.draw(self.line_color)
+        self.draw()
 
 
     def pan_right(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_right(step)
 
-        self.draw(self.line_color)
+        self.draw()
 
 
     def pan_left(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_left(step)
 
-        self.draw(self.line_color)
+        self.draw()
 
     def pan_up(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_up(step)
 
-        self.draw(self.line_color)
+        self.draw()
 
     def pan_down(self):
 
-        self.draw(self.bg_color)
+        self.erase()
 
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
 
-        self.draw(self.line_color)
+        self.draw()
 
     def rotate(self):
         rad = self.view.side_menu.rotate.value()*2*math.pi/100
         print(rad)
+

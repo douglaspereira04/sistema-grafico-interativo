@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtGui import QDoubleValidator
 
@@ -16,6 +16,7 @@ class SideMenu(QtWidgets.QWidget):
 
         self.steps_label = QtWidgets.QLabel('Steps')
         self.zoom_label = QtWidgets.QLabel('Zoom')
+        self.rotate_label = QtWidgets.QLabel('Rotate')
 
         self.left_btn = QtWidgets.QPushButton('<')
         self.right_btn = QtWidgets.QPushButton('>')
@@ -23,6 +24,9 @@ class SideMenu(QtWidgets.QWidget):
         self.down_btn = QtWidgets.QPushButton('v')
         self.zin_btn = QtWidgets.QPushButton('+')
         self.zout_btn = QtWidgets.QPushButton('-')
+
+
+        self.rotate = QtWidgets.QSlider(QtCore.Qt.Horizontal)
 
         self.navigation_layout = QtWidgets.QGridLayout()
 
@@ -41,6 +45,8 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.zoom_label, 4,0, 1,2)
         self.navigation_layout.addWidget(self.zin_btn, 4,2)
         self.navigation_layout.addWidget(self.zout_btn, 4,3)
+        self.navigation_layout.addWidget(self.rotate_label, 5,0, 2,2)
+        self.navigation_layout.addWidget(self.rotate, 5,2,2,2)
 
         self.setMaximumWidth(150)
 

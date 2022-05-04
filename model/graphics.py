@@ -15,8 +15,8 @@ class Graphics:
         }
 
     def viewport_transformation(self, x, y):
-        x1 = int((x- self.window["x_min"]) * self.viewport_width() / self.window_width())
-        y1 = int((1 - ((y - self.window["y_min"]) / self.window_height())) * self.viewport_height())
+        x1 = ((x- self.window["x_min"]) * self.viewport_width() / self.window_width())
+        y1 = ((1 - ((y - self.window["y_min"]) / self.window_height())) * self.viewport_height())
         return (x1,y1)
 
     def window_width(self):

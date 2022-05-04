@@ -3,6 +3,7 @@ from model.graphic_object import GraphicObject
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+import math
 
 
 class GraphicsController:
@@ -20,6 +21,8 @@ class GraphicsController:
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
         self.view.side_menu.list.clicked.connect(self.object_edit)
 
+        self.view.side_menu.rotate.valueChanged.connect(self.rotate)
+
         self.view.show()
 
         self.reset_window_viewport_state()
@@ -33,10 +36,46 @@ class GraphicsController:
         self.view.save_to_file.triggered.connect(self.save_to_file)
 
     def load_from_file(self):
-        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', 'c:\\',"Text files (*.txt)")
+        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Text files (*.txt)")
+
+        if(file_name[0]!=''):
+            f = open(file_name[0], "r")
+            data = f.read()
+            f.close()
+
+            self.read_graphics_data(data)
+
+            self.draw(self.line_color)
+            self.make_list()
 
     def save_to_file(self):
-        file_name = QFileDialog.getSaveFileName(self.view, 'Save file', 'c:\\',"Text file (*.txt)")
+        file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Text files (*.txt)")
+
+        if(file_name[0]!=''):
+            f = open(file_name[0], "w")
+            f.write(str(self.compile_graphics_data()))
+            f.close()
+            
+
+    def read_graphics_data(self, data):
+        obj_list = list(eval(data))
+
+
+        new_objects = []
+
+        for obj_string in obj_list:
+
+            obj_type = ObjType[obj_string[0]]
+            name = obj_string[1]
+            coords = obj_string[2]
+
+            obj = GraphicObject(name, obj_type, coords)
+            new_objects.append(obj)
+
+        self.graphic.objects = new_objects
+
+    def compile_graphics_data(self):
+        return [(obj.obj_type.name, obj.name, obj.coords) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
         self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
@@ -205,3 +244,7 @@ class GraphicsController:
         self.graphic.pan_down(step)
 
         self.draw(self.line_color)
+
+    def rotate(self):
+        rad = self.view.side_menu.rotate.value()*2*math.pi/100
+        print(rad)

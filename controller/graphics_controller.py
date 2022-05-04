@@ -22,8 +22,6 @@ class GraphicsController:
         self.view.side_menu.list.clicked.connect(self.object_edit)
 
 
-        self.view.side_menu.rotate.valueChanged.connect(self.rotate)
-
         self.view.show()
 
         self.reset_window_viewport_state()
@@ -257,8 +255,3 @@ class GraphicsController:
         self.graphic.pan_down(step)
 
         self.draw()
-
-    def rotate(self):
-        rad = self.view.side_menu.rotate.value()*2*math.pi/100
-        print(rad)
-

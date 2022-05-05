@@ -7,6 +7,8 @@ from view.side_menu import SideMenu
 class GraphicsWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
+
+        self.setWindowTitle("Computação Gráfica")
         ## Generate the structure parts of the MainWindow
         self.central_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget
         self.right_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget

@@ -12,8 +12,8 @@ class ObjectDialog(QDialog):
 
 
 
-        self.name.setText("A")
-        self.coordinates.setPlainText("(100,100),(200,200)")
+        self.name.setPlaceholderText("Name")
+        self.coordinates.setPlaceholderText("(x1,y1),(x2,y2),...,(xn,yn)")
 
         if (is_new):
             buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);

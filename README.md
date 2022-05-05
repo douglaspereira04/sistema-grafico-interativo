@@ -1,4 +1,4 @@
-# Linguagens Formais e Compiladores
+# Computação Gráfica
 
 Projeto com Interface Gráfica Qt e Python 3
 

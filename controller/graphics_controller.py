@@ -14,12 +14,13 @@ class GraphicsController:
         self.view.side_menu.zin_btn.clicked.connect(self.zoom_in)
         self.view.side_menu.zout_btn.clicked.connect(self.zoom_out)
         self.view.side_menu.add_btn.clicked.connect(self.save_object)
+        self.view.side_menu.edit_btn.clicked.connect(self.edit_object)
+        self.view.side_menu.remove_btn.clicked.connect(self.remove_object)
 
         self.view.side_menu.left_btn.clicked.connect(self.pan_left)
         self.view.side_menu.right_btn.clicked.connect(self.pan_right)
         self.view.side_menu.up_btn.clicked.connect(self.pan_up)
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
-        self.view.side_menu.list.clicked.connect(self.object_edit)
 
 
         self.view.show()
@@ -118,7 +119,7 @@ class GraphicsController:
         if dialog.exec():
             self.erase()
 
-            (name, string_coords, delete) = dialog.get_inputs()
+            (name, string_coords) = dialog.get_inputs()
 
             (obj_type, coords) = self.string_to_obj(string_coords)
 
@@ -129,29 +130,39 @@ class GraphicsController:
             self.make_list()
 
 
-    def object_edit(self, item):
+    def edit_object(self):
+        selected = self.view.side_menu.list.currentRow()
 
-        name = self.graphic.objects[item.row()].name
-        coords = str(self.graphic.objects[item.row()].coords)[1:-1]
+        if(selected != -1):
+            print(selected)
+            print(self.graphic.objects[selected].name)
+            name = self.graphic.objects[selected].name
+            coords = str(self.graphic.objects[selected].coords)[1:-1]
 
-        dialog = ObjectDialog(self.view, name, coords, False)
-        result = dialog.exec()
-        if (result):
-            self.erase()
-            
-            (new_name, new_string_coords, delete) = dialog.get_inputs()
-            if(delete):
-                del self.graphic.objects[item.row()]
-            else:
+            dialog = ObjectDialog(self.view, name, coords)
+            result = dialog.exec()
+            if (result):
+                self.erase()
+                
+                (new_name, new_string_coords) = dialog.get_inputs()
+
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
-                self.graphic.objects[item.row()].name = new_name
-                self.graphic.objects[item.row()].obj_type = new_obj_type
-                self.graphic.objects[item.row()].coords = new_coords
-        
+                self.graphic.objects[selected].name = new_name
+                self.graphic.objects[selected].obj_type = new_obj_type
+                self.graphic.objects[selected].coords = new_coords
+            
+                self.draw()
+                self.make_list()
+
+    def remove_object(self, item):
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1):
+            self.erase()
+
+            del self.graphic.objects[selected]
+
             self.draw()
             self.make_list()
-
-
 
     def draw_color(self, color):
 

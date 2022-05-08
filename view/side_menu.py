@@ -10,12 +10,15 @@ class SideMenu(QtWidgets.QWidget):
         self.title = QtWidgets.QLabel('Menu de funções')
         self.list = QtWidgets.QListWidget()
         self.add_btn = QtWidgets.QPushButton('Add')
+        self.edit_btn = QtWidgets.QPushButton('Edit')
+        self.remove_btn = QtWidgets.QPushButton('Del')
+        self.transform_btn = QtWidgets.QPushButton('Transform')
         self.step = QLineEdit()
         self.step.setPlaceholderText("Navigation Steps");
         self.step.setValidator(QDoubleValidator());
 
-        self.steps_label = QtWidgets.QLabel('Steps')
-        self.zoom_label = QtWidgets.QLabel('Zoom')
+        self.steps_label = QtWidgets.QLabel('Steps: ')
+        self.zoom_label = QtWidgets.QLabel('Zoom: ')
 
         self.left_btn = QtWidgets.QPushButton('<')
         self.right_btn = QtWidgets.QPushButton('>')
@@ -26,15 +29,21 @@ class SideMenu(QtWidgets.QWidget):
 
 
         self.navigation_layout = QtWidgets.QGridLayout()
+        self.edit_layout = QtWidgets.QGridLayout()
 
 
         self.layout.addWidget(self.title)
         self.layout.addWidget(self.list)
-        self.layout.addWidget(self.add_btn)
+        self.layout.addLayout(self.edit_layout)
         self.layout.addLayout(self.navigation_layout)
 
-        self.navigation_layout.addWidget(self.steps_label, 0,0)
-        self.navigation_layout.addWidget(self.step, 0,1,1,3)
+        self.edit_layout.addWidget(self.add_btn, 0,0)
+        self.edit_layout.addWidget(self.edit_btn, 0,1)
+        self.edit_layout.addWidget(self.remove_btn, 0,2)
+        self.edit_layout.addWidget(self.transform_btn, 1,0,1,3)
+
+        self.navigation_layout.addWidget(self.steps_label, 0,0,1,2)
+        self.navigation_layout.addWidget(self.step, 0,2,1,2)
         self.navigation_layout.addWidget(self.up_btn, 1,1,1,2)
         self.navigation_layout.addWidget(self.left_btn, 2,0,1,2)
         self.navigation_layout.addWidget(self.right_btn,2,2,1,2)

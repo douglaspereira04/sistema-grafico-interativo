@@ -2,32 +2,20 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox, QFormLayout
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="", coords="", is_new=True):
+    def __init__(self, parent=None, name="", coords=""):
         super().__init__(parent)
 
-        self.name = QLineEdit(self)
-        self.coordinates = QPlainTextEdit(self)
+        self.name = QLineEdit(name)
+        self.coordinates = QPlainTextEdit(coords)
         self.buttonBox = None
-        self.delete = False
-
 
 
         self.name.setPlaceholderText("Name")
         self.coordinates.setPlaceholderText("(x1,y1),(x2,y2),...,(xn,yn)")
 
-        if (is_new):
-            buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
-            buttonBox.accepted.connect(self.accept)
-            buttonBox.rejected.connect(self.reject)
-        else:
-            buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Discard | QDialogButtonBox.Cancel, self);
-            buttonBox.accepted.connect(self.accept)
-            buttonBox.rejected.connect(self.reject)
-            buttonBox.button(QDialogButtonBox.Discard).setText("Delete");
-            buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.set_delete)
-
-            self.name.setText(name)
-            self.coordinates.setPlainText(coords)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
         layout = QFormLayout(self)
         layout.addRow("Name", self.name)
@@ -35,8 +23,4 @@ class ObjectDialog(QDialog):
         layout.addWidget(buttonBox)
 
     def get_inputs(self):
-        return (self.name.text(), self.coordinates.toPlainText(), self.delete)
-    
-    def set_delete(self):
-        self.delete = True
-        self.accept()
+        return (self.name.text(), self.coordinates.toPlainText())

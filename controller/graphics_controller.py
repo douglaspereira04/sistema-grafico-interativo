@@ -1,4 +1,5 @@
 from view.object_dialog import ObjectDialog
+from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
@@ -33,7 +34,6 @@ class GraphicsController:
 
         self.bg_color = Qt.white
         self.line_color = Qt.black
-
 
         self.view.set_canvas_color(self.bg_color)
 
@@ -170,9 +170,9 @@ class GraphicsController:
             self.make_list()
 
     def transform_object(self):
-        selected = self.view.side_menu.list.currentRow()
-        if(selected != -1):
-            print(selected)
+        dialog = TransformationDialog(self.view, "Object", [(10,10),(20,20)])
+        result = dialog.exec()
+        print(result)
 
 
     def draw_color(self, color):

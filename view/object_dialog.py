@@ -5,6 +5,8 @@ class ObjectDialog(QDialog):
     def __init__(self, parent=None, name="", coords="", color=""):
         super().__init__(parent)
 
+        self.setWindowTitle("Object")
+
         self.name = QLineEdit(name)
         self.color = QLineEdit(color)
         self.coordinates = QPlainTextEdit(coords)

@@ -186,7 +186,7 @@ class GraphicsController:
 
                 transformation_list = [self.view_to_model_transformation(transformation) for transformation in dialog.get_transformations()]
                 
-                self.graphic.transform_from_list(transformation_list)
+                self.graphic.transform_from_list(selected, transformation_list)
 
                 self.draw()
                 self.make_list()

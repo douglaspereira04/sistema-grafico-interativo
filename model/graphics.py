@@ -111,5 +111,6 @@ class Graphics:
         return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
 
 
-    def transform_from_list(self, transformation_list):
+    def transform_from_list(self, object_index, transformation_list):
+        print(object_index)
         print(transformation_list)

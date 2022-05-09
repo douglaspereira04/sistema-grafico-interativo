@@ -184,15 +184,25 @@ class GraphicsController:
                 
                 if(rotation != None):
                     rotation_type = RotationType[rotation[0]]
-                    degrees = rotation_type[1]
-                    rotation_x = rotation_type[2]
-                    rotation_y = rotation_type[3]
+                    degrees = float(rotation[1])
+
+                    if(rotation_type == RotationType.GIVEN_POINT):
+                        rotation_x = float(rotation[2])
+                        rotation_y = float(rotation[3])
+                    else:
+                        if (rotation_type == RotationType.OBJECT_CENTER):
+                            pass
+                        else:
+                            pass
+
+
+                if(scale != None):
+                    scale = float(scale)
 
                 if(translation != None):
-                    (translation_x, translation_y) = translation
+                    translation_x = float(translation[0])
+                    translation_y = float(translation[1])
 
-
-                print(_object.centroid)
 
                 self.draw()
                 self.make_list()

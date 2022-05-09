@@ -1,3 +1,5 @@
+import math
+
 class Graphics:
     def __init__(self):
         self.objects = []
@@ -82,3 +84,17 @@ class Graphics:
     def pan_down(self, step):
         self.window["y_max"] -= step
         self.window["y_min"] -= step
+
+
+    def translation_matrix(self, x, y):
+        return [[1.0,  0.,  0.],[ 0,  1.0,  0.],[ x,  y,  1.]]
+
+    def scaling_matrix(self, x, y):
+        return [[x,  0.,  0.],[ 0,  y,  0.],[ 0., 0., 1.]]
+
+    def rotation_matrix(self, degrees):
+        _sin = (math.sin(math.radians(degrees)))
+        _cos = (math.cos(math.radians(degrees)))
+
+        return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
+

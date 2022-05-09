@@ -137,9 +137,11 @@ class GraphicsController:
         selected = self.view.side_menu.list.currentRow()
 
         if(selected != -1):
-            name = self.graphic.objects[selected].name
-            coords = str(self.graphic.objects[selected].coords)[1:-1]
-            color = self.graphic.objects[selected].color
+
+            _object = self.graphic.objects[selected]
+            name = _object.name
+            coords = str(_object.coords)[1:-1]
+            color = _object.color
 
             dialog = ObjectDialog(self.view, name, coords, color)
             result = dialog.exec()
@@ -149,10 +151,10 @@ class GraphicsController:
                 (new_name, new_string_coords, new_color) = dialog.get_inputs()
 
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
-                self.graphic.objects[selected].name = new_name
-                self.graphic.objects[selected].obj_type = new_obj_type
-                self.graphic.objects[selected].coords = new_coords
-                self.graphic.objects[selected].color = new_color
+                _object.name = new_name
+                _object.obj_type = new_obj_type
+                _object.coords = new_coords
+                _object.color = new_color
             
                 self.draw()
                 self.make_list()
@@ -171,8 +173,8 @@ class GraphicsController:
 
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1):
-
-            name = self.graphic.objects[selected].name
+            _object = self.graphic.objects[selected]
+            name = _object.name
             dialog = TransformationDialog(self.view, name)
             result = dialog.exec()
             if (result):
@@ -190,7 +192,7 @@ class GraphicsController:
                     (translation_x, translation_y) = translation
 
 
-                print("ready to transform")
+                print(_object.centroid)
 
                 self.draw()
                 self.make_list()

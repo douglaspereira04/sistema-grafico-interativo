@@ -1,6 +1,7 @@
 from view.object_dialog import ObjectDialog
-from view.transformation_dialog import TransformationDialog, RotationType
+from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
+from model.graphics import TransformationType, RotationType
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -171,6 +172,7 @@ class GraphicsController:
             self.draw()
             self.make_list()
 
+
     def transform_object(self):
 
         selected = self.view.side_menu.list.currentRow()
@@ -182,14 +184,22 @@ class GraphicsController:
             if (result):
                 self.erase()
 
-                transformation_list = dialog.get_transformations()
+                transformation_list = [self.view_to_model_transformation(transformation) for transformation in dialog.get_transformations()]
                 
-                print(transformation_list)
-
+                self.graphic.transform_from_list(transformation_list)
 
                 self.draw()
                 self.make_list()
 
+    def view_to_model_transformation(self, view_entry):
+        transformation_type = TransformationType[view_entry[0].name]
+        transformation = None
+        if(transformation_type == TransformationType.ROTATION):
+            transformation = (RotationType[view_entry[1][0]],view_entry[1][1],view_entry[1][2],view_entry[1][3])
+        else:
+            transformation = view_entry[1]
+
+        return (transformation_type,transformation)
 
     def draw_color(self, color):
         obj_list = []

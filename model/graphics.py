@@ -1,4 +1,16 @@
 import math
+from enum import Enum
+
+class RotationType(Enum):
+    OBJECT_CENTER = 1
+    WORLD_CENTER = 2
+    GIVEN_POINT = 3
+
+class TransformationType(Enum):
+    TRANSLATION = 1
+    SCALING = 2
+    ROTATION = 3
+
 
 class Graphics:
     def __init__(self):
@@ -97,3 +109,7 @@ class Graphics:
         _cos = (math.cos(math.radians(degrees)))
 
         return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
+
+
+    def transform_from_list(self, transformation_list):
+        print(transformation_list)

@@ -2,6 +2,7 @@ from view.object_dialog import ObjectDialog
 from model.graphic_object import GraphicObject
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 import math
 
@@ -16,6 +17,7 @@ class GraphicsController:
         self.view.side_menu.add_btn.clicked.connect(self.save_object)
         self.view.side_menu.edit_btn.clicked.connect(self.edit_object)
         self.view.side_menu.remove_btn.clicked.connect(self.remove_object)
+        self.view.side_menu.transform_btn.clicked.connect(self.transform_object)
 
         self.view.side_menu.left_btn.clicked.connect(self.pan_left)
         self.view.side_menu.right_btn.clicked.connect(self.pan_right)
@@ -73,14 +75,15 @@ class GraphicsController:
             obj_type = ObjType[obj_string[0]]
             name = obj_string[1]
             coords = obj_string[2]
+            color = obj_string[3]
 
-            obj = GraphicObject(name, obj_type, coords)
+            obj = GraphicObject(name, obj_type, coords, color)
             new_objects.append(obj)
 
         self.graphic.objects = new_objects
 
     def compile_graphics_data(self):
-        return [(obj.obj_type.name, obj.name, obj.coords) for obj in self.graphic.objects]
+        return [(obj.obj_type.name, obj.name, obj.coords, obj.color) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
         self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
@@ -119,11 +122,11 @@ class GraphicsController:
         if dialog.exec():
             self.erase()
 
-            (name, string_coords) = dialog.get_inputs()
+            (name, string_coords, color) = dialog.get_inputs()
 
             (obj_type, coords) = self.string_to_obj(string_coords)
 
-            obj = GraphicObject(name, obj_type, coords)
+            obj = GraphicObject(name, obj_type, coords, color)
             self.graphic.objects.append(obj)
 
             self.draw()
@@ -138,23 +141,25 @@ class GraphicsController:
             print(self.graphic.objects[selected].name)
             name = self.graphic.objects[selected].name
             coords = str(self.graphic.objects[selected].coords)[1:-1]
+            color = self.graphic.objects[selected].color
 
-            dialog = ObjectDialog(self.view, name, coords)
+            dialog = ObjectDialog(self.view, name, coords, color)
             result = dialog.exec()
             if (result):
                 self.erase()
                 
-                (new_name, new_string_coords) = dialog.get_inputs()
+                (new_name, new_string_coords, new_color) = dialog.get_inputs()
 
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
                 self.graphic.objects[selected].name = new_name
                 self.graphic.objects[selected].obj_type = new_obj_type
                 self.graphic.objects[selected].coords = new_coords
+                self.graphic.objects[selected].color = new_color
             
                 self.draw()
                 self.make_list()
 
-    def remove_object(self, item):
+    def remove_object(self):
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1):
             self.erase()
@@ -164,17 +169,25 @@ class GraphicsController:
             self.draw()
             self.make_list()
 
-    def draw_color(self, color):
+    def transform_object(self):
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1):
+            print(selected)
 
+
+    def draw_color(self, color):
         obj_list = []
         for ob in self.graphic.objects:
             viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.coords]
-            self.view.canvas.draw(viewport_coords, color)
+            if(color == None):
+                self.view.canvas.draw(viewport_coords, QColor(ob.color))
+            else:
+                self.view.canvas.draw(viewport_coords, color)
 
         self.view.canvas.update()
 
     def draw(self):
-        self.draw_color(self.line_color)
+        self.draw_color(None)
 
     def erase(self):
         self.draw_color(self.bg_color)

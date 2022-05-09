@@ -97,4 +97,3 @@ class Graphics:
         _cos = (math.cos(math.radians(degrees)))
 
         return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
-

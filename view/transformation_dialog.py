@@ -1,8 +1,13 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QMessageBox
 from PyQt5.QtGui import QDoubleValidator
 from enum import Enum
+
+class TransformationType(Enum):
+    TRANSLATION = 1
+    SCALING = 2
+    ROTATION = 3
 
 class RotationType(Enum):
     OBJECT_CENTER = 1
@@ -16,9 +21,7 @@ class TransformationDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Trasform")
 
-        self.rotation = None
-        self.scaling = None
-        self.translation = None
+        self.transformation_list = []
 
         self.name = QLabel(name)
         self.buttonBox = None
@@ -43,19 +46,22 @@ class TransformationDialog(QDialog):
 
 
         #transformation log
+        transformation_list_layout = QtWidgets.QVBoxLayout()
+        self.transformation_changes = QtWidgets.QListWidget()
+        self.remove_transformation_btn = QtWidgets.QPushButton("Remove")
 
-        self.transformation_changes = QtWidgets.QPlainTextEdit()
-        self.transformation_changes.setReadOnly(True)
-        self.transformation_changes.setMaximumHeight(self.transformation_changes.font().pointSize()*10)
+        transformation_list_layout.addWidget(self.transformation_changes)
+        transformation_list_layout.addWidget(self.remove_transformation_btn)
+
+
+        self.remove_transformation_btn.clicked.connect(self.delete_transformation)
 
         #rotation center
 
-        self.no_rotation = QtWidgets.QRadioButton('No rotation')
         self.object_center = QtWidgets.QRadioButton('Object Center')
         self.world_center = QtWidgets.QRadioButton('World Center')
         self.given_point = QtWidgets.QRadioButton('Given Point')
 
-        rotation_layout.addWidget(self.no_rotation)
         rotation_layout.addWidget(self.object_center)
         rotation_layout.addWidget(self.world_center)
         rotation_layout.addWidget(self.given_point)
@@ -82,6 +88,8 @@ class TransformationDialog(QDialog):
         rotation_options_layout.addWidget(degrees_label,1,0,1,1)
         rotation_options_layout.addWidget(self.degrees,1,1,1,1)
 
+        self.add_rotation_btn = QtWidgets.QPushButton("Add Rotation")
+
 
         rotation_layout.addLayout(rotation_options_layout)
 
@@ -89,34 +97,41 @@ class TransformationDialog(QDialog):
         self.given_point.toggled.connect(self.given_point_toggled)
         self.world_center.toggled.connect(self.world_center_toggled)
         self.object_center.toggled.connect(self.object_center_toggled)
-        self.no_rotation.toggled.connect(self.no_rotation_toggled)
 
-        self.degrees.textChanged.connect(self.add_rotation)
-        self.given_y.textChanged.connect(self.add_rotation)
-        self.given_x.textChanged.connect(self.add_rotation)
+        self.add_rotation_btn.clicked.connect(self.add_rotation)
 
-        self.no_rotation.setChecked(True)
+        self.object_center.setChecked(True)
+
+        rotation_layout.addWidget(self.add_rotation_btn)
         #scaling
 
         self.scale = QtWidgets.QLineEdit()
         self.scale.setValidator(QDoubleValidator());
-        scaling_layout.addRow("Scale(%): ", self.scale)
 
-        self.scale.textChanged.connect(self.add_scale)
+        self.add_scaling_btn = QtWidgets.QPushButton("Add Scaling")
+
+        scaling_layout.addRow("Scale(%): ", self.scale)
+        scaling_layout.addRow(self.add_scaling_btn)
+
+        self.add_scaling_btn.clicked.connect(self.add_scale)
+
 
         #translation
 
         self.translation_x = QtWidgets.QLineEdit()
         self.translation_y = QtWidgets.QLineEdit()
+        self.add_translation_btn = QtWidgets.QPushButton("Add Translation")
 
         self.translation_x.setValidator(QDoubleValidator());
         self.translation_y.setValidator(QDoubleValidator());
 
         translation_layout.addRow("x: ", self.translation_x)
         translation_layout.addRow("y: ", self.translation_y)
+        translation_layout.addRow(self.add_translation_btn)
 
-        self.translation_x.textChanged.connect(self.add_translation)
-        self.translation_y.textChanged.connect(self.add_translation)
+        self.add_translation_btn.clicked.connect(self.add_translation)
+
+
 
         #tabs
 
@@ -131,10 +146,11 @@ class TransformationDialog(QDialog):
 
         #transform layout
 
-        transform_layout = QtWidgets.QVBoxLayout()
+        transform_layout = QtWidgets.QHBoxLayout()
 
         transform_layout.addWidget(transform_tabs)
-        transform_layout.addWidget(self.transformation_changes)
+
+        transform_layout.addLayout(transformation_list_layout)
 
         layout.addWidget(self.name)
         layout.addLayout(transform_layout)
@@ -144,48 +160,77 @@ class TransformationDialog(QDialog):
         self.list_transformations()
 
     def add_rotation(self):
-        center = ""
+        center = None
         if(self.object_center.isChecked()):
             center = RotationType.OBJECT_CENTER
         elif(self.world_center.isChecked()):
             center = RotationType.WORLD_CENTER
         elif(self.given_point.isChecked()):
             center = RotationType.GIVEN_POINT
-        else:
-            center = None
 
-        if(center == None):
-            self.rotation = None
+        rotation = None
+        float_degrees = 0
+        try:
+            float_degrees = float(self.degrees.text())
+        except ValueError:
+            self.show_message_box("Invalid degrees value")
+            return
+
+        if(center == RotationType.GIVEN_POINT):
+            try:
+                float_given_x = float(self.given_x.text())
+                float_given_y = float(self.given_y.text())
+            except ValueError:
+                self.show_message_box("Invalid point value")
+                return
+
+            rotation = (center.name, float_degrees, float_given_x, float_given_y)
         else:
-            self.rotation = (center.name, self.degrees.text(), self.given_x.text(), self.given_y.text())
+            rotation = (center.name, float_degrees, 0, 0)
+
+        self.transformation_list.append((TransformationType.ROTATION, rotation))
         self.list_transformations()
 
     def add_scale(self):
-        if(self.scale.text() == ""):
-            self.scaling = None
-        else:
-            self.scaling = (self.scale.text())
+        try:
+            scaling = float(self.scale.text())
+        except ValueError:
+            self.show_message_box("Invalid scale value")
+            return
 
+        self.transformation_list.append((TransformationType.SCALING, scaling))
         self.list_transformations()
 
     def add_translation(self):
-        if(self.translation_x.text() == "" and self.translation_y.text() == ""):
-            self.translation = None
-        else:
-            self.translation = (self.translation_x.text(),self.translation_y.text())
+        try:
+            translation_x = float(self.translation_x.text())
+            translation_y = float(self.translation_y.text())
+        except ValueError:
+            self.show_message_box("Invalid point value")
+            return
 
+        translation = (translation_x,translation_y)
+        self.transformation_list.append((TransformationType.TRANSLATION, translation))
         self.list_transformations()
 
     def list_transformations(self):
-        self.transformation_changes.setPlainText("Rotation: " + str(self.rotation) + "\n" + "Scaling: " +str(self.scaling) + "\n" + "Translation: " + str(self.translation))
+        self.transformation_changes.clear()
+        display_list = [t[0].name+": "+str(t[1]) for t in self.transformation_list]
+        self.transformation_changes.addItems(display_list)
 
+
+    def delete_transformation(self):
+        selected = self.transformation_changes.currentRow()
+        if(selected != -1):
+            del self.transformation_list[selected]
+
+        self.list_transformations()
 
     def given_point_toggled(self):
         if(self.given_point.isChecked()):
             self.degrees.setReadOnly(False)
             self.given_x.setReadOnly(False)
             self.given_y.setReadOnly(False)
-            self.add_rotation()
 
     def world_center_toggled(self):
         if(self.world_center.isChecked()):
@@ -194,7 +239,6 @@ class TransformationDialog(QDialog):
             self.given_x.setText("")
             self.given_y.setReadOnly(True)
             self.given_y.setText("")
-            self.add_rotation()
 
     def object_center_toggled(self):
         if(self.object_center.isChecked()):
@@ -203,17 +247,16 @@ class TransformationDialog(QDialog):
             self.given_x.setText("")
             self.given_y.setReadOnly(True)
             self.given_y.setText("")
-            self.add_rotation()
 
-    def no_rotation_toggled(self):
-        if(self.no_rotation.isChecked()):
-            self.degrees.setReadOnly(True)
-            self.degrees.setText("")
-            self.given_x.setReadOnly(True)
-            self.given_x.setText("")
-            self.given_y.setReadOnly(True)
-            self.given_y.setText("")
-            self.add_rotation()
-            
-    def get_inputs(self):
-        return (self.rotation, self.scaling, self.translation)
+    def get_transformations(self):
+        return self.transformation_list
+
+
+    def show_message_box(self, message):
+        box = QMessageBox()
+        box.setIcon(QMessageBox.Critical)
+
+        box.setText(message)
+        box.setWindowTitle("Error")
+
+        box.exec_()

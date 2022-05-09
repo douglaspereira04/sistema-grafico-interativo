@@ -40,6 +40,8 @@ class GraphicsController:
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
 
+
+
     def load_from_file(self):
         self.erase()
 
@@ -180,28 +182,9 @@ class GraphicsController:
             if (result):
                 self.erase()
 
-                (rotation, scale, translation) = dialog.get_inputs()
+                transformation_list = dialog.get_transformations()
                 
-                if(rotation != None):
-                    rotation_type = RotationType[rotation[0]]
-                    degrees = float(rotation[1])
-
-                    if(rotation_type == RotationType.GIVEN_POINT):
-                        rotation_x = float(rotation[2])
-                        rotation_y = float(rotation[3])
-                    else:
-                        if (rotation_type == RotationType.OBJECT_CENTER):
-                            pass
-                        else:
-                            pass
-
-
-                if(scale != None):
-                    scale = float(scale)
-
-                if(translation != None):
-                    translation_x = float(translation[0])
-                    translation_y = float(translation[1])
+                print(transformation_list)
 
 
                 self.draw()

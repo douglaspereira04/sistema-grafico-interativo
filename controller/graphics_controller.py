@@ -1,5 +1,5 @@
 from view.object_dialog import ObjectDialog
-from view.transformation_dialog import TransformationDialog
+from view.transformation_dialog import TransformationDialog, RotationType
 from model.graphic_object import GraphicObject
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
@@ -137,8 +137,6 @@ class GraphicsController:
         selected = self.view.side_menu.list.currentRow()
 
         if(selected != -1):
-            print(selected)
-            print(self.graphic.objects[selected].name)
             name = self.graphic.objects[selected].name
             coords = str(self.graphic.objects[selected].coords)[1:-1]
             color = self.graphic.objects[selected].color
@@ -170,9 +168,32 @@ class GraphicsController:
             self.make_list()
 
     def transform_object(self):
-        dialog = TransformationDialog(self.view, "Object", [(10,10),(20,20)])
-        result = dialog.exec()
-        print(result)
+
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1):
+
+            name = self.graphic.objects[selected].name
+            dialog = TransformationDialog(self.view, name)
+            result = dialog.exec()
+            if (result):
+                self.erase()
+
+                (rotation, scale, translation) = dialog.get_inputs()
+                
+                if(rotation != None):
+                    rotation_type = RotationType[rotation[0]]
+                    degrees = rotation_type[1]
+                    rotation_x = rotation_type[2]
+                    rotation_y = rotation_type[3]
+
+                if(translation != None):
+                    (translation_x, translation_y) = translation
+
+
+                print("ready to transform")
+
+                self.draw()
+                self.make_list()
 
 
     def draw_color(self, color):

@@ -116,14 +116,24 @@ class Graphics:
 
         coords = self.objects[object_index].coords
 
-        transformation_matrix = self.get_transformation_matrix(transformation_list)
+        transformation_matrix = self.get_transformation_matrix_composition(transformation_list)
         for i in range(len(coords)):
             coords[i] = self.transform(coords[i], transformation_matrix)
 
 
-    def get_transformation_matrix(self, transformation_list):
-        #aqui crie e retorne a matriz de transformação resultante a partir dad lista de transformações
-        return []
+    def get_transformation_matrix_composition(self, transformation_list):
+        
+        transformation_matrixes = [self.get_transformation_matrix(transformation) for transformation in transformation_list]
+        transformation_matrix_composition = transformation_matrixes[0]
+
+        for i in range(len(transformation_matrixes)-1):
+            transformation_matrix_composition = np.matmul(transformation_matrix_composition,transformation_matrixes[i+1])
+
+        return transformation_matrix_composition
+
+    def get_transformation_matrix(self, transformation):
+        #cria uma matrix de transformação a apartir das informaçõe da tupla transformation
+        #para transformações de rotação e escalonamento deve-se criar as matrizes necessarias e retornar a composição
 
     def transform(self, point, transformation_matrix):
         (x,y) = point

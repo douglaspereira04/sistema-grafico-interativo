@@ -1,4 +1,5 @@
 import math
+import numpy as np
 from enum import Enum
 
 class RotationType(Enum):
@@ -116,7 +117,6 @@ class Graphics:
         coords = self.objects[object_index].coords
 
         transformation_matrix = self.get_transformation_matrix(transformation_list)
-
         for i in range(len(coords)):
             coords[i] = self.transform(coords[i], transformation_matrix)
 
@@ -127,6 +127,6 @@ class Graphics:
 
     def transform(self, point, transformation_matrix):
         (x,y) = point
-        #aqui voce transforma o ponto (x,y) e retorna um ponto (x',y') transformado
-        return (x,y)
+        [x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
+        return (x1,y1)
         

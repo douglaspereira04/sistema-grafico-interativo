@@ -112,5 +112,21 @@ class Graphics:
 
 
     def transform_from_list(self, object_index, transformation_list):
-        print(object_index)
-        print(transformation_list)
+
+        coords = self.objects[object_index].coords
+
+        transformation_matrix = self.get_transformation_matrix(transformation_list)
+
+        for i in range(len(coords)):
+            coords[i] = self.transform(coords[i], transformation_matrix)
+
+
+    def get_transformation_matrix(self, transformation_list):
+        #aqui crie e retorne a matriz de transformação resultante a partir dad lista de transformações
+        return []
+
+    def transform(self, point, transformation_matrix):
+        (x,y) = point
+        #aqui voce transforma o ponto (x,y) e retorna um ponto (x',y') transformado
+        return (x,y)
+        

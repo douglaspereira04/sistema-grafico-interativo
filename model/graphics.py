@@ -98,6 +98,15 @@ class Graphics:
         self.window["y_max"] -= step
         self.window["y_min"] -= step
 
+    def translation(self, x, y):
+        return (TransformationType.TRANSLATION, (x, y))
+
+    def scale(self, scale):
+        return (TransformationType.SCALING, scale)
+
+    def natural_rotation(self, degrees, centroid):
+        (x,y) = centroid
+        return (TransformationType.ROTATION, (RotationType.OBJECT_CENTER, degrees, x, y))
 
     def translation_matrix(self, x, y):
         return [[1.0,  0.,  0.],[ 0,  1.0,  0.],[ x,  y,  1.]]
@@ -115,7 +124,7 @@ class Graphics:
     def transform_from_list(self, object_index, transformation_list):
 
         coords = self.objects[object_index].coords
-        centroid = self.objects[object_index].centroid
+        centroid = self.objects[object_index].centroid()
 
         transformation_matrix = self.get_transformation_matrix_composition(transformation_list,centroid)
         

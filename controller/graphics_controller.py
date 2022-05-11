@@ -45,6 +45,61 @@ class GraphicsController:
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
 
+        self.view.canvas.zoom.connect(self.canvas_scroll)
+        self.view.canvas.pan.connect(self.canvas_pan)
+        self.view.canvas.grab.connect(self.object_grab)
+        self.view.canvas.rotate.connect(self.object_rotate)
+        self.view.canvas.scale.connect(self.object_scale)
+
+
+    def canvas_scroll(self):
+        if(self.view.canvas.wheel_y_angle > 0):
+            self.zoom_in(self.view.canvas.wheel_y_angle)
+        elif(self.view.canvas.wheel_y_angle < 0):
+            self.zoom_out((-1)*self.view.canvas.wheel_y_angle)
+
+    def canvas_pan(self):
+        
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
+
+        if(x_diff > 0):
+            self.pan_left(x_diff)
+        elif(x_diff < 0):
+            self.pan_right((-1)*x_diff)
+
+        if(y_diff > 0):
+            self.pan_up(y_diff)
+        elif(y_diff < 0):
+            self.pan_down((-1)*y_diff)
+
+    def object_grab(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        if(x_diff != 0 or y_diff != 0):
+            transformation = self.graphic.translation(x_diff,-y_diff)
+            self.transform_object(transformation)
+
+
+    def object_rotate(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        selected = self.view.side_menu.list.currentRow()
+
+        if(selected != -1):
+            centroid = self.graphic.objects[selected].centroid()
+
+            if(x_diff != 0 or y_diff != 0):
+                transformation = self.graphic.natural_rotation(y_diff, centroid)
+                self.transform_object(transformation)
+
+
+    def object_scale(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        if(x_diff != 0 or y_diff != 0):
+            transformation = self.graphic.scale(1-(0.01*y_diff))
+            self.transform_object(transformation)
+
 
     def list_selected(self):
         if(self.view.side_menu.list.currentRow() >= 0):
@@ -155,7 +210,6 @@ class GraphicsController:
             self.graphic.objects.append(obj)
 
             self.draw()
-            self.make_list()
 
 
     def edit_object(self):
@@ -195,23 +249,30 @@ class GraphicsController:
             self.make_list()
 
 
-    def transform_object(self):
+    def transform_object(self, transformation):
 
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1):
             _object = self.graphic.objects[selected]
             name = _object.name
-            dialog = TransformationDialog(self.view, name)
-            result = dialog.exec()
-            if (result):
+
+            transformation_list = []
+
+            if(transformation == False):
+                dialog = TransformationDialog(self.view, name)
+
+                result = dialog.exec()
+                if (result):
+                    transformation_list = [self.view_to_model_transformation(transformation) for transformation in dialog.get_transformations()]
+            else:
+                transformation_list.append(transformation)
+            
+            if(len(transformation_list) > 0):
                 self.erase()
 
-                transformation_list = [self.view_to_model_transformation(transformation) for transformation in dialog.get_transformations()]
-                
                 self.graphic.transform_from_list(selected, transformation_list)
 
                 self.draw()
-                self.make_list()
 
     def view_to_model_transformation(self, view_entry):
         transformation_type = TransformationType[view_entry[0].name]
@@ -251,78 +312,82 @@ class GraphicsController:
         if (self.view.side_menu.step.text().strip() == ""):
             self.view.side_menu.step.setText("10")
 
-    def zoom_in(self):
+    def zoom_in(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+
+        zoom_by_button = step == False
+
+        if(zoom_by_button):
+            step = float(self.view.side_menu.step.text())
 
         zoomed = self.graphic.zoom_in(step)
 
-        if(not zoomed):
-            message_box = QMessageBox()
-            message_box.setWindowTitle("Zoom in")
-            message_box.setText("Too much zoom")
-            message_box.setInformativeText("Set a smaller step value")
-            message_box.setStandardButtons(QMessageBox.Ok)
-            ret = message_box.exec()
-
-
         self.draw()
 
-    def zoom_out(self):
+        if(zoom_by_button and (not zoomed)):
+            show_warning_box("Too much zoom.\nSet smaller step value.")
+
+    def zoom_out(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+
+        if(step == False):
+            step = float(self.view.side_menu.step.text())
 
         self.graphic.zoom_out(step)
 
         self.draw()
 
 
-    def pan_right(self):
+    def pan_right(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+        if(step == False):
+            step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_right(step)
 
         self.draw()
 
 
-    def pan_left(self):
+    def pan_left(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+        if(step == False):
+            step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_left(step)
 
         self.draw()
 
-    def pan_up(self):
+    def pan_up(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+        if(step == False):
+            step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_up(step)
 
         self.draw()
 
-    def pan_down(self):
+    def pan_down(self, step):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
+        if(step == False):
+            step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
 

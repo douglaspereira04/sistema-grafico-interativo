@@ -5,8 +5,6 @@ class GraphicObject:
         self.coords = coords
         self.color = color
 
-        self.centroid = self.centroid()
-
     def centroid(self):
         x_coords = [point[0] for point in self.coords]
         y_coords = [point[1] for point in self.coords]

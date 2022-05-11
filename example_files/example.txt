@@ -1,0 +1,1 @@
+[('POINT', 'red_dot', [(1, 2)], 'red'), ('WIREFRAME', 'green_square', [(-10, -10), (10, -10), (10, 10), (-10, 10)], 'green'), ('WIREFRAME', 'blue_triangle', [(100, 32), (47, 78), (-50, -50)], 'blue'), ('LINE', 'yellow_line', [(-100, -100), (100, 100)], 'yellow')]

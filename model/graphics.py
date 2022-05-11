@@ -115,15 +115,16 @@ class Graphics:
     def transform_from_list(self, object_index, transformation_list):
 
         coords = self.objects[object_index].coords
+        centroid = self.objects[object_index].centroid
 
-        transformation_matrix = self.get_transformation_matrix_composition(transformation_list)
+        transformation_matrix = self.get_transformation_matrix_composition(transformation_list,object_index,centroid)
         for i in range(len(coords)):
             coords[i] = self.transform(coords[i], transformation_matrix)
 
 
-    def get_transformation_matrix_composition(self, transformation_list):
+    def get_transformation_matrix_composition(self, transformation_list,object_index,centroid):
         
-        transformation_matrixes = [self.get_transformation_matrix(transformation) for transformation in transformation_list]
+        transformation_matrixes = [self.get_transformation_matrix(transformation,object_index,centroid) for transformation in transformation_list]
         transformation_matrix_composition = transformation_matrixes[0]
 
         for i in range(len(transformation_matrixes)-1):
@@ -131,9 +132,30 @@ class Graphics:
 
         return transformation_matrix_composition
 
-    def get_transformation_matrix(self, transformation):
+    def get_transformation_matrix(self, transformation,object_index,centroid):
         #cria uma matrix de transformação a apartir das informaçõe da tupla transformation
         #para transformações de rotação e escalonamento deve-se criar as matrizes necessarias e retornar a composição
+        #SCALING (OBJ CENTER)
+        if (transformation[0] == TransformationType.SCALING):
+            [x1, y1, z1] = np.matmul(self.translation_matrix(-centroid[0], -centroid[1]),self.scaling_matrix(transformation[1],transformation[1]))
+            return np.matmul([x1, y1, z1],self.translation_matrix(centroid[0], centroid[1]))
+        #ROTATION
+        if (transformation[0] == TransformationType.ROTATION):
+            #WORLD
+            if(transformation[1][0] == RotationType.WORLD_CENTER):
+                return self.rotation_matrix(transformation[1][1])
+            #OBJECT
+            if (transformation[1][0] == RotationType.OBJECT_CENTER):
+                [x1,y1,z1] = np.matmul(self.translation_matrix(-centroid[0], -centroid[1]),self.rotation_matrix(transformation[1][1]))
+                return np.matmul([x1,y1,z1],self.translation_matrix(centroid[0], centroid[1]))
+            #POINT
+            if (transformation[1][0] == RotationType.GIVEN_POINT):
+                [x1,y1,z1] = np.matmul(self.translation_matrix(-transformation[1][2], -transformation[1][3]),self.rotation_matrix(transformation[1][1]))
+                return np.matmul([x1, y1, z1], self.translation_matrix(transformation[1][2], transformation[1][3]))
+        #TRANSLATION
+        if (transformation[0] == TransformationType.TRANSLATION):
+            return self.translation_matrix(transformation[1][0],transformation[1][1])
+        print(transformation)
 
     def transform(self, point, transformation_matrix):
         (x,y) = point

@@ -198,7 +198,7 @@ class TransformationDialog(QDialog):
             self.show_message_box("Invalid scale value")
             return
 
-        self.transformation_list.append((TransformationType.SCALING, scaling))
+        self.transformation_list.append((TransformationType.SCALING, (scaling*0.01)))
         self.list_transformations()
 
     def add_translation(self):

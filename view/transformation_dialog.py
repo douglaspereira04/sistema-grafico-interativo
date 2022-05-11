@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QMessageBox
 from PyQt5.QtGui import QDoubleValidator
 from enum import Enum
+from view.util.dialogs import show_error_box
 
 class TransformationType(Enum):
     TRANSLATION = 1
@@ -173,7 +174,7 @@ class TransformationDialog(QDialog):
         try:
             float_degrees = float(self.degrees.text())
         except ValueError:
-            self.show_message_box("Invalid degrees value")
+            self.show_error_box("Invalid degrees value")
             return
 
         if(center == RotationType.GIVEN_POINT):
@@ -181,7 +182,7 @@ class TransformationDialog(QDialog):
                 float_given_x = float(self.given_x.text())
                 float_given_y = float(self.given_y.text())
             except ValueError:
-                self.show_message_box("Invalid point value")
+                self.show_error_box("Invalid point value")
                 return
 
             rotation = (center.name, float_degrees, float_given_x, float_given_y)
@@ -195,7 +196,7 @@ class TransformationDialog(QDialog):
         try:
             scaling = float(self.scale.text())
         except ValueError:
-            self.show_message_box("Invalid scale value")
+            self.show_error_box("Invalid scale value")
             return
 
         self.transformation_list.append((TransformationType.SCALING, (scaling*0.01)))
@@ -206,7 +207,7 @@ class TransformationDialog(QDialog):
             translation_x = float(self.translation_x.text())
             translation_y = float(self.translation_y.text())
         except ValueError:
-            self.show_message_box("Invalid point value")
+            self.show_error_box("Invalid point value")
             return
 
         translation = (translation_x,translation_y)
@@ -252,11 +253,3 @@ class TransformationDialog(QDialog):
         return self.transformation_list
 
 
-    def show_message_box(self, message):
-        box = QMessageBox()
-        box.setIcon(QMessageBox.Critical)
-
-        box.setText(message)
-        box.setWindowTitle("Error")
-
-        box.exec_()

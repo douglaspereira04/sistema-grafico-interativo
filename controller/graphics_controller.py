@@ -6,6 +6,7 @@ from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from view.util.dialogs import show_warning_box
 import math
 
 
@@ -41,6 +42,19 @@ class GraphicsController:
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
 
+        self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
+        self.set_enable_object_options(False)
+
+
+    def list_selected(self):
+        if(self.view.side_menu.list.currentRow() >= 0):
+            self.set_enable_object_options(True)
+        else:
+            self.set_enable_object_options(False)
+
+    def set_enable_object_options(self, enabled):
+        self.view.side_menu.transform_btn.setEnabled(enabled)
+        self.view.side_menu.remove_btn.setEnabled(enabled)
 
 
     def load_from_file(self):
@@ -48,23 +62,31 @@ class GraphicsController:
 
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Text files (*.txt)")
 
-        if(file_name[0]!=''):
-            f = open(file_name[0], "r")
-            data = f.read()
-            f.close()
+        try:
+            if(file_name[0]!=''):
+                f = open(file_name[0], "r")
+                data = f.read()
+                f.close()
+                
+                self.read_graphics_data(data)
 
-            self.read_graphics_data(data)
+                self.draw()
+                self.make_list()
+        except:
+            show_warning_box("Unable to load file")
 
-            self.draw()
-            self.make_list()
+
 
     def save_to_file(self):
         file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Text files (*.txt)")
 
-        if(file_name[0]!=''):
-            f = open(file_name[0], "w")
-            f.write(str(self.compile_graphics_data()))
-            f.close()
+        try:
+            if(file_name[0]!=''):
+                f = open(file_name[0], "w")
+                f.write(str(self.compile_graphics_data()))
+                f.close()
+        except:
+            show_warning_box("Unable to save file")
             
 
     def read_graphics_data(self, data):

@@ -35,5 +35,5 @@ O botão de transformação permite abrir uma tela para realizar as transformaç
 As transformações desejadas podem ser definidas nas abas da tela aberta, cada aba com opções da transformação e um botão de adição de transformação na lista de transformações. Depois da confirmação, é calculada e aplicada a matriz de transformação sobre os pontos do objeto.
 Também é possível transformar usando atalhos:
   - Translação pode ser feita segurando a tecla G, o Botão Esquerdo do Mouse e arrastar.
-  - Escalonamento pode ser feita segurando a tecla S, o Botão Esquerdo do Mouse e arrastar.
-  - Rotação pode ser feita segurando a tecla R, o Botão Esquerdo do Mouse e arrastar.
+  - Escalonamento pode ser feita segurando a tecla S, o Botão Esquerdo do Mouse e arrastar para cima ou para baixo.
+  - Rotação pode ser feita segurando a tecla R, o Botão Esquerdo do Mouse e arrastar para cima ou para baiaxo.

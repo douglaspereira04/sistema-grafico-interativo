@@ -16,7 +16,7 @@ python3 main.py
 
 ## Funcionalidades
 
-### Adição, edição e deleção de objetos
+### Adição, edição e remoção de objetos
 Na lateral esquerda da tela do programa temos: 
 - Botão "Add" permite abrir uma tela para adição de novos objetos;
   - Formato de cor em hexadecimal (#FFFFFF) e coordenadas no formato (x1,y1),(x2,y2),...,(xn,yn)

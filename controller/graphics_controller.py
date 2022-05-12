@@ -74,6 +74,9 @@ class GraphicsController:
 
     def object_grab(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+        
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
 
         if(x_diff != 0 or y_diff != 0):
             transformation = self.graphic.translation(x_diff,-y_diff)

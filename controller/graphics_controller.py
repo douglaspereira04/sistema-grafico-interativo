@@ -213,6 +213,7 @@ class GraphicsController:
             self.graphic.objects.append(obj)
 
             self.draw()
+            self.make_list()
 
 
     def edit_object(self):

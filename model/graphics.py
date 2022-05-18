@@ -38,7 +38,7 @@ class Graphics:
         return (x1,y1)
 
     def window_width(self):
-        return self.window["x_max"] - self.window["x_min"]
+        return (self.window["x_max"] - self.window["x_min"])
 
     def window_height(self):
         return self.window["y_max"] - self.window["y_min"]
@@ -63,14 +63,28 @@ class Graphics:
         return self.window_width()/self.window_height()
 
     def zoom_in(self, step):
-        self.zoom += step
-
-    def zoom_out(self, step):
         if (self.zoom - step) < 0:
             return False
 
         self.zoom -= step
         return True
+
+    def zoom_out(self, step):
+
+        self.zoom += step
+
+    def set_zoom(self):
+        self.window["x_max"] = self.window["x_max"]*self.zoom
+        self.window["x_min"] = self.window["x_min"]*self.zoom
+        self.window["y_max"] = self.window["y_max"]*self.zoom
+        self.window["y_min"] = self.window["y_min"]*self.zoom
+
+    def unset_zoom(self):
+        self.window["x_max"] = self.window["x_max"]/self.zoom
+        self.window["x_min"] = self.window["x_min"]/self.zoom
+        self.window["y_max"] = self.window["y_max"]/self.zoom
+        self.window["y_min"] = self.window["y_min"]/self.zoom
+
 
 
     def pan_right(self, step):
@@ -148,6 +162,7 @@ class Graphics:
     def get_transformation_matrix_composition(self, transformation_list,centroid):
         
         transformation_matrixes = [self.get_transformation_matrix(transformation,centroid) for transformation in transformation_list]
+        
         transformation_matrix_composition = []
         if(len(transformation_matrixes) > 0):
             transformation_matrix_composition = transformation_matrixes[0]
@@ -158,7 +173,6 @@ class Graphics:
         return transformation_matrix_composition
 
     def get_transformation_matrix(self, transformation,centroid):
-
         #SCALING (OBJ CENTER)
         if (transformation[0] == TransformationType.SCALING):
             parcial = np.matmul(self.translation_matrix(-centroid[0], -centroid[1]),self.scaling_matrix(transformation[1],transformation[1]))
@@ -182,29 +196,32 @@ class Graphics:
 
     def transform(self, point, transformation_matrix):
         (x,y) = point
-        [x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
+        [x1,y1,z1] = np.matmul([float(x),float(y),1.0],transformation_matrix)
         return (x1,y1)
         
-
-
-    def normalize(self):
+    def normalization_matrix(self):
         (x_center, y_center) = self.window_center()
         translation_matrix = self.translation_matrix(-x_center, -y_center)
 
         rotation_matrix = self.rotation_matrix(-self.angle)
 
-        scale_x = self.window_width()*self.zoom
-        scale_y = self.window_height()*self.zoom*self.window_aspect_ratio()
-        scale_matrix = self.scaling_matrix(scale_x, scale_y)
+        scale_matrix = self.scaling_matrix(self.window_width(), self.window_height())
 
-        transformation_matrix = np.matmul(np.matmul(translation_matrix, rotation_matrix), scale_matrix)
+        return np.matmul(np.matmul(translation_matrix, rotation_matrix), scale_matrix)
+
+    def normalize(self):
+        self.unset_zoom()
+
+        normalization_matrix = self.normalization_matrix()
 
         for obj in self.objects:
             scn_coords = []
 
             for coords in obj.coords:
                   (x, y) = coords
-                  [scn_x, scn_Y, _] = np.matmul([x,y,1], transformation_matrix)
-                  scn_coords.append((scn_x,scn_Y))
+                  scn_point = self.transform((x,y), normalization_matrix)
+                  scn_coords.append(scn_point)
 
             obj.scn_coords = scn_coords
+        
+        self.set_zoom()

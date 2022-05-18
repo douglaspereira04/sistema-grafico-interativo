@@ -8,6 +8,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from view.util.dialogs import show_warning_box
 import math
+import sys
 
 
 class GraphicsController:
@@ -49,63 +50,57 @@ class GraphicsController:
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
         self.view.canvas.pan.connect(self.canvas_pan)
-        self.view.canvas.grab.connect(self.object_grab)
-        self.view.canvas.rotate.connect(self.object_rotate)
-        self.view.canvas.scale.connect(self.object_scale)
 
-        self.x_multiplier = 1/self.graphic.viewport_width()
-        self.y_multiplier = 1/self.graphic.viewport_height()
+    def window_width(self):
+        return self.graphic.window["x_max"] - self.graphic.window["x_min"]
+
+    def window_height(self):
+        return self.graphic.window["y_max"] - self.graphic.window["y_min"]
+
+    def get_multiplyers(self):
+        (x,y) = (1,1)
+        try:
+            window_width = self.window_width()
+            window_height = self.window_height()
+            step = self.graphic.zoom ** 2
+            x = step/window_width
+            y = step/window_height
+
+            if(x > 1e+128 or y > 1e+128):
+                x = 1e+128
+                y = 1e+128
+
+        except OverflowError as e:
+            x = 1e+128
+            y = 1e+128
+
+        return (x,y)
+
 
     def canvas_scroll(self):
-        if(self.view.canvas.wheel_y_angle > 0):
-            self.zoom_in(self.view.canvas.wheel_y_angle*self.y_multiplier)
-        elif(self.view.canvas.wheel_y_angle < 0):
-            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*self.y_multiplier)
+        (_,y_multiplier) = self.get_multiplyers()
+
+        angle = self.view.canvas.wheel_y_angle
+        if(angle > 0):
+            self.zoom_in(-angle*y_multiplier)
+        elif(angle < 0):
+            self.zoom_out(angle*y_multiplier)
 
     def canvas_pan(self):
+        (x,y) = self.view.canvas.get_mouse_movement()  
         
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
-
-        if(x_diff > 0):
-            self.pan_left(x_diff*self.x_multiplier)
-        elif(x_diff < 0):
-            self.pan_right((-1)*x_diff*self.x_multiplier)
-
-        if(y_diff > 0):
-            self.pan_up((-1)*y_diff*self.y_multiplier)
-        elif(y_diff < 0):
-            self.pan_down(y_diff*self.y_multiplier)
-
-    def object_grab(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-        
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.x_multiplier
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.y_multiplier
-
-        if(x_diff != 0 or y_diff != 0):
-            transformation = self.graphic.translation(x_diff,-y_diff)
-            self.transform_object(transformation)
+        (x_multiplier,y_multiplier) = self.get_multiplyers()
 
 
-    def object_rotate(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+        if(x > 0):
+            self.pan_left(x*x_multiplier)
+        elif(x < 0):
+            self.pan_right(-x*x_multiplier)
 
-        selected = self.view.side_menu.list.currentRow()
-
-        if(selected != -1):
-            centroid = self.graphic.objects[selected].centroid()
-
-            if(x_diff != 0 or y_diff != 0):
-                transformation = self.graphic.natural_rotation(y_diff, centroid)
-                self.transform_object(transformation)
-
-
-    def object_scale(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-
-        if(x_diff != 0 or y_diff != 0):
-            transformation = self.graphic.scale(1-(0.01*y_diff))
-            self.transform_object(transformation)
+        if(y > 0):
+            self.pan_up(-y*y_multiplier)
+        elif(y < 0):
+            self.pan_down(y*y_multiplier)
 
 
     def list_selected(self):
@@ -294,8 +289,14 @@ class GraphicsController:
         return (transformation_type,transformation)
 
     def draw_color(self, color):
-        obj_list = []
+        if(self.graphic.zoom > 50):
+            self.graphic.zoom = 50
+        elif(self.graphic.zoom <= 0):
+            self.graphic.zoom = 1e-128
+
         
+        obj_list = []
+    
         self.graphic.normalize()
 
         for ob in self.graphic.objects:
@@ -306,6 +307,7 @@ class GraphicsController:
                 self.view.canvas.draw(viewport_coords, color)
 
         self.view.canvas.update()
+
 
     def draw(self):
         self.draw_color(None)
@@ -334,10 +336,21 @@ class GraphicsController:
 
         if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
+        
 
-        self.graphic.zoom_in(step)
+        zoomed = self.graphic.zoom_in(step)
 
-        self.draw()
+
+
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.zoom_out(step)
+            self.draw()
+
+        if(zoom_by_button and (not zoomed)):
+            show_warning_box("Too much zoom out.\nSet smaller step value.")
+
 
     def zoom_out(self, step):
 
@@ -350,12 +363,15 @@ class GraphicsController:
         if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
 
-        zoomed = self.graphic.zoom_out(step)
+        self.graphic.zoom_out(step)
+        
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.zoom_in(step)
+            self.draw()
 
-        self.draw()
 
-        if(zoom_by_button and (not zoomed)):
-            show_warning_box("Too much zoom out.\nSet smaller step value.")
 
 
     def pan_right(self, step):
@@ -368,7 +384,12 @@ class GraphicsController:
 
         self.graphic.pan_right(step)
 
-        self.draw()
+        
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.pan_left(step)
+            self.draw()
 
 
     def pan_left(self, step):
@@ -381,7 +402,12 @@ class GraphicsController:
 
         self.graphic.pan_left(step)
 
-        self.draw()
+        
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.pan_right(step)
+            self.draw()
 
     def pan_up(self, step):
 
@@ -393,7 +419,12 @@ class GraphicsController:
 
         self.graphic.pan_up(step)
 
-        self.draw()
+        
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.pan_down(step)
+            self.draw()
 
     def pan_down(self, step):
 
@@ -405,7 +436,11 @@ class GraphicsController:
 
         self.graphic.pan_down(step)
 
-        self.draw()
+        try:
+            self.draw()
+        except OverflowError as e:
+            self.graphic.pan_up(step)
+            self.draw()
 
     def rotate(self, value):
 

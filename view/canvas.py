@@ -38,10 +38,15 @@ class Canvas(QtWidgets.QLabel):
 
 
     def resizeEvent(self, event):
-        if(self.lock_size == False):
-            self.canvas = self.canvas.scaled(self.width(), self.height())
-            self.setPixmap(self.canvas)
-            self.resize.emit(1)
+        global graphic
+        size = 300
+        if(self.width() > self.height()):
+            size = self.height()
+        else:
+            self.width()
+        self.canvas = self.canvas.scaled(size, size)
+        self.setPixmap(self.canvas)
+        self.resize.emit(1)
 
     def draw(self, coordinates, color):
         painter = QtGui.QPainter(self.pixmap())

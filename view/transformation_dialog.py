@@ -250,6 +250,7 @@ class TransformationDialog(QDialog):
             self.given_y.setText("")
 
     def get_transformations(self):
+        print(self.transformation_list)
         return self.transformation_list
 
 

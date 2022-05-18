@@ -46,20 +46,24 @@ class Canvas(QtWidgets.QLabel):
     def draw(self, coordinates, color):
         painter = QtGui.QPainter(self.pixmap())
         painter.setPen(color)
-
         self.coordinates = coordinates
 
-        if (len(coordinates) == 1):
-            painter.drawPoint(coordinates[0][0], coordinates[0][1])
-        else:
-            i=0
-            while(i+1 < len(coordinates)):
-                painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
-                i = i+1
+        try:
 
-            if (len(coordinates) > 2):
-                painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[0][0], coordinates[0][1])
-        painter.end()
+            if (len(coordinates) == 1):
+                painter.drawPoint(coordinates[0][0], coordinates[0][1])
+            else:
+                i=0
+                while(i+1 < len(coordinates)):
+                    painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
+                    i = i+1
+
+                if (len(coordinates) > 2):
+                    painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[0][0], coordinates[0][1])
+        except OverflowError as e:
+            raise e
+        finally:
+            painter.end()
 
 
     def mouseMoveEvent(self, event):

@@ -27,6 +27,8 @@ class GraphicsController:
         self.view.side_menu.up_btn.clicked.connect(self.pan_up)
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
 
+        self.view.side_menu.rotation_slider.valueChanged.connect(self.rotate)
+
 
         self.view.show()
 
@@ -51,32 +53,34 @@ class GraphicsController:
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
 
+        self.x_multiplier = 1/self.graphic.viewport_width()
+        self.y_multiplier = 1/self.graphic.viewport_height()
 
     def canvas_scroll(self):
         if(self.view.canvas.wheel_y_angle > 0):
-            self.zoom_in(self.view.canvas.wheel_y_angle)
+            self.zoom_in(self.view.canvas.wheel_y_angle*self.y_multiplier)
         elif(self.view.canvas.wheel_y_angle < 0):
-            self.zoom_out((-1)*self.view.canvas.wheel_y_angle)
+            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*self.y_multiplier)
 
     def canvas_pan(self):
         
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
 
         if(x_diff > 0):
-            self.pan_left(x_diff)
+            self.pan_left(x_diff*self.x_multiplier)
         elif(x_diff < 0):
-            self.pan_right((-1)*x_diff)
+            self.pan_right((-1)*x_diff*self.x_multiplier)
 
         if(y_diff > 0):
-            self.pan_up(y_diff)
+            self.pan_up((-1)*y_diff*self.y_multiplier)
         elif(y_diff < 0):
-            self.pan_down((-1)*y_diff)
+            self.pan_down(y_diff*self.y_multiplier)
 
     def object_grab(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
         
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.x_multiplier
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.y_multiplier
 
         if(x_diff != 0 or y_diff != 0):
             transformation = self.graphic.translation(x_diff,-y_diff)
@@ -130,8 +134,9 @@ class GraphicsController:
 
                 self.draw()
                 self.make_list()
-        except:
+        except Exception as e:
             show_warning_box("Unable to load file")
+            print(e)
 
 
 
@@ -290,8 +295,11 @@ class GraphicsController:
 
     def draw_color(self, color):
         obj_list = []
+        
+        self.graphic.normalize()
+
         for ob in self.graphic.objects:
-            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.coords]
+            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.scn_coords]
             if(color == None):
                 self.view.canvas.draw(viewport_coords, QColor(ob.color))
             else:
@@ -314,7 +322,7 @@ class GraphicsController:
 
     def reset_multiplier(self):
         if (self.view.side_menu.step.text().strip() == ""):
-            self.view.side_menu.step.setText("10")
+            self.view.side_menu.step.setText("0.1")
 
     def zoom_in(self, step):
 
@@ -327,12 +335,9 @@ class GraphicsController:
         if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
 
-        zoomed = self.graphic.zoom_in(step)
+        self.graphic.zoom_in(step)
 
         self.draw()
-
-        if(zoom_by_button and (not zoomed)):
-            show_warning_box("Too much zoom.\nSet smaller step value.")
 
     def zoom_out(self, step):
 
@@ -340,12 +345,17 @@ class GraphicsController:
 
         self.reset_multiplier()
 
-        if(step == False):
+        zoom_by_button = step == False
+
+        if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
 
-        self.graphic.zoom_out(step)
+        zoomed = self.graphic.zoom_out(step)
 
         self.draw()
+
+        if(zoom_by_button and (not zoomed)):
+            show_warning_box("Too much zoom out.\nSet smaller step value.")
 
 
     def pan_right(self, step):
@@ -394,5 +404,19 @@ class GraphicsController:
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
+
+        self.draw()
+
+    def rotate(self, value):
+
+        self.erase()
+
+        degrees = value*36*0.1
+
+        self.graphic.angle = degrees
+        _sin = (math.sin(math.radians(self.graphic.angle)))
+        _cos = (math.cos(math.radians(self.graphic.angle)))
+        print("sin" + str(_sin))
+        print("cos" + str(_cos))
 
         self.draw()

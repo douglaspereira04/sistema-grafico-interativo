@@ -29,6 +29,9 @@ class Graphics:
             "y_min": 0
         }
 
+        self.angle = 0
+        self.zoom = 1
+
     def viewport_transformation(self, x, y):
         x1 = ((x- self.window["x_min"]) * self.viewport_width() / self.window_width())
         y1 = ((1 - ((y - self.window["y_min"]) / self.window_height())) * self.viewport_height())
@@ -46,6 +49,13 @@ class Graphics:
     def viewport_height(self):
         return self.viewport["y_max"] - self.viewport["y_min"]
 
+
+    def window_center(self):
+        x_center = (self.window["x_max"] + self.window["x_min"])*0.5
+        y_center = (self.window["y_max"] + self.window["y_min"])*0.5
+
+        return (x_center, y_center)
+
     def window_aspect_ratio(self):
         return self.window_width()/self.window_height()
 
@@ -53,50 +63,52 @@ class Graphics:
         return self.window_width()/self.window_height()
 
     def zoom_in(self, step):
-        aspect = self.window_aspect_ratio()
-
-        xmax = self.window["x_max"] - ((step/2)*aspect)
-        ymax = self.window["y_max"] - (step/2)
-        xmin = self.window["x_min"] + ((step/2)*aspect)
-        ymin = self.window["y_min"] + (step/2)
-
-        if (((xmax - xmin )<= 0) or ((ymax - ymin) <= 0)):
-
-            return False
-        else:
-            self.window["x_max"] = xmax
-            self.window["y_max"] = ymax
-            self.window["x_min"] = xmin
-            self.window["y_min"] = ymin
-            
-            return True
-
+        self.zoom += step
 
     def zoom_out(self, step):
-        aspect = self.window_aspect_ratio()
+        if (self.zoom - step) < 0:
+            return False
 
-        self.window["x_max"] += (step/2)*aspect
-        self.window["y_max"] += (step/2)
-        self.window["x_min"] -= (step/2)*aspect
-        self.window["y_min"] -= (step/2)
+        self.zoom -= step
+        return True
 
 
     def pan_right(self, step):
-        self.window["x_max"] += step
-        self.window["x_min"] += step
+        _sin = (math.sin(math.radians(self.angle)))
+        _cos = (math.cos(math.radians(self.angle)))
+
+        self.window["x_max"] += _cos*step
+        self.window["x_min"] += _cos*step
+        self.window["y_max"] -= _sin*step
+        self.window["y_min"] -= _sin*step
 
 
     def pan_left(self, step):
-        self.window["x_max"] -= step
-        self.window["x_min"] -= step
+        _sin = (math.sin(math.radians(self.angle)))
+        _cos = (math.cos(math.radians(self.angle)))
+
+        self.window["x_max"] -= _cos*step
+        self.window["x_min"] -= _cos*step
+        self.window["y_max"] += _sin*step
+        self.window["y_min"] += _sin*step
 
     def pan_up(self, step):
-        self.window["y_max"] += step
-        self.window["y_min"] += step
+        _sin = (math.sin(math.radians(self.angle)))
+        _cos = (math.cos(math.radians(self.angle)))
+
+        self.window["y_max"] -= _cos*step
+        self.window["y_min"] -= _cos*step
+        self.window["x_max"] -= _sin*step
+        self.window["x_min"] -= _sin*step
 
     def pan_down(self, step):
-        self.window["y_max"] -= step
-        self.window["y_min"] -= step
+        _sin = (math.sin(math.radians(self.angle)))
+        _cos = (math.cos(math.radians(self.angle)))
+
+        self.window["y_max"] += _cos*step
+        self.window["y_min"] += _cos*step
+        self.window["x_max"] += _sin*step
+        self.window["x_min"] += _sin*step
 
     def translation(self, x, y):
         return (TransformationType.TRANSLATION, (x, y))
@@ -173,3 +185,26 @@ class Graphics:
         [x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
         return (x1,y1)
         
+
+
+    def normalize(self):
+        (x_center, y_center) = self.window_center()
+        translation_matrix = self.translation_matrix(-x_center, -y_center)
+
+        rotation_matrix = self.rotation_matrix(-self.angle)
+
+        scale_x = self.window_width()*self.zoom
+        scale_y = self.window_height()*self.zoom*self.window_aspect_ratio()
+        scale_matrix = self.scaling_matrix(scale_x, scale_y)
+
+        transformation_matrix = np.matmul(np.matmul(translation_matrix, rotation_matrix), scale_matrix)
+
+        for obj in self.objects:
+            scn_coords = []
+
+            for coords in obj.coords:
+                  (x, y) = coords
+                  [scn_x, scn_Y, _] = np.matmul([x,y,1], transformation_matrix)
+                  scn_coords.append((scn_x,scn_Y))
+
+            obj.scn_coords = scn_coords

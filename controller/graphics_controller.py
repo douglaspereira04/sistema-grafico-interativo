@@ -28,6 +28,7 @@ class GraphicsController:
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
 
         self.view.side_menu.rotation_slider.valueChanged.connect(self.rotate)
+        self.view.side_menu.rotation_button.clicked.connect(self.rotate)
 
 
         self.view.show()
@@ -49,7 +50,6 @@ class GraphicsController:
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
         self.view.canvas.pan.connect(self.canvas_pan)
-        self.view.canvas.grab.connect(self.object_grab)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
 
@@ -67,23 +67,12 @@ class GraphicsController:
         if(x_diff > 0):
             self.pan_left(x_diff)
         elif(x_diff < 0):
-            self.pan_right((-1)*x_diff)
+            self.pan_right(-x_diff)
 
         if(y_diff > 0):
-            self.pan_up(y_diff)
+            self.pan_down(y_diff)
         elif(y_diff < 0):
-            self.pan_down((-1)*y_diff)
-
-    def object_grab(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-        
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
-
-        if(x_diff != 0 or y_diff != 0):
-            transformation = self.graphic.translation(x_diff,-y_diff)
-            self.transform_object(transformation)
-
+            self.pan_up(-y_diff)
 
     def object_rotate(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
@@ -95,7 +84,7 @@ class GraphicsController:
 
             if(x_diff != 0 or y_diff != 0):
                 transformation = self.graphic.natural_rotation(y_diff, centroid)
-                self.transform_object(transformation)
+                self.transform_object([transformation])
 
 
     def object_scale(self):
@@ -103,7 +92,7 @@ class GraphicsController:
 
         if(x_diff != 0 or y_diff != 0):
             transformation = self.graphic.scale(1-(0.01*y_diff))
-            self.transform_object(transformation)
+            self.transform_object([transformation])
 
 
     def list_selected(self):
@@ -271,8 +260,8 @@ class GraphicsController:
                 if (result):
                     transformation_list = [self.view_to_model_transformation(transformation) for transformation in dialog.get_transformations()]
             else:
-                transformation_list.append(transformation)
-            
+                transformation_list = transformation
+
             if(len(transformation_list) > 0):
                 self.erase()
 
@@ -402,10 +391,14 @@ class GraphicsController:
         self.draw()
 
     def rotate(self, value):
+        step = float(self.view.side_menu.step.text())
 
         self.erase()
 
-        degrees = value*36*0.1
+        if(value != False):
+            degrees = value*36*0.1*step
+        else:
+            degrees = step
 
         self.graphic.vup_angle = degrees
 

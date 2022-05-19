@@ -16,6 +16,13 @@ class TransformationType(Enum):
 class Graphics:
     def __init__(self):
         self.objects = []
+
+        """
+        Os valores de viewport e window são inicializados com 0
+        mas são atualizados pelo controller para serem compatíveis
+        com o tamanho da interface. O controller ajustará inicialmente o 
+        tamanho da window igual o tamanho da viewport
+        """
         self.viewport = {
             "x_max": 0, 
             "x_min": 0,
@@ -129,7 +136,10 @@ class Graphics:
         self.window["x_max"] += _sin*step
         self.window["x_min"] += _sin*step
 
-    
+    """
+    Funções que retorna transformações
+    Usadas nos atalhos de transformação
+    """
     def translation(self, x, y):
         return (TransformationType.TRANSLATION, (x, y))
 
@@ -140,6 +150,10 @@ class Graphics:
         (x,y) = centroid
         return (TransformationType.ROTATION, (RotationType.OBJECT_CENTER, degrees, x, y))
 
+    """
+    Funções que criam e retornam matrizes de transformação
+    daos parametros
+    """
     def translation_matrix(self, x, y):
         return [[1.0,  0.,  0.],[ 0,  1.0,  0.],[ x,  y,  1.]]
 
@@ -152,32 +166,40 @@ class Graphics:
 
         return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
 
-    #transforms given a matrix list
+    """
+    Transforma, por uma dada lista de transformações, um dado objeto
+    """
     def transform_from_list(self, object_index, transformation_list):
 
         coords = self.objects[object_index].coords
         centroid = self.objects[object_index].centroid()
 
-        transformation_matrix = self.get_transformation_matrix_composition(transformation_list,centroid)
+        transformation_matrix_list = [self.get_transformation_matrix(transformation,centroid) for transformation in transformation_list]
+        transformation_matrix = self.get_transformation_matrix_composition(transformation_matrix_list,centroid)
         
         if(len(transformation_matrix)>0):
             for i in range(len(coords)):
                 coords[i] = self.transform(coords[i], transformation_matrix)
 
-    #get composition of transformation matrixes
-    def get_transformation_matrix_composition(self, transformation_list,centroid):
+    """
+    Dada uma lista de matrizes de transformação
+    retorna a matriz resultante
+    """
+    def get_transformation_matrix_composition(self, transformation_matrix_list):
         
-        transformation_matrixes = [self.get_transformation_matrix(transformation,centroid) for transformation in transformation_list]
         transformation_matrix_composition = []
-        if(len(transformation_matrixes) > 0):
-            transformation_matrix_composition = transformation_matrixes[0]
+        if(len(transformation_matrix_list) > 0):
+            transformation_matrix_composition = transformation_matrix_list[0]
 
-            for i in range(len(transformation_matrixes)-1):
-                transformation_matrix_composition = np.matmul(transformation_matrix_composition,transformation_matrixes[i+1])
+            for i in range(len(transformation_matrix_list)-1):
+                transformation_matrix_composition = np.matmul(transformation_matrix_composition,transformation_matrix_list[i+1])
 
         return transformation_matrix_composition
 
-    #gets transformation matrix given a tranformation instruction
+    """
+    Traduz um objeto que representa uma transformação 
+    para a matriz de transformação correspondente
+    """
     def get_transformation_matrix(self, transformation,centroid):
 
         #SCALING (OBJ CENTER)
@@ -201,14 +223,19 @@ class Graphics:
         if (transformation[0] == TransformationType.TRANSLATION):
             return self.translation_matrix(transformation[1][0],transformation[1][1])
 
-    #applies transformation to one point, give, point and matrix
+    """
+    Retorna o ponro transformado dado um ponto e uma matriz de transformação
+    """
     def transform(self, point, transformation_matrix):
         (x,y) = point
         [x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
         return (x1,y1)
         
 
-    #returns the normalization matrix
+    """
+    Retorna a matriz de normalização para as configurações 
+    atuais da window
+    """
     def normalization_matrix(self):
         (x_center, y_center) = self.window_center()
         translation_matrix = self.translation_matrix(-x_center,-y_center)
@@ -224,7 +251,11 @@ class Graphics:
         return  normalization_matrix
 
 
-    #normalize every coordinate
+    """
+    Normaliza todos os pontos de todos os objetos
+    A normalização é armazenada no junto ao objeto
+    mas não substitui as coordenadas originais
+    """
     def normalize(self):
 
         normalization_matrix = self.normalization_matrix()
@@ -238,11 +269,10 @@ class Graphics:
 
             obj.scn_coords = scn_coords
 
-            if(obj.name =="red_dot"):
-                print(obj.scn_coords[0])
-
-    #viewport transformation
-    #modified to [1,-1] interval
+    """
+    Transformação para viewport
+    Ajustado para a representação em sistema de coordenadas normalizado
+    """
     def viewport_transformation(self, x, y):
         x1 = ((x- -1) * self.viewport_width() / 2)
         y1 = ((1 - ((y - -1) / 2)) * self.viewport_height())

@@ -20,7 +20,6 @@ class SideMenu(QtWidgets.QWidget):
 
         self.steps_label = QtWidgets.QLabel('Steps: ')
         self.zoom_label = QtWidgets.QLabel('Zoom: ')
-        self.rotation_label = QtWidgets.QLabel('Rotation: ')
 
         self.left_btn = QtWidgets.QPushButton('<')
         self.right_btn = QtWidgets.QPushButton('>')
@@ -28,6 +27,7 @@ class SideMenu(QtWidgets.QWidget):
         self.down_btn = QtWidgets.QPushButton('v')
         self.zin_btn = QtWidgets.QPushButton('+')
         self.zout_btn = QtWidgets.QPushButton('-')
+        self.rotation_button = QtWidgets.QPushButton('Rotate')
         self.rotation_slider = QtWidgets.QSlider(Qt.Horizontal)
 
 
@@ -54,7 +54,7 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.zoom_label, 4,0, 1,2)
         self.navigation_layout.addWidget(self.zin_btn, 4,2)
         self.navigation_layout.addWidget(self.zout_btn, 4,3)
-        self.navigation_layout.addWidget(self.rotation_label, 5,0, 1,2)
+        self.navigation_layout.addWidget(self.rotation_button, 5,0, 1,2)
         self.navigation_layout.addWidget(self.rotation_slider, 5,2,1,2)
 
         self.setMaximumWidth(150)

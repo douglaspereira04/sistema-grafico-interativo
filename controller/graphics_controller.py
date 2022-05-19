@@ -143,7 +143,48 @@ class GraphicsController:
         try:
             if(file_name[0]!=''):
                 f = open(file_name[0], "w")
-                f.write(str(self.compile_graphics_data()))
+                array = self.compile_graphics_data()
+                print(len(array))
+                vLines = []
+
+                #for x in range(len(array)):
+                    #vLines.append("v " + str(array[x][2]))
+                #print(vLines)
+                for obj in self.graphic.objects:
+                    for i in obj.coords:
+                        vLines.append("v ")
+                        vLines.append(str(i[0]))
+                        vLines.append(str(i[1]))
+                        vLines.append("1")
+
+                print(vLines)
+
+                stringPV ="mtllib sample.mtl"
+
+                ncLinhas = []
+
+                count = 1
+                for obj in self.graphic.objects:
+                    ncLinhas.append("o ")
+                    ncLinhas.append(str(obj.name))
+                    ncLinhas.append("usemtl ")
+                    #Convert to nomal name
+                    ncLinhas.append(str(obj.color))
+                    if (obj.obj_type == ObjType.POINT):
+                        ncLinhas.append("p")
+                        ncLinhas.append(str(count))
+                        count += 1
+                    if (obj.obj_type == ObjType.LINE):
+                        ncLinhas.append("l")
+                        ncLinhas.append(str(count))
+                        ncLinhas.append(str(count+1))
+                        count += 2
+                    else:
+                        #?????
+                        x=1
+
+                f.writelines(str(self.compile_graphics_data()))
+                #f.writelines([vLines,stringPV,ncLinhas])
                 f.close()
         except:
             show_warning_box("Unable to save file")
@@ -169,6 +210,7 @@ class GraphicsController:
 
     def compile_graphics_data(self):
         return [(obj.obj_type.name, obj.name, obj.coords, obj.color) for obj in self.graphic.objects]
+        #return [("v ",obj.coords, obj.color) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
         self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2

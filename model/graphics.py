@@ -1,5 +1,8 @@
 import math
 import numpy as np
+
+from model.graphic_object import GraphicObject
+from model.obj_type import ObjType
 from enum import Enum
 
 class RotationType(Enum):
@@ -23,10 +26,10 @@ class Graphics:
             "y_min": 0
         }
         self.window = {
-            "x_max": 0, 
-            "x_min": 0,
-            "y_max": 0, 
-            "y_min": 0
+            "x_max": 1, 
+            "x_min": -1,
+            "y_max": 1, 
+            "y_min": -1
         }
 
         self.angle = 0
@@ -62,14 +65,14 @@ class Graphics:
     def viewport_aspect_ratio(self):
         return self.window_width()/self.window_height()
 
-    def zoom_in(self, step):
+    def zoom_out(self, step):
         if (self.zoom - step) < 0:
             return False
 
         self.zoom -= step
         return True
 
-    def zoom_out(self, step):
+    def zoom_in(self, step):
 
         self.zoom += step
 
@@ -205,15 +208,15 @@ class Graphics:
 
         rotation_matrix = self.rotation_matrix(-self.angle)
 
-        scale_matrix = self.scaling_matrix(self.window_width(), self.window_height())
+        scale_matrix = self.scaling_matrix(self.window_width()*self.zoom, self.window_height()*self.zoom)
 
         return np.matmul(np.matmul(translation_matrix, rotation_matrix), scale_matrix)
 
     def normalize(self):
-        self.unset_zoom()
+        #self.unset_zoom()
 
         normalization_matrix = self.normalization_matrix()
-
+        test = False
         for obj in self.objects:
             scn_coords = []
 
@@ -223,5 +226,5 @@ class Graphics:
                   scn_coords.append(scn_point)
 
             obj.scn_coords = scn_coords
-        
-        self.set_zoom()
+
+        #self.set_zoom()

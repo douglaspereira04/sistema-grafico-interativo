@@ -9,6 +9,8 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.__init__(self)
 
         self.setWindowTitle("Computação Gráfica")
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(500)
         ## Generate the structure parts of the MainWindow
         self.central_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget
         self.right_widget = QtWidgets.QWidget()  # A QWidget to work as Central Widget
@@ -16,7 +18,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.main_layout = QtWidgets.QHBoxLayout()  # Horizontal Layout
         self.canvas_layout = QtWidgets.QVBoxLayout()  # Vorizontal Layout
         self.canvas_control_layout = QtWidgets.QHBoxLayout()  # Vorizontal Layout
-        self.canvas = Canvas(300,300, "white")
+        self.canvas = Canvas(256,256, "white")
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
 

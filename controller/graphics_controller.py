@@ -51,20 +51,15 @@ class GraphicsController:
         self.view.canvas.zoom.connect(self.canvas_scroll)
         self.view.canvas.pan.connect(self.canvas_pan)
 
-    def window_width(self):
-        return self.graphic.window["x_max"] - self.graphic.window["x_min"]
-
-    def window_height(self):
-        return self.graphic.window["y_max"] - self.graphic.window["y_min"]
-
     def get_multiplyers(self):
         (x,y) = (1,1)
         try:
-            window_width = self.window_width()
-            window_height = self.window_height()
-            step = self.graphic.zoom ** 2
-            x = step/window_width
-            y = step/window_height
+            width = self.graphic.viewport_width()
+            height = self.graphic.viewport_height()
+            zoom = self.graphic.zoom
+            step = (zoom**(-0.35))-0.35
+            x = step/width
+            y = step/height
 
             if(x > 1e+128 or y > 1e+128):
                 x = 1e+128
@@ -82,9 +77,9 @@ class GraphicsController:
 
         angle = self.view.canvas.wheel_y_angle
         if(angle > 0):
-            self.zoom_in(-angle*y_multiplier)
+            self.zoom_in(-angle*0.1)
         elif(angle < 0):
-            self.zoom_out(angle*y_multiplier)
+            self.zoom_out(angle*0.1)
 
     def canvas_pan(self):
         (x,y) = self.view.canvas.get_mouse_movement()  
@@ -169,10 +164,6 @@ class GraphicsController:
         return [(obj.obj_type.name, obj.name, obj.coords, obj.color) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
-        self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
-        self.graphic.window["x_max"] = self.view.canvas.canvas.width()/2
-        self.graphic.window["y_min"] = -self.view.canvas.canvas.height()/2
-        self.graphic.window["y_max"] = self.view.canvas.canvas.height()/2
 
         self.graphic.viewport["x_min"] = -self.view.canvas.canvas.width()/2
         self.graphic.viewport["x_max"] = self.view.canvas.canvas.width()/2
@@ -326,7 +317,7 @@ class GraphicsController:
         if (self.view.side_menu.step.text().strip() == ""):
             self.view.side_menu.step.setText("0.1")
 
-    def zoom_in(self, step):
+    def zoom_out(self, step):
 
         self.erase()
 
@@ -338,7 +329,7 @@ class GraphicsController:
             step = float(self.view.side_menu.step.text())
         
 
-        zoomed = self.graphic.zoom_in(step)
+        zoomed = self.graphic.zoom_out(step)
 
 
 
@@ -352,7 +343,7 @@ class GraphicsController:
             show_warning_box("Too much zoom out.\nSet smaller step value.")
 
 
-    def zoom_out(self, step):
+    def zoom_in(self, step):
 
         self.erase()
 
@@ -363,12 +354,12 @@ class GraphicsController:
         if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
 
-        self.graphic.zoom_out(step)
+        self.graphic.zoom_in(step)
         
         try:
             self.draw()
         except OverflowError as e:
-            self.graphic.zoom_in(step)
+            self.graphic.zoom_out(step)
             self.draw()
 
 

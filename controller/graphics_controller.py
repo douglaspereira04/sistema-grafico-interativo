@@ -27,6 +27,8 @@ class GraphicsController:
         self.view.side_menu.up_btn.clicked.connect(self.pan_up)
         self.view.side_menu.down_btn.clicked.connect(self.pan_down)
 
+        self.view.side_menu.rotation_slider.valueChanged.connect(self.rotate)
+
 
         self.view.show()
 
@@ -289,9 +291,11 @@ class GraphicsController:
         return (transformation_type,transformation)
 
     def draw_color(self, color):
+        self.graphic.normalize()
+
         obj_list = []
         for ob in self.graphic.objects:
-            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.coords]
+            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.scn_coords]
             if(color == None):
                 self.view.canvas.draw(viewport_coords, QColor(ob.color))
             else:
@@ -394,5 +398,15 @@ class GraphicsController:
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
+
+        self.draw()
+
+    def rotate(self, value):
+
+        self.erase()
+
+        degrees = value*36*0.1
+
+        self.graphic.vup_angle = degrees
 
         self.draw()

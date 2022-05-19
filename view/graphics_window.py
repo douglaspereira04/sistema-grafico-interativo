@@ -16,7 +16,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.main_layout = QtWidgets.QHBoxLayout()  # Horizontal Layout
         self.canvas_layout = QtWidgets.QVBoxLayout()  # Vorizontal Layout
         self.canvas_control_layout = QtWidgets.QHBoxLayout()  # Vorizontal Layout
-        self.canvas = Canvas(300,300, "white")
+        self.canvas = Canvas(256,256, "white")
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
 

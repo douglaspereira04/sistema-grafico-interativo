@@ -29,10 +29,8 @@ class Graphics:
             "y_min": 0
         }
 
-    def viewport_transformation(self, x, y):
-        x1 = ((x- self.window["x_min"]) * self.viewport_width() / self.window_width())
-        y1 = ((1 - ((y - self.window["y_min"]) / self.window_height())) * self.viewport_height())
-        return (x1,y1)
+        self.zoom = 1
+        self.vup_angle = 0
 
     def window_width(self):
         return self.window["x_max"] - self.window["x_min"]
@@ -52,6 +50,19 @@ class Graphics:
     def viewport_aspect_ratio(self):
         return self.window_width()/self.window_height()
 
+
+    def window_center(self):
+        x = (self.window["x_max"] + self.window["x_min"] )/2
+        y = (self.window["y_max"] + self.window["y_min"] )/2
+
+        return (x,y)
+
+    """
+    A seguir são as funções que de navegação. Elas se orientam a um valor de passo, definido no parametro "step".
+    A função zoom_in diminui a window, limitando a um tamanho maior que zero e zoom_out aumenta a window.
+    As funções de panning movem a window considerando o angulo em que ela está rotacionada, 
+    ou seja, o angulo de view up vector 
+    """
     def zoom_in(self, step):
         aspect = self.window_aspect_ratio()
 
@@ -82,22 +93,43 @@ class Graphics:
 
 
     def pan_right(self, step):
-        self.window["x_max"] += step
-        self.window["x_min"] += step
+        _sin = (math.sin(math.radians(self.vup_angle)))
+        _cos = (math.cos(math.radians(self.vup_angle)))
+
+        self.window["x_max"] += _cos*step
+        self.window["x_min"] += _cos*step
+        self.window["y_max"] -= _sin*step
+        self.window["y_min"] -= _sin*step
 
 
     def pan_left(self, step):
-        self.window["x_max"] -= step
-        self.window["x_min"] -= step
+        _sin = (math.sin(math.radians(self.vup_angle)))
+        _cos = (math.cos(math.radians(self.vup_angle)))
+
+        self.window["x_max"] -= _cos*step
+        self.window["x_min"] -= _cos*step
+        self.window["y_max"] += _sin*step
+        self.window["y_min"] += _sin*step
 
     def pan_up(self, step):
-        self.window["y_max"] += step
-        self.window["y_min"] += step
+        _sin = (math.sin(math.radians(self.vup_angle)))
+        _cos = (math.cos(math.radians(self.vup_angle)))
+
+        self.window["y_max"] -= _cos*step
+        self.window["y_min"] -= _cos*step
+        self.window["x_max"] -= _sin*step
+        self.window["x_min"] -= _sin*step
 
     def pan_down(self, step):
-        self.window["y_max"] -= step
-        self.window["y_min"] -= step
+        _sin = (math.sin(math.radians(self.vup_angle)))
+        _cos = (math.cos(math.radians(self.vup_angle)))
 
+        self.window["y_max"] += _cos*step
+        self.window["y_min"] += _cos*step
+        self.window["x_max"] += _sin*step
+        self.window["x_min"] += _sin*step
+
+    
     def translation(self, x, y):
         return (TransformationType.TRANSLATION, (x, y))
 
@@ -120,7 +152,7 @@ class Graphics:
 
         return [[ _cos,  -_sin,  0.],[ _sin,  _cos,  0.],[ 0.,  0.,  1.]]
 
-
+    #transforms given a matrix list
     def transform_from_list(self, object_index, transformation_list):
 
         coords = self.objects[object_index].coords
@@ -132,7 +164,7 @@ class Graphics:
             for i in range(len(coords)):
                 coords[i] = self.transform(coords[i], transformation_matrix)
 
-
+    #get composition of transformation matrixes
     def get_transformation_matrix_composition(self, transformation_list,centroid):
         
         transformation_matrixes = [self.get_transformation_matrix(transformation,centroid) for transformation in transformation_list]
@@ -145,6 +177,7 @@ class Graphics:
 
         return transformation_matrix_composition
 
+    #gets transformation matrix given a tranformation instruction
     def get_transformation_matrix(self, transformation,centroid):
 
         #SCALING (OBJ CENTER)
@@ -168,8 +201,49 @@ class Graphics:
         if (transformation[0] == TransformationType.TRANSLATION):
             return self.translation_matrix(transformation[1][0],transformation[1][1])
 
+    #applies transformation to one point, give, point and matrix
     def transform(self, point, transformation_matrix):
         (x,y) = point
         [x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
         return (x1,y1)
         
+
+    #returns the normalization matrix
+    def normalization_matrix(self):
+        (x_center, y_center) = self.window_center()
+        translation_matrix = self.translation_matrix(-x_center,-y_center)
+
+        rotation_matrix = self.rotation_matrix(-self.vup_angle)
+
+        scale_x = 1/(self.window_width()/2)
+        scale_y = 1/(self.window_height()/2)
+
+        scaling_matrix = self.scaling_matrix(scale_x,scale_y)
+
+        normalization_matrix = np.matmul(np.matmul(translation_matrix,rotation_matrix),scaling_matrix)
+        return  normalization_matrix
+
+
+    #normalize every coordinate
+    def normalize(self):
+
+        normalization_matrix = self.normalization_matrix()
+        for obj in self.objects:
+            
+            scn_coords = []
+
+            for coords in obj.coords:
+                new_coords = self.transform(coords,normalization_matrix)
+                scn_coords.append(new_coords)
+
+            obj.scn_coords = scn_coords
+
+            if(obj.name =="red_dot"):
+                print(obj.scn_coords[0])
+
+    #viewport transformation
+    #modified to [1,-1] interval
+    def viewport_transformation(self, x, y):
+        x1 = ((x- -1) * self.viewport_width() / 2)
+        y1 = ((1 - ((y - -1) / 2)) * self.viewport_height())
+        return (x1,y1)

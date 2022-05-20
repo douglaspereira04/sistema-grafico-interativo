@@ -29,7 +29,11 @@ class WavefrontObj:
             elif(obj.obj_type == ObjType.LINE):
                 _type = "l"
             elif(obj.obj_type == ObjType.WIREFRAME):
-                _type = "l"
+                if(obj.coords[0] == obj.coords[len(obj.coords)-1]):
+                    _type = "f"
+                else:
+                    _type = "l"
+
 
 
             obj_string = "o "+obj.name+"\n"+ _type
@@ -38,12 +42,15 @@ class WavefrontObj:
                 color_to_mtlib[obj.color] = "color_" + str(color_count)
                 color_count +=1
 
-            for point in obj.coords:
-                if(not (point in vertex_to_pos.keys())):
-                    vertex_to_pos[point] = vertex_count
+            _len = len(obj.coords)
+            if(_type == "f"):
+                _len -=1
+            for i in range(_len):
+                if(not (obj.coords[i] in vertex_to_pos.keys())):
+                    vertex_to_pos[obj.coords[i]] = vertex_count
                     vertex_count += 1
 
-                vertex_pos = vertex_to_pos[point]
+                vertex_pos = vertex_to_pos[obj.coords[i]]
 
                 obj_string += " "+ str(vertex_pos)
 

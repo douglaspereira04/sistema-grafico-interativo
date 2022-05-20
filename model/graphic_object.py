@@ -15,7 +15,7 @@ class GraphicObject:
         last_point = None
 
         _len = len(self.coords)
-        if(self.coords[0] == self.coords[len(self.coords)-1]):
+        if(self.coords[0] == self.coords[_len-1] and _len > 1):
             _len-=1
 
         for i in range(_len):

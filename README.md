@@ -40,4 +40,45 @@ Também é possível transformar usando atalhos da seguinte forma:
   - Translação pode ser feita segurando a tecla G, o Botão Esquerdo do Mouse e arrastar.
   - Escalonamento pode ser feita segurando a tecla S, o Botão Esquerdo do Mouse e arrastar para cima ou para baixo.
 
+### Arquivos .obj
+Arquivos .obj podem ser salvos ou carregados pelo programa através do menu "File".<br>
+Os arquivos aceitam entradas de vértices (v), cores (usemtl), objetos(o), que são ou pontos(p), ou linhas ou wireframes(l) ou poligonos fechados(f).<br>
+As cores são carregados dos arquivos definidos em mtlib
+Os arquivos mtlib devem estar no mesmo diretório do arquivo .obj carregado.<br>
+Exemplo de arquivo obj:
+```
+v 0.010000 0.020000 0.000000
+v -10.000000 -10.000000 0.000000
+v 10.000000 -10.000000 0.000000
+v 10.000000 10.000000 0.000000
+v -10.000000 10.000000 0.000000
+v 47.000000 40.000000 0.000000
+v -20.000000 -20.000000 0.000000
+v 0.000000 10.000000 0.000000
+mtlib material.mtlib
+o red_dot
+p 1
+usemtl color_1
+o green_square
+l 2 3 4 5 2
+usemtl color_2
+o blue_triangle
+f 6 7 8
+usemtl color_3
+o yellow_line
+l 2 4
+usemtl color_4
+```
+
+Exemplo de arquivo mtlib:
+```
+newmtl color_1
+Kd 1.000000 0.000000 0.000000
+newmtl color_2
+Kd 0.000000 1.000000 0.000000
+newmtl color_3
+Kd 0.000000 0.000000 1.000000
+newmtl color_4
+Kd 1.000000 1.000000 0.000000
+```
 

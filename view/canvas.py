@@ -56,9 +56,6 @@ class Canvas(QtWidgets.QLabel):
             while(i+1 < len(coordinates)):
                 painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
                 i = i+1
-
-            if (len(coordinates) > 2):
-                painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[0][0], coordinates[0][1])
         painter.end()
 
 

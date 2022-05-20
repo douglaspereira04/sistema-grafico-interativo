@@ -175,7 +175,7 @@ class Graphics:
         centroid = self.objects[object_index].centroid()
 
         transformation_matrix_list = [self.get_transformation_matrix(transformation,centroid) for transformation in transformation_list]
-        transformation_matrix = self.get_transformation_matrix_composition(transformation_matrix_list,centroid)
+        transformation_matrix = self.get_transformation_matrix_composition(transformation_matrix_list)
         
         if(len(transformation_matrix)>0):
             for i in range(len(coords)):

@@ -6,8 +6,10 @@ from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from view.util.dialogs import show_warning_box
+from view.util.dialogs import show_warning_box, show_input_box
+from model.wavefront_obj import WavefrontObj
 import math
+import os
 
 
 class GraphicsController:
@@ -109,33 +111,68 @@ class GraphicsController:
     def load_from_file(self):
         self.erase()
 
-        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Text files (*.txt)")
+        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
 
         try:
             if(file_name[0]!=''):
                 f = open(file_name[0], "r")
-                data = f.read()
+                obj_data = f.read()
                 f.close()
+
+                mtlib_map = dict()
+                mtlib_name_list = WavefrontObj.get_mtlib_list(obj_data)
+                for mtlib_name in mtlib_name_list:
+                    mtlib_path = os.path.join(os.path.dirname(file_name[0]),mtlib_name)
+                    f = open(mtlib_path, "r")
+                    mtlib_data = f.read()
+                    f.close()
+                    mtlib_map[mtlib_name] = mtlib_data
                 
-                self.read_graphics_data(data)
+                objects = WavefrontObj.compose(obj_data,mtlib_map)
+                self.graphic.objects = objects
 
                 self.draw()
                 self.make_list()
-        except:
-            show_warning_box("Unable to load file")
+        except Exception as e:
+            show_warning_box("Unable to load file: "+ str(e))
 
 
 
     def save_to_file(self):
-        file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Text files (*.txt)")
 
+        file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Obj files (*.obj)")
+        
+        file_name = file_name[0]
         try:
-            if(file_name[0]!=''):
-                f = open(file_name[0], "w")
-                f.write(str(self.compile_graphics_data()))
-                f.close()
-        except:
-            show_warning_box("Unable to save file")
+            if(file_name!=''):
+
+                if(not file_name.endswith(".obj")):
+                    file_name +=".obj"
+
+                (mtlib_name, done) = show_input_box("Mtlib name: ")
+
+                if (done and mtlib_name!=""):
+
+                    if(not mtlib_name.endswith(".mtlib")):
+                        mtlib_name +=".mtlib"
+
+                    (obj, mtlib) = WavefrontObj.parse(self.graphic, mtlib_name)
+
+                    mtlib_name = os.path.join(os.path.dirname(file_name),mtlib_name)
+
+                    f = open(file_name, "w")
+                    for line in obj:
+                        f.write(line)
+                    f.close()
+
+
+                    f = open(mtlib_name, "w")
+                    for line in mtlib:
+                        f.write(line)
+                    f.close()
+        except Exception as e:
+            show_warning_box("Unable to save file: "+ str(e))
+
             
 
     def read_graphics_data(self, data):

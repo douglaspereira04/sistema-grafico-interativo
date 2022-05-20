@@ -1,5 +1,5 @@
 class GraphicObject:
-    def __init__(self, name, obj_type,coords, color):
+    def __init__(self, name=None, obj_type=None,coords=[], color="black"):
         self.name = name
         self.obj_type = obj_type
         self.coords = coords

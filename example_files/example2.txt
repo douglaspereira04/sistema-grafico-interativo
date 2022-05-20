@@ -1,1 +1,0 @@
-[('POINT', 'red_dot', [(0.01, 0.02)], 'red'), ('WIREFRAME', 'green_square', [(-10, -10), (10, -10), (10, 10), (-10, 10)], 'green'), ('WIREFRAME', 'blue_triangle', [(10, 32), (47, 40), (-20, -20)], 'blue'), ('LINE', 'yellow_line', [(-10, -10), (10, 10)], 'yellow'), ('POINT', 'test', [(0, 0)], 'black')]

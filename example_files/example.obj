@@ -1,0 +1,21 @@
+v 0.010000 0.020000 0.000000
+v -10.000000 -10.000000 0.000000
+v 10.000000 -10.000000 0.000000
+v 10.000000 10.000000 0.000000
+v -10.000000 10.000000 0.000000
+v 47.000000 40.000000 0.000000
+v -20.000000 -20.000000 0.000000
+v 0.000000 10.000000 0.000000
+mtlib example.mtlib
+o red_dot
+p 1
+usemtl color_1
+o green_square
+l 2 3 4 5 2
+usemtl color_2
+o blue_triangle
+f 6 7 8
+usemtl color_3
+o yellow_line
+l 2 4
+usemtl color_4

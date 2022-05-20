@@ -133,6 +133,7 @@ class GraphicsController:
 
                 self.draw()
                 self.make_list()
+            self.log("Load from file: "+file_name[0]+";")
         except Exception as e:
             show_warning_box("Unable to load file: "+ str(e))
 
@@ -170,6 +171,8 @@ class GraphicsController:
                     for line in mtlib:
                         f.write(line)
                     f.close()
+
+            self.log("Save to file: "+file_name+";")
         except Exception as e:
             show_warning_box("Unable to save file: "+ str(e))
 
@@ -299,6 +302,8 @@ class GraphicsController:
             else:
                 transformation_list = transformation
 
+            self.log("Trasformation: "+name+"; "+str(transformation_list))
+
             if(len(transformation_list) > 0):
                 self.erase()
 
@@ -364,6 +369,8 @@ class GraphicsController:
         if(zoom_by_button and (not zoomed)):
             show_warning_box("Too much zoom.\nSet smaller step value.")
 
+        self.log("Zoom In: "+str(step)+"; Zoom level: "+str(self.graphic.zoom)+";")
+
     def zoom_out(self, step):
 
         self.erase()
@@ -376,6 +383,8 @@ class GraphicsController:
         self.graphic.zoom_out(step)
 
         self.draw()
+
+        self.log("Zoom Out: "+str(step)+"; Zoom level: "+str(self.graphic.zoom)+";")
 
 
     def pan_right(self, step):
@@ -390,6 +399,8 @@ class GraphicsController:
 
         self.draw()
 
+        self.log("Panning Right: "+str(step)+";")
+
 
     def pan_left(self, step):
 
@@ -403,6 +414,8 @@ class GraphicsController:
 
         self.draw()
 
+        self.log("Panning Left: "+str(step)+";")
+
     def pan_up(self, step):
 
         self.erase()
@@ -414,6 +427,8 @@ class GraphicsController:
         self.graphic.pan_up(step)
 
         self.draw()
+
+        self.log("Panning Up: "+str(step)+";")
 
     def pan_down(self, step):
 
@@ -427,10 +442,14 @@ class GraphicsController:
 
         self.draw()
 
+        self.log("Panning Down: "+str(step)+";")
+
     def rotate(self, value):
-        step = float(self.view.side_menu.step.text())
 
         self.erase()
+
+        self.reset_multiplier()
+        step = float(self.view.side_menu.step.text())
 
         if(value != False):
             degrees = value*36*0.1*step
@@ -440,3 +459,10 @@ class GraphicsController:
         self.graphic.vup_angle = degrees
 
         self.draw()
+
+
+        self.log("Rotate: "+str(degrees)+"°;")
+
+
+    def log(self,text):
+        self.view.log.appendPlainText(text)

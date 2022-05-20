@@ -8,9 +8,20 @@ class GraphicObject:
         self.scn_coords = []
 
     def centroid(self):
-        x_coords = [point[0] for point in self.coords]
-        y_coords = [point[1] for point in self.coords]
+
+        sum_x = 0
+        sum_y = 0
+
+        last_point = None
+
         _len = len(self.coords)
-        centroid_x = sum(x_coords)/_len
-        centroid_y = sum(y_coords)/_len
+        if(self.coords[0] == self.coords[len(self.coords)-1]):
+            _len-=1
+
+        for i in range(_len):
+            sum_x += self.coords[i][0]
+            sum_y += self.coords[i][1]
+
+        centroid_x = sum_x/_len
+        centroid_y = sum_y/_len
         return (centroid_x, centroid_y)

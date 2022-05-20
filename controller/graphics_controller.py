@@ -83,6 +83,7 @@ class GraphicsController:
 
         if(selected != -1):
             centroid = self.graphic.objects[selected].centroid()
+            print(centroid)
 
             if(x_diff != 0 or y_diff != 0):
                 transformation = self.graphic.natural_rotation(y_diff, centroid)

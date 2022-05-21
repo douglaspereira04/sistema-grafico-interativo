@@ -251,5 +251,3 @@ class TransformationDialog(QDialog):
 
     def get_transformations(self):
         return self.transformation_list
-
-

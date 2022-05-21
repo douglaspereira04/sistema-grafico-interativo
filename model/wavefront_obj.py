@@ -6,6 +6,9 @@ class WavefrontObj:
     def parse(graphics, mtlib_name):
         object_list = graphics.objects
 
+        window_center = graphics.window_center()
+        window_size = (graphics.window_width(), graphics.window_height())
+
         string_file = ""
 
         vertex_to_pos = dict()
@@ -19,6 +22,11 @@ class WavefrontObj:
         vertex_count = 1
 
         color_count = 1
+
+
+        vertex_to_pos[window_center] = vertex_count
+        vertex_to_pos[window_size] = vertex_count+1
+        vertex_count += 2
 
         for obj in object_list:
             obj_string = None
@@ -62,9 +70,13 @@ class WavefrontObj:
         vertices = []
         for vertex in vertex_to_pos.keys():
             vertices.append("v "+ f"{vertex[0]:.6f}" +" "+ f"{vertex[1]:.6f}" +" "+ f"{0:.6f}" + "\n")
+
+
         mtlib_inf = []
         mtlib_inf.append("mtlib "+mtlib_name+"\n")
-        obj_file = vertices + mtlib_inf +wavefront_object_list
+
+        window_inf = ["o window\nw 1 2\n"]
+        obj_file = vertices + mtlib_inf + window_inf +wavefront_object_list
 
         mtlib_file = []
         for color in color_to_mtlib.keys():
@@ -92,7 +104,7 @@ class WavefrontObj:
         object_to_vertices = dict()
         curr_mtl_to_hex = None
         curr_object = None
-
+        window_inf = None
         vertices = []
 
         for line in obj.splitlines():
@@ -103,21 +115,27 @@ class WavefrontObj:
                     vertex = (float(line[1]),float(line[2]))
                     vertices.append(vertex)
 
-                if(line[0] == "mtlib"):
+                elif(line[0] == "mtlib"):
                     curr_mtl_to_hex = WavefrontObj.get_mtl_to_hex(mtlib_map,line[1])
 
-                if(line[0] == "o"):
+                elif(line[0] == "o"):
                     obj = GraphicObject(name=line[1])
                     curr_object = obj
                     object_to_vertices[curr_object] = None
 
-                if(line[0] == "p" or line[0] == "l" or line[0] == "f"):
+                elif(line[0] == "p" or line[0] == "l" or line[0] == "f"):
                     last_vertex = len(vertices)-1
                     object_to_vertices[curr_object] = (line[0], last_vertex, [int(vertex) for vertex in line[1:]])
 
-                if(line[0] == "usemtl"):
+                elif(line[0] == "usemtl"):
                     _hex = curr_mtl_to_hex[line[1]]
                     curr_object.color = _hex
+
+                elif(line[0] == "w"):
+                    del object_to_vertices[curr_object] 
+                    last_vertex = len(vertices)-1
+                    window_inf = [int(line[1]),int(line[2]), last_vertex]
+
 
 
         for obj in object_to_vertices.keys():
@@ -146,7 +164,19 @@ class WavefrontObj:
 
             objects.append(obj)
 
-        return objects
+
+        window = None
+        if(window_inf != None):
+            window = []
+            last_vertex = window_inf[2]
+            for i in range(2):
+                vertex = window_inf[i]
+                if(vertex < 0):
+                    window.append(vertices[1+last_vertex+vertex])
+                elif(vertex>0):
+                    window.append(vertices[vertex-1])
+
+        return (objects, tuple(window))
 
     def get_mtl_to_hex(mtlib_map, mtlib_name):
         mtl_to_hex = dict()

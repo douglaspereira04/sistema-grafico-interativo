@@ -47,6 +47,8 @@ As cores são carregados dos arquivos definidos em mtlib
 Os arquivos mtlib devem estar no mesmo diretório do arquivo .obj carregado.<br>
 Exemplo de arquivo obj:
 ```
+v -18.000000 -20.000000 0.000000
+v 64.431373 62.000000 0.000000
 v 0.010000 0.020000 0.000000
 v -10.000000 -10.000000 0.000000
 v 10.000000 -10.000000 0.000000
@@ -55,22 +57,24 @@ v -10.000000 10.000000 0.000000
 v 47.000000 40.000000 0.000000
 v -20.000000 -20.000000 0.000000
 v 0.000000 10.000000 0.000000
-mtlib material.mtlib
+mtlib material.mtl
+o window
+w 1 2
 o red_dot
-p 1
+p 3
 usemtl color_1
 o green_square
-l 2 3 4 5 2
+f 4 5 6 7
 usemtl color_2
 o blue_triangle
-f 6 7 8
+f 8 9 10
 usemtl color_3
 o yellow_line
-l 2 4
+l 4 6
 usemtl color_4
 ```
 
-Exemplo de arquivo mtlib:
+Exemplo de arquivo mtl:
 ```
 newmtl color_1
 Kd 1.000000 0.000000 0.000000

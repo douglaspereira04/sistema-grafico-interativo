@@ -64,6 +64,43 @@ class Graphics:
 
         return (x,y)
 
+    def set_window_height(self, height, center, aspect):
+        (x,y) = center
+        half_height = (height/2)
+        self.window["y_min"] = y - half_height
+        self.window["y_max"] = y + half_height
+
+        half_width = (height*aspect)/2
+
+        self.window["x_min"] = x - half_width
+        self.window["x_max"] = x + half_width
+
+    def set_window_width(self, width, center, aspect):
+
+        (x,y) = center
+        half_width = (width/2)
+        self.window["x_min"] = x - half_width
+        self.window["x_max"] = x + half_width
+
+        half_height = (width/aspect)/2
+        self.window["y_min"] = y - half_height
+        self.window["y_max"] = y + half_height
+
+
+    """
+    Define o tamanho da window, mantendo a proporção da window anterior
+    """
+    def set_window(self,window):
+        aspect = self.window_aspect_ratio()
+        (center,dimension) = window
+        (x,y) = center
+        (width,height) = dimension
+
+        self.set_window_width(width,center,aspect)
+
+        if(self.window_height() < height):
+            self.set_window_height(height,center,aspect)
+
     """
     A seguir são as funções que de navegação. Elas se orientam a um valor de passo, definido no parametro "step".
     A função zoom_in diminui a window, limitando a um tamanho maior que zero e zoom_out aumenta a window.

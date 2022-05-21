@@ -128,8 +128,11 @@ class GraphicsController:
                     f.close()
                     mtlib_map[mtlib_name] = mtlib_data
                 
-                objects = WavefrontObj.compose(obj_data,mtlib_map)
+                (objects, window_inf) = WavefrontObj.compose(obj_data,mtlib_map)
                 self.graphic.objects = objects
+
+                if(window_inf != None):
+                    self.graphic.set_window(window_inf)
 
                 self.draw()
                 self.make_list()
@@ -154,8 +157,8 @@ class GraphicsController:
 
                 if (done and mtlib_name!=""):
 
-                    if(not mtlib_name.endswith(".mtlib")):
-                        mtlib_name +=".mtlib"
+                    if(not mtlib_name.endswith(".mtl")):
+                        mtlib_name +=".mtl"
 
                     (obj, mtlib) = WavefrontObj.parse(self.graphic, mtlib_name)
 

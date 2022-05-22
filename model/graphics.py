@@ -332,6 +332,8 @@ class Graphics:
     """
     Clip de linha no espaço normalizado da window
     com o algorítimo Cohen-Sutherland
+    Retorna None se não existe segmento de reta
+    que faz parte da àrea da window
     """
     def cohen_sutherland_clipping(self, line):
         """
@@ -345,20 +347,25 @@ class Graphics:
         initial_rc = self.region_code(initial)
         final_rc = self.region_code(final)
 
-        if (initial_rc & final_rc != 0b0000):
-            return None
-
-
 
         (x0,y0) = initial
         (x1,y1) = final
         m = (y1-y0)/(x1-x0)
 
-        while (not (initial_rc == 0b0000 and final_rc == 0b0000)):
+
+        while (not (initial_rc & final_rc) != 0b0000):
             """
-            Enquanto a linha está parcialmente fora,
-            recalcula os pontos
+            Se os dois pontos, ou os dois pontos depois de algum recálculo
+            que coloca os limites sobre as bordas,
+            se encontrarem fora da região central e na mesma região
+            clipped == None.
+            Se ele se encontrarem ambos na região central
+            então foi encontrada o novo segmento de reta.
             """
+
+            if(initial_rc == 0b0000 and final_rc == 0b0000):
+                clipped = [initial, final]
+                break
 
             #(x,y) serão as coordenadas do ponto de fora
             if(initial_rc != RegionCode.INSIDE.value):
@@ -391,7 +398,6 @@ class Graphics:
                 final = (x,y)
                 final_rc = self.region_code(final)
 
-        clipped = [initial, final]
         return clipped
 
 

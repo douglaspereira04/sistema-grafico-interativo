@@ -324,8 +324,8 @@ class Graphics:
      - Ajustado para clippling
     """
     def viewport_transformation(self, x, y):
-        x1 = ((x- -1) * (self.viewport_width() - self.border) / 2) + self.border
-        y1 = ((1 - ((y - -1) / 2)) * (self.viewport_height() - self.border)) + self.border
+        x1 = ((x- -1) * (self.viewport_width() - (self.border*2)) / 2) + self.border
+        y1 = ((1 - ((y - -1) / 2)) * (self.viewport_height() - (self.border*2))) + self.border
         return (x1,y1)
 
 

@@ -331,6 +331,23 @@ class Graphics:
         y1 = ((1 - ((y - -1) / 2)) * (self.viewport_height() - (self.border*2))) + self.border
         return (x1,y1)
 
+    """
+    Clip de ponto no espaço normalizado da window
+    Retorna None se o ponto não faz parte 
+    da àrea da window
+    """
+    def point_clipping(self, point):
+        """
+        Point deve ser uma lista 
+        com uma única tupla com as coordenadas
+        do ponto
+        """
+        (x,y) = point[0]
+
+        if(x < 1 and x > -1 and y < 1 and y > -1):
+            return point
+        else:
+            return None
 
     """
     Clip de linha no espaço normalizado da window
@@ -429,6 +446,12 @@ class Graphics:
         return rc
 
 
+    """
+    Clip de linha no espaço normalizado da window
+    com o algorítimo de Lian-Barsk
+    Retorna None se não existe segmento de reta
+    que faz parte da àrea da window
+    """
     def lian_barsk_clipping(self, line):
         """
         Line deve ser uma lista com dois pontos.
@@ -482,7 +505,7 @@ class Graphics:
         return [(new_x0,new_y0),(new_x1,new_y1)]
 
     """
-    Clipa linhas e normaliza
+    Normaliza e clipa pontos e linhas
     """
     def normalize_and_clip(self):
         display = []
@@ -496,7 +519,12 @@ class Graphics:
                 new_coords = self.transform(coords,normalization_matrix)
                 scn_coords.append(new_coords)
 
-            if(obj.obj_type == ObjType.LINE):
+            if(obj.obj_type == ObjType.POINT):
+                scn_clipped_coords = self.point_clipping(scn_coords)
+
+                if(scn_clipped_coords != None):
+                    display.append((scn_clipped_coords, obj.color))
+            elif(obj.obj_type == ObjType.LINE):
                 if(self.line_clipping == LineClipping.LIAN_BARSK):
                     scn_clipped_coords = self.lian_barsk_clipping(scn_coords)
                 else:

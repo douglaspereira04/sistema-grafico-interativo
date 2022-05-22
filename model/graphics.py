@@ -20,7 +20,9 @@ class RegionCode(Enum):
     BOTTOM = 0b0100
     TOP = 0b1000
 
-
+class LineClipping(Enum):
+    COHEN_SUTHERLAND = 0
+    LIAN_BARSK = 1
 
 class Graphics:
     def __init__(self):
@@ -50,6 +52,7 @@ class Graphics:
         self.zoom = 1
         self.vup_angle = 0
         self.border = 20
+        self.line_clipping = LineClipping.LIAN_BARSK
 
     def window_width(self):
         return self.window["x_max"] - self.window["x_min"]
@@ -425,6 +428,59 @@ class Graphics:
 
         return rc
 
+
+    def lian_barsk_clipping(self, line):
+        """
+        Line deve ser uma lista com dois pontos.
+        Cada ponto deve ser uma tupla com as coordanadas.
+        """
+        [initial, final] = line
+        (x0,y0) = initial
+        (x1,y1) = final
+
+        p1 = -(x1 - x0)
+        p2 = -p1
+        p3 = -(y1 - y0)
+        p4 = -p3
+        
+        q1 = x0 - (-1)
+        q2 = 1 - x0
+        q3 = y0 - (-1)
+        q4 = 1 - y0
+        
+        if ((p1 == 0 and q1 < 0) or (p2 == 0 and q2 < 0) or (p3 == 0 and q3 < 0) or (p4 == 0 and q4 < 0)):
+            return None
+
+        p = [p1,p2,p3,p4]
+        q = [q1,q2,q3,q4]
+
+        pq = [(p1,q1),(p2,q2),(p3,q3),(p4,q4)]
+
+        neg_p_r = [qk/pk for (pk,qk) in pq if pk != 0 and pk < 0]
+        pos_p_r = [qk/pk for (pk,qk) in pq if pk != 0 and pk > 0]
+        
+        neg_p_r.append(0)
+        pos_p_r.append(1)
+        
+        zeta1 = max(neg_p_r)
+        zeta2 = min(pos_p_r)
+
+        if(zeta1 > zeta2):
+            return None
+        
+        (new_x0, new_y0) = initial
+        (new_x1, new_y1) = final
+        
+        if(zeta1 > 0):
+            new_x0 = x0 + zeta1*(x1-x0)
+            new_y0 = y0 + zeta1*(y1-y0)
+        
+        if(zeta2 < 1):
+            new_x1 = x0 + zeta2*(x1-x0)
+            new_y1 = y0 + zeta2*(y1-y0)
+        
+        return [(new_x0,new_y0),(new_x1,new_y1)]
+
     """
     Clipa linhas e normaliza
     """
@@ -441,7 +497,11 @@ class Graphics:
                 scn_coords.append(new_coords)
 
             if(obj.obj_type == ObjType.LINE):
-                scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
+                if(self.line_clipping == LineClipping.LIAN_BARSK):
+                    scn_clipped_coords = self.lian_barsk_clipping(scn_coords)
+                else:
+                    scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
+
                 if(scn_clipped_coords != None):
                     display.append((scn_clipped_coords, obj.color))
             else:

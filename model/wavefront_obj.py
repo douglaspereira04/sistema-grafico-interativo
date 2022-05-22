@@ -151,7 +151,7 @@ class WavefrontObj:
             if(_type == "p"):
                 obj.obj_type = ObjType.POINT
             elif(_type == "l"):
-                if(len(vertices)<3):
+                if(len(coords)<3):
                     obj.obj_type = ObjType.LINE
                 else:
                     obj.obj_type = ObjType.WIREFRAME

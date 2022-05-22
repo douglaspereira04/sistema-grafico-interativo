@@ -345,8 +345,10 @@ class Graphics:
         initial_rc = self.region_code(initial)
         final_rc = self.region_code(final)
 
-        if (initial_rc & final_rc):
+        if (initial_rc & final_rc != 0b0000):
             return None
+
+
 
         (x0,y0) = initial
         (x1,y1) = final
@@ -389,7 +391,7 @@ class Graphics:
                 final = (x,y)
                 final_rc = self.region_code(final)
 
-        clipped = (initial, final)
+        clipped = [initial, final]
         return clipped
 
 
@@ -434,9 +436,8 @@ class Graphics:
 
             if(obj.obj_type == ObjType.LINE):
                 scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
-
                 if(scn_clipped_coords != None):
-                    display.append(scn_clipped_coords)
+                    display.append((scn_clipped_coords, obj.color))
             else:
                 scn_clipped_coords = scn_coords
                 display.append((scn_clipped_coords, obj.color))

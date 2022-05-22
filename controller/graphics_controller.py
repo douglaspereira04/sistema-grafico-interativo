@@ -121,32 +121,29 @@ class GraphicsController:
 
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
 
-        try:
-            if(file_name[0]!=''):
-                f = open(file_name[0], "r")
-                obj_data = f.read()
+        if(file_name[0]!=''):
+            f = open(file_name[0], "r")
+            obj_data = f.read()
+            f.close()
+
+            mtlib_map = dict()
+            mtlib_name_list = WavefrontObj.get_mtlib_list(obj_data)
+            for mtlib_name in mtlib_name_list:
+                mtlib_path = os.path.join(os.path.dirname(file_name[0]),mtlib_name)
+                f = open(mtlib_path, "r")
+                mtlib_data = f.read()
                 f.close()
+                mtlib_map[mtlib_name] = mtlib_data
+            
+            (objects, window_inf) = WavefrontObj.compose(obj_data,mtlib_map)
+            self.graphic.objects = objects
 
-                mtlib_map = dict()
-                mtlib_name_list = WavefrontObj.get_mtlib_list(obj_data)
-                for mtlib_name in mtlib_name_list:
-                    mtlib_path = os.path.join(os.path.dirname(file_name[0]),mtlib_name)
-                    f = open(mtlib_path, "r")
-                    mtlib_data = f.read()
-                    f.close()
-                    mtlib_map[mtlib_name] = mtlib_data
-                
-                (objects, window_inf) = WavefrontObj.compose(obj_data,mtlib_map)
-                self.graphic.objects = objects
+            if(window_inf != None):
+                self.graphic.set_window(window_inf)
 
-                if(window_inf != None):
-                    self.graphic.set_window(window_inf)
-
-                self.draw()
-                self.make_list()
-            self.log("Load from file: "+file_name[0]+";")
-        except Exception as e:
-            show_warning_box("Unable to load file: "+ str(e))
+            self.draw()
+            self.make_list()
+        self.log("Load from file: "+file_name[0]+";")
 
 
 
@@ -341,13 +338,13 @@ class GraphicsController:
         return (transformation_type,transformation)
 
     def draw_color(self, color):
-        self.graphic.normalize()
+        self.graphic.normalize_and_clip()
 
         obj_list = []
-        for ob in self.graphic.objects:
-            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob.scn_coords]
+        for ob in self.graphic.display:
+            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob[0]]
             if(color == None):
-                self.view.canvas.draw(viewport_coords, QColor(ob.color))
+                self.view.canvas.draw(viewport_coords, QColor(ob[1]))
             else:
                 self.view.canvas.draw(viewport_coords, color)
 
@@ -357,7 +354,7 @@ class GraphicsController:
         self.draw_color(None)
 
         if(self.normalization_test != None):
-            print(self.graphic.objects[self.normalization_test].scn_coords[0])
+            print(self.graphic.display[len(self.graphic.display)-1][0])
 
         color = QColor("#DFDFDF")
         self.draw_viewport_limits(color)

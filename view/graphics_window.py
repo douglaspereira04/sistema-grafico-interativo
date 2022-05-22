@@ -48,11 +48,17 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.load_from_file = QAction('Load from file', self)
         self.save_to_file = QAction('Save to file', self)
 
+        self.test_normalization = QAction('Test normalization', self)
+
 
         menu_bar = self.menuBar()
+        
         file_menu = menu_bar.addMenu('File')
         file_menu.addAction(self.load_from_file)
         file_menu.addAction(self.save_to_file)
+
+        test_menu = menu_bar.addMenu('Test')
+        test_menu.addAction(self.test_normalization)
 
     def set_canvas_color(self, color):
         self.canvas.canvas.fill(QtGui.QColor(color))

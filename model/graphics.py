@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from enum import Enum
+from model.obj_type import ObjType
 
 class RotationType(Enum):
     OBJECT_CENTER = 1
@@ -12,10 +13,20 @@ class TransformationType(Enum):
     SCALING = 2
     ROTATION = 3
 
+class RegionCode(Enum):
+    INSIDE = 0b0000
+    LEFT = 0b0001
+    RIGHT = 0b0010
+    BOTTOM = 0b0100
+    TOP = 0b1000
+
+
 
 class Graphics:
     def __init__(self):
         self.objects = []
+
+        self.display = []
 
         """
         Os valores de viewport e window são inicializados com 0
@@ -38,6 +49,7 @@ class Graphics:
 
         self.zoom = 1
         self.vup_angle = 0
+        self.border = 20
 
     def window_width(self):
         return self.window["x_max"] - self.window["x_min"]
@@ -308,9 +320,125 @@ class Graphics:
 
     """
     Transformação para viewport
-    Ajustado para a representação em sistema de coordenadas normalizado
+     - Ajustado para a representação em sistema de coordenadas normalizado
+     - Ajustado para clippling
     """
     def viewport_transformation(self, x, y):
-        x1 = ((x- -1) * self.viewport_width() / 2)
-        y1 = ((1 - ((y - -1) / 2)) * self.viewport_height())
+        x1 = ((x- -1) * (self.viewport_width() - self.border) / 2) + self.border
+        y1 = ((1 - ((y - -1) / 2)) * (self.viewport_height() - self.border)) + self.border
         return (x1,y1)
+
+
+    """
+    Clip de linha no espaço normalizado da window
+    com o algorítimo Cohen-Sutherland
+    """
+    def cohen_sutherland_clipping(self, line):
+        """
+        Line deve ser uma lista com dois pontos.
+        Cada ponto deve ser uma tupla com as coordanadas.
+        """
+        [initial, final] = line
+
+        clipped = None
+
+        initial_rc = self.region_code(initial)
+        final_rc = self.region_code(final)
+
+        if (initial_rc & final_rc):
+            return None
+
+        (x0,y0) = initial
+        (x1,y1) = final
+        m = (y1-y0)/(x1-x0)
+
+        while (not (initial_rc == 0b0000 and final_rc == 0b0000)):
+            """
+            Enquanto a linha está parcialmente fora,
+            recalcula os pontos
+            """
+
+            #(x,y) serão as coordenadas do ponto de fora
+            if(initial_rc != RegionCode.INSIDE.value):
+                outside_rc = initial_rc
+                (x,y)  = initial
+            elif(final_rc != RegionCode.INSIDE.value):
+                outside_rc = final_rc
+                (x,y)  = final
+
+
+            #Recalcula o ponto para os extremos
+            if((outside_rc & RegionCode.LEFT.value) != 0b0000):
+                y = (m*(-1 - x)) + y
+                x = -1
+            elif((outside_rc & RegionCode.RIGHT.value) != 0b0000):
+                y = ( m*(1 - x)) + y
+                x = 1
+            elif((outside_rc & RegionCode.TOP.value) != 0b0000):
+                x = x + (1/m)*(1 - y)
+                y = 1
+            elif((outside_rc & RegionCode.BOTTOM.value) != 0b0000):
+                x = x + (1/m)*(-1 - y)
+                y = -1
+
+            #Reatribui o ponto e recalcula o código
+            if(outside_rc == initial_rc):
+                initial = (x,y)
+                initial_rc = self.region_code(initial)
+            else:
+                final = (x,y)
+                final_rc = self.region_code(final)
+
+        clipped = (initial, final)
+        return clipped
+
+
+    """
+    Calculates region code given a point
+
+    1001|1000|1010
+    ____|____|____
+    0001|0000|0010
+    ____|____|____
+        |    |
+    0101|0100|0110
+    """
+    def region_code(self,point):
+        (x,y) = point
+        rc = 0
+        if(x < -1):
+            rc = rc | RegionCode.LEFT.value
+        if(x > 1):
+            rc = rc | RegionCode.RIGHT.value
+        if(y < -1):
+            rc = rc | RegionCode.BOTTOM.value
+        if(y > 1):
+            rc = rc | RegionCode.TOP.value
+
+        return rc
+
+    """
+    Clipa linhas e normaliza
+    """
+    def normalize_and_clip(self):
+        display = []
+
+        normalization_matrix = self.normalization_matrix()
+        for obj in self.objects:
+            scn_coords = []
+            scn_clipped_coords = None
+
+            for coords in obj.coords:
+                new_coords = self.transform(coords,normalization_matrix)
+                scn_coords.append(new_coords)
+
+            if(obj.obj_type == ObjType.LINE):
+                scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
+
+                if(scn_clipped_coords != None):
+                    display.append(scn_clipped_coords)
+            else:
+                scn_clipped_coords = scn_coords
+                display.append((scn_clipped_coords, obj.color))
+
+        self.display = display

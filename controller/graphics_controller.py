@@ -47,6 +47,10 @@ class GraphicsController:
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
 
+
+        self.view.test_normalization.triggered.connect(self.toggle_normalization_test)
+        self.normalization_test = None
+
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
 
@@ -109,6 +113,10 @@ class GraphicsController:
 
 
     def load_from_file(self):
+        if(self.normalization_test != None):
+            self.toggle_normalization_test()
+
+
         self.erase()
 
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
@@ -143,6 +151,8 @@ class GraphicsController:
 
 
     def save_to_file(self):
+        if(self.normalization_test != None):
+            self.toggle_normalization_test()
 
         file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Obj files (*.obj)")
         
@@ -203,15 +213,21 @@ class GraphicsController:
         return [(obj.obj_type.name, obj.name, obj.coords, obj.color) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
-        self.graphic.window["x_min"] = -self.view.canvas.canvas.width()/2
-        self.graphic.window["x_max"] = self.view.canvas.canvas.width()/2
-        self.graphic.window["y_min"] = -self.view.canvas.canvas.height()/2
-        self.graphic.window["y_max"] = self.view.canvas.canvas.height()/2
 
-        self.graphic.viewport["x_min"] = -self.view.canvas.canvas.width()/2
-        self.graphic.viewport["x_max"] = self.view.canvas.canvas.width()/2
-        self.graphic.viewport["y_min"] = -self.view.canvas.canvas.height()/2
-        self.graphic.viewport["y_max"] = self.view.canvas.canvas.height()/2
+        self.graphic.viewport = {
+            "x_min": (-self.view.canvas.canvas.width()/2),
+            "x_max": (self.view.canvas.canvas.width()/2),
+            "y_min": (-self.view.canvas.canvas.height()/2),
+            "y_max": (self.view.canvas.canvas.height()/2)
+        }
+
+        self.graphic.window = {
+            "x_min": (-self.view.canvas.canvas.width()/2),
+            "x_max": (self.view.canvas.canvas.width()/2),
+            "y_min": (-self.view.canvas.canvas.height()/2),
+            "y_max": (self.view.canvas.canvas.height()/2)
+        }
+
 
     def on_window_resize(self):
         self.erase()
@@ -340,8 +356,26 @@ class GraphicsController:
     def draw(self):
         self.draw_color(None)
 
+        if(self.normalization_test != None):
+            print(self.graphic.objects[self.normalization_test].scn_coords[0])
+
+        color = QColor("#DFDFDF")
+        self.draw_viewport_limits(color)
+
+
     def erase(self):
         self.draw_color(self.bg_color)
+        self.draw_viewport_limits(self.bg_color)
+
+    def draw_viewport_limits(self, color):
+        width = self.graphic.viewport_width()
+        height = self.graphic.viewport_height()
+
+        border = self.graphic.border
+        
+        coords = [(border,border), (border,height-border), (width-border, height-border), (width-border, border), (border,border)]
+        self.view.canvas.draw(coords, color)
+
 
     def make_list(self):            
         obj_list = []
@@ -469,3 +503,28 @@ class GraphicsController:
 
     def log(self,text):
         self.view.log.appendPlainText(text)
+
+
+
+    def toggle_normalization_test(self):
+        if (self.normalization_test != None):
+            self.erase()
+            del self.graphic.objects[self.normalization_test]
+            self.normalization_test = None
+
+        else:
+            (x,y) = self.graphic.window_center()
+            (name, string_coords, color) = ("Normalization_Test","("+str(x)+","+str(y)+")","#FF0000")
+
+            (obj_type, coords) = self.string_to_obj(string_coords)
+
+            obj = GraphicObject(name, obj_type, coords, color)
+
+
+            self.erase()
+            self.graphic.objects.append(obj)
+
+            self.normalization_test = len(self.graphic.objects) -1
+
+        self.draw()
+        self.make_list()

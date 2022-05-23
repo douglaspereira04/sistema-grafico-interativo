@@ -1,7 +1,7 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
-from model.graphics import TransformationType, RotationType
+from model.graphics import TransformationType, RotationType, LineClipping
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -46,6 +46,9 @@ class GraphicsController:
 
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
+        self.view.enable_clipping.triggered.connect(self.config_clipping)
+        self.view.lian_barsk.triggered.connect(self.config_clipping)
+        self.view.cohen_sutherland.triggered.connect(self.config_clipping)
 
 
         self.view.test_normalization.triggered.connect(self.toggle_normalization_test)
@@ -353,11 +356,11 @@ class GraphicsController:
     def draw(self):
         self.draw_color(None)
 
-        try:
-            if(self.normalization_test != None):
+        if(self.normalization_test != None):
+            try:
                 print(self.graphic.display[len(self.graphic.display)-1][0])
-        except:
-            print(None)
+            except:
+                print(None)
 
         color = QColor("#DFDFDF")
         self.draw_viewport_limits(color)
@@ -528,3 +531,18 @@ class GraphicsController:
 
         self.draw()
         self.make_list()
+
+    def config_clipping(self):
+        self.erase()
+        
+        if(self.view.enable_clipping.isChecked()):
+            self.graphic.enable_clipping = True
+        else:
+            self.graphic.enable_clipping = False
+
+        if(self.view.lian_barsk.isChecked()):
+            self.graphic.line_clipping = LineClipping.LIAN_BARSK
+        else:
+            self.graphic.line_clipping = LineClipping.COHEN_SUTHERLAND
+
+        self.draw()

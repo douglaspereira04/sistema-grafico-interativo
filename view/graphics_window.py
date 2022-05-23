@@ -60,7 +60,9 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
         clipping_menu = menu_bar.addMenu('Clipping')
         self.enable_clipping = QAction('Clip', self)
-        self.enable_clipping.checkable = True
+        self.enable_clipping.setCheckable(True);
+        self.enable_clipping.setChecked(True);
+        
         self.lian_barsk = QAction('Lian-Barsk Line Clipping', self)
         self.lian_barsk.setCheckable(True);
         self.lian_barsk.setChecked(True);

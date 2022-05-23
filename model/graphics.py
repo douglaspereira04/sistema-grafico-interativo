@@ -53,6 +53,7 @@ class Graphics:
         self.vup_angle = 0
         self.border = 20
         self.line_clipping = LineClipping.LIAN_BARSK
+        self.enable_clipping = True
 
     def window_width(self):
         return self.window["x_max"] - self.window["x_min"]
@@ -519,21 +520,25 @@ class Graphics:
                 new_coords = self.transform(coords,normalization_matrix)
                 scn_coords.append(new_coords)
 
-            if(obj.obj_type == ObjType.POINT):
-                scn_clipped_coords = self.point_clipping(scn_coords)
+            if(self.enable_clipping == True):
 
-                if(scn_clipped_coords != None):
-                    display.append((scn_clipped_coords, obj.color))
-            elif(obj.obj_type == ObjType.LINE):
-                if(self.line_clipping == LineClipping.LIAN_BARSK):
-                    scn_clipped_coords = self.lian_barsk_clipping(scn_coords)
+                if(obj.obj_type == ObjType.POINT):
+                    scn_clipped_coords = self.point_clipping(scn_coords)
+
+                    if(scn_clipped_coords != None):
+                        display.append((scn_clipped_coords, obj.color))
+                elif(obj.obj_type == ObjType.LINE):
+                    if(self.line_clipping == LineClipping.LIAN_BARSK):
+                        scn_clipped_coords = self.lian_barsk_clipping(scn_coords)
+                    else:
+                        scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
+
+                    if(scn_clipped_coords != None):
+                        display.append((scn_clipped_coords, obj.color))
                 else:
-                    scn_clipped_coords = self.cohen_sutherland_clipping(scn_coords)
-
-                if(scn_clipped_coords != None):
-                    display.append((scn_clipped_coords, obj.color))
+                    display.append((scn_coords, obj.color))
             else:
-                scn_clipped_coords = scn_coords
-                display.append((scn_clipped_coords, obj.color))
+                display.append((scn_coords, obj.color))
+
 
         self.display = display

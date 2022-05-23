@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import QPlainTextEdit, QAction, QComboBox, QLineEdit
+from PyQt5.QtWidgets import QPlainTextEdit, QAction,QActionGroup, QComboBox, QLineEdit
 from PyQt5.QtGui import QIntValidator, QFont
 from view.canvas import Canvas
 from view.side_menu import SideMenu
@@ -46,21 +46,47 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
         self.log.setFixedHeight(60)
 
-        self.load_from_file = QAction('Load from file', self)
-        self.save_to_file = QAction('Save to file', self)
 
-        self.test_normalization = QAction('Test normalization', self)
 
 
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu('File')
+        self.load_from_file = QAction('Load from file', self)
+        self.save_to_file = QAction('Save to file', self)
+
         file_menu.addAction(self.load_from_file)
         file_menu.addAction(self.save_to_file)
 
+        clipping_menu = menu_bar.addMenu('Clipping')
+        self.enable_clipping = QAction('Clip', self)
+        self.enable_clipping.checkable = True
+        self.lian_barsk = QAction('Lian-Barsk Line Clipping', self)
+        self.lian_barsk.setCheckable(True);
+        self.lian_barsk.setChecked(True);
+        self.cohen_sutherland = QAction('Cohen-Sutherland Line Clipping', self)
+        self.cohen_sutherland.setCheckable(True);
+
+
+        self.line_clipping_group = QActionGroup(self);
+        self.line_clipping_group.addAction(self.lian_barsk);
+        self.line_clipping_group.addAction(self.cohen_sutherland);
+        self.line_clipping_group.setExclusive(True)
+
+        clipping_menu.addAction(self.enable_clipping)
+        clipping_menu.addAction(self.lian_barsk)
+        clipping_menu.addAction(self.cohen_sutherland)
+
         test_menu = menu_bar.addMenu('Test')
+        self.test_normalization = QAction('Test normalization', self)
+
         test_menu.addAction(self.test_normalization)
 
+
+
+        test_menu.setFont(QFont('Arial', 8))
+        clipping_menu.setFont(QFont('Arial', 8))
+        file_menu.setFont(QFont('Arial', 8))
     def set_canvas_color(self, color):
         self.canvas.canvas.fill(QtGui.QColor(color))
 

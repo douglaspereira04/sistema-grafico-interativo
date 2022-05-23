@@ -353,8 +353,11 @@ class GraphicsController:
     def draw(self):
         self.draw_color(None)
 
-        if(self.normalization_test != None):
-            print(self.graphic.display[len(self.graphic.display)-1][0])
+        try:
+            if(self.normalization_test != None):
+                print(self.graphic.display[len(self.graphic.display)-1][0])
+        except:
+            print(None)
 
         color = QColor("#DFDFDF")
         self.draw_viewport_limits(color)

@@ -1,11 +1,12 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtGui import QDoubleValidator, QFont
 from PyQt5.QtCore import Qt
 
 class SideMenu(QtWidgets.QWidget):
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
+
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
         self.title = QtWidgets.QLabel('Menu de funções')
@@ -45,8 +46,8 @@ class SideMenu(QtWidgets.QWidget):
         self.edit_layout.addWidget(self.remove_btn, 0,2)
         self.edit_layout.addWidget(self.transform_btn, 1,0,1,3)
 
-        self.navigation_layout.addWidget(self.steps_label, 0,0,1,2)
-        self.navigation_layout.addWidget(self.step, 0,2,1,2)
+        self.navigation_layout.addWidget(self.steps_label, 0,0,1,1)
+        self.navigation_layout.addWidget(self.step, 0,1,1,3)
         self.navigation_layout.addWidget(self.up_btn, 1,1,1,2)
         self.navigation_layout.addWidget(self.left_btn, 2,0,1,2)
         self.navigation_layout.addWidget(self.right_btn,2,2,1,2)
@@ -57,7 +58,7 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.rotation_button, 5,0, 1,2)
         self.navigation_layout.addWidget(self.rotation_slider, 5,2,1,2)
 
-        self.setMaximumWidth(150)
+        self.setMaximumWidth(100)
 
 
     def make_list(self,obj_list):

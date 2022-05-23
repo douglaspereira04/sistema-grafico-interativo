@@ -1,12 +1,14 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QPlainTextEdit, QAction, QComboBox, QLineEdit
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QFont
 from view.canvas import Canvas
 from view.side_menu import SideMenu
 
 class GraphicsWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
+
+        self.setFont(QFont('Arial', 8))
 
         self.setWindowTitle("Computação Gráfica")
         ## Generate the structure parts of the MainWindow
@@ -42,7 +44,6 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.canvas_control_layout.addWidget(self.viewport_label)
 
 
-
         self.log.setFixedHeight(60)
 
         self.load_from_file = QAction('Load from file', self)
@@ -52,7 +53,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
 
         menu_bar = self.menuBar()
-        
+
         file_menu = menu_bar.addMenu('File')
         file_menu.addAction(self.load_from_file)
         file_menu.addAction(self.save_to_file)

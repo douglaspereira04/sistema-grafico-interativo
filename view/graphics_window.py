@@ -80,7 +80,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         clipping_menu.addAction(self.cohen_sutherland)
 
         test_menu = menu_bar.addMenu('Test')
-        self.test_normalization = QAction('Test normalization', self)
+        self.test_normalization = QAction('Normalization demonstration', self)
 
         test_menu.addAction(self.test_normalization)
 

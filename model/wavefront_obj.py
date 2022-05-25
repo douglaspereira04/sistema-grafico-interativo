@@ -157,7 +157,6 @@ class WavefrontObj:
                     obj.obj_type = ObjType.WIREFRAME
             elif(_type == "f"):
                 obj.obj_type = ObjType.WIREFRAME
-                coords.append(coords[0])
 
 
             obj.coords = coords
@@ -191,16 +190,17 @@ class WavefrontObj:
 
             mtl = None
             
-            if(line[0] == "newmtl"):
-                mtl = line[1]
+            if(len(line)>0):
+                if(line[0] == "newmtl"):
+                    mtl = line[1]
 
-                while line[0] != "Kd":
-                    i+=1
-                    line = list(filter(None, re.split(r'\s|\t', lines[i])))
+                    while line[0] != "Kd":
+                        i+=1
+                        line = list(filter(None, re.split(r'\s|\t', lines[i])))
 
-                (r,g,b) = (float(line[1])*255,float(line[2])*255,float(line[3])*255)
-                _hex = WavefrontObj.rgb_to_hex(r,g,b)
-                mtl_to_hex[mtl] = _hex
+                    (r,g,b) = (float(line[1])*255,float(line[2])*255,float(line[3])*255)
+                    _hex = WavefrontObj.rgb_to_hex(r,g,b)
+                    mtl_to_hex[mtl] = _hex
 
 
             i+=1

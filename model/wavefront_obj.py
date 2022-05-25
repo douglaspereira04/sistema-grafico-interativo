@@ -205,7 +205,6 @@ class WavefrontObj:
 
             i+=1
         return mtl_to_hex
-                
 
 
 

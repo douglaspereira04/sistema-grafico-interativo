@@ -495,7 +495,7 @@ class Graphics:
 
     """
     Clip de objetos Sutherland-Hodgeman
-    com Cohen-Sutherland
+    com clip de linhas Cohen-Sutherland
     """
     def sutherland_hodgeman_clipping(self, polygon):
         clipping_polygon = polygon.copy()
@@ -518,9 +518,13 @@ class Graphics:
                 curr = curr_clip[i]
                 prev = curr_clip[(i - 1) % length]
 
+
+                """
+                Clipa a linha com cohen sutherland
+                """
                 curr_rc = self.region_code(curr)
                 prev_rc = self.region_code(prev)
-
+                
                 if((curr_rc & region.value) == 0b0000):
                     #curr está dentro
                     if((prev_rc & region.value) != 0b0000):

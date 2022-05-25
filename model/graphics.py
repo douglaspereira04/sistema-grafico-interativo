@@ -175,19 +175,19 @@ class Graphics:
         _sin = (math.sin(math.radians(self.vup_angle)))
         _cos = (math.cos(math.radians(self.vup_angle)))
 
-        self.window["y_max"] -= _cos*step
-        self.window["y_min"] -= _cos*step
-        self.window["x_max"] -= _sin*step
-        self.window["x_min"] -= _sin*step
+        self.window["y_max"] += _cos*step
+        self.window["y_min"] += _cos*step
+        self.window["x_max"] += _sin*step
+        self.window["x_min"] += _sin*step
 
     def pan_down(self, step):
         _sin = (math.sin(math.radians(self.vup_angle)))
         _cos = (math.cos(math.radians(self.vup_angle)))
 
-        self.window["y_max"] += _cos*step
-        self.window["y_min"] += _cos*step
-        self.window["x_max"] += _sin*step
-        self.window["x_min"] += _sin*step
+        self.window["y_max"] -= _cos*step
+        self.window["y_min"] -= _cos*step
+        self.window["x_max"] -= _sin*step
+        self.window["x_min"] -= _sin*step
 
     """
     Funções que retorna transformações

@@ -65,23 +65,24 @@ class GraphicsController:
 
     def canvas_scroll(self):
         if(self.view.canvas.wheel_y_angle > 0):
-            self.zoom_in(self.view.canvas.wheel_y_angle)
+            self.zoom_in(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom)
         elif(self.view.canvas.wheel_y_angle < 0):
-            self.zoom_out((-1)*self.view.canvas.wheel_y_angle)
+            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom)
 
     def canvas_pan(self):
         
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
-
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.graphic.zoom
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom
         if(x_diff > 0):
             self.pan_left(x_diff)
         elif(x_diff < 0):
             self.pan_right(-x_diff)
 
         if(y_diff > 0):
-            self.pan_down(y_diff)
+            self.pan_up(y_diff)
         elif(y_diff < 0):
-            self.pan_up(-y_diff)
+            self.pan_down(-y_diff)
 
     def object_rotate(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()

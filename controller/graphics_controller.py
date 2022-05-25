@@ -61,6 +61,7 @@ class GraphicsController:
         self.view.canvas.pan.connect(self.canvas_pan)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
+        self.view.canvas.grab.connect(self.object_grab)
 
 
     def canvas_scroll(self):
@@ -102,6 +103,16 @@ class GraphicsController:
 
         if(x_diff != 0 or y_diff != 0):
             transformation = self.graphic.scale(1-(0.01*y_diff))
+            self.transform_object([transformation])
+
+    def object_grab(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+        
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.graphic.zoom
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom
+
+        if(x_diff != 0 or y_diff != 0):
+            transformation = self.graphic.translation(x_diff,-y_diff)
             self.transform_object([transformation])
 
 

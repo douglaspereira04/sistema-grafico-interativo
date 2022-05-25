@@ -39,6 +39,11 @@ As transformações desejadas podem ser definidas nas abas da tela aberta, cada 
 Também é possível transformar usando atalhos da seguinte forma:
   - Translação pode ser feita segurando a tecla G, o Botão Esquerdo do Mouse e arrastar.
   - Escalonamento pode ser feita segurando a tecla S, o Botão Esquerdo do Mouse e arrastar para cima ou para baixo.
+  - Rotação pode ser feita segurando a tecla R, o Botão Esquerdo do Mouse e arrastar para cima ou para baiaxo.
+
+### Clipping
+Na parte superior da aplicação existem os menus "clipping" e "test". No menu clipping é possível habilitar/desabilitar o clipping e escolher o tipo de clipping de linha. No menu test, pode-se habilitar uma demonstração para verificar o espaço normalizado da window. O ideal é habilitar a demonstração sem nenhum outro objeto. Quando habilitado, um ponto é adicionado, e as coordenadas normalizadas do botão podem ser monitoradas
+no terminal através de prints.
 
 ### Arquivos .obj
 Arquivos .obj podem ser salvos ou carregados pelo programa através do menu "File".<br>

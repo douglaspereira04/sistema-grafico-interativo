@@ -502,10 +502,10 @@ class Graphics:
 
 
     """
-    Clip de objetos Sutherland-Hodgeman
+    Clip de objetos Sutherland-Hodgman
     com clip de linhas Cohen-Sutherland
     """
-    def sutherland_hodgeman_clipping(self, polygon):
+    def sutherland_hodgman_clipping(self, polygon):
         clipping_polygon = polygon.copy()
         length = 0
         intersection_list = []
@@ -593,7 +593,7 @@ class Graphics:
                     if(scn_clipped_coords != None):
                         display.append((scn_clipped_coords, obj.color))
                 elif(obj.obj_type == ObjType.WIREFRAME):
-                    scn_clipped_coords = self.sutherland_hodgeman_clipping(scn_coords)
+                    scn_clipped_coords = self.sutherland_hodgman_clipping(scn_coords)
 
                     if(scn_clipped_coords != None):
                         scn_clipped_coords.append(scn_clipped_coords[0])

@@ -363,12 +363,10 @@ class GraphicsController:
                 print(None)
 
         color = QColor("#DFDFDF")
-        self.draw_viewport_limits(color)
 
 
     def erase(self):
         self.draw_color(self.bg_color)
-        self.draw_viewport_limits(self.bg_color)
 
     def draw_viewport_limits(self, color):
         width = self.graphic.viewport_width()

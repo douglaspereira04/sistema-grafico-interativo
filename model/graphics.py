@@ -305,24 +305,6 @@ class Graphics:
 
 
     """
-    Normaliza todos os pontos de todos os objetos
-    A normalização é armazenada no junto ao objeto
-    mas não substitui as coordenadas originais
-    """
-    def normalize(self):
-
-        normalization_matrix = self.normalization_matrix()
-        for obj in self.objects:
-            
-            scn_coords = []
-
-            for coords in obj.coords:
-                new_coords = self.transform(coords,normalization_matrix)
-                scn_coords.append(new_coords)
-
-            obj.scn_coords = scn_coords
-
-    """
     Transformação para viewport
      - Ajustado para a representação em sistema de coordenadas normalizado
      - Ajustado para clippling
@@ -371,10 +353,9 @@ class Graphics:
 
         (x0,y0) = initial
         (x1,y1) = final
-        m = (y1-y0)/(x1-x0)
 
 
-        while (not (initial_rc & final_rc) != 0b0000):
+        while ((initial_rc & final_rc) == 0b0000):
             """
             Se os dois pontos, ou os dois pontos depois de algum recálculo
             que coloca os limites sobre as bordas,
@@ -388,39 +369,45 @@ class Graphics:
                 clipped = [initial, final]
                 break
 
-            #(x,y) serão as coordenadas do ponto de fora
+            #Calcula a intersecção e reatribui, recalculando a regiao
             if(initial_rc != RegionCode.INSIDE.value):
-                outside_rc = initial_rc
-                (x,y)  = initial
-            elif(final_rc != RegionCode.INSIDE.value):
-                outside_rc = final_rc
-                (x,y)  = final
-
-
-            #Recalcula o ponto para os extremos
-            if((outside_rc & RegionCode.LEFT.value) != 0b0000):
-                y = (m*(-1 - x)) + y
-                x = -1
-            elif((outside_rc & RegionCode.RIGHT.value) != 0b0000):
-                y = ( m*(1 - x)) + y
-                x = 1
-            elif((outside_rc & RegionCode.TOP.value) != 0b0000):
-                x = x + (1/m)*(1 - y)
-                y = 1
-            elif((outside_rc & RegionCode.BOTTOM.value) != 0b0000):
-                x = x + (1/m)*(-1 - y)
-                y = -1
-
-            #Reatribui o ponto e recalcula o código
-            if(outside_rc == initial_rc):
-                initial = (x,y)
+                initial =  self.cohen_sutherland_intersect(initial, final, initial_rc)
                 initial_rc = self.region_code(initial)
-            else:
-                final = (x,y)
+
+            elif(final_rc != RegionCode.INSIDE.value):
+                final =  self.cohen_sutherland_intersect(final, initial, final_rc)
                 final_rc = self.region_code(final)
+
 
         return clipped
 
+    """
+    Calcula a intersecção de uma reta com a borda da window, 
+    dados dois pontos e uma regiao.
+    """
+    def cohen_sutherland_intersect(self, vertex_1, vertex_2, region):
+        (x0,y0) = vertex_1
+        (x1,y1) = vertex_2
+
+        #Recalcula o ponto para os extremos
+        if((region & RegionCode.LEFT.value) != 0b0000):
+            m = (y1-y0)/(x1-x0)
+            y0 = (m*(-1 - x0)) + y0
+            x0 = -1
+        elif((region & RegionCode.RIGHT.value) != 0b0000):
+            m = (y1-y0)/(x1-x0)
+            y0 = ( m*(1 - x0)) + y0
+            x0 = 1
+        if((region & RegionCode.TOP.value) != 0b0000):
+            m = (x1-x0)/(y1-y0)
+            x0 = x0 + m*(1 - y0)
+            y0 = 1
+        elif((region & RegionCode.BOTTOM.value) != 0b0000):
+            m = (x1-x0)/(y1-y0)
+            x0 = x0 + m*(-1 - y0)
+            y0 = -1
+
+        return (x0,y0)
 
     """
     Calculates region code given a point
@@ -505,6 +492,62 @@ class Graphics:
         
         return [(new_x0,new_y0),(new_x1,new_y1)]
 
+
+    """
+    Clip de objetos Sutherland-Hodgeman
+    com Cohen-Sutherland
+    """
+    def sutherland_hodgeman_clipping(self, polygon):
+        clipping_polygon = polygon.copy()
+        length = 0
+        intersection_list = []
+        clipping_polygon_edges = []
+
+        regions = [RegionCode.LEFT, RegionCode.RIGHT, RegionCode.TOP, RegionCode.BOTTOM]
+
+        clipped = polygon.copy()
+        curr_clip = None
+
+        for region in regions:
+            curr_clip = clipped.copy()
+            length = len(curr_clip)
+            clipped = []
+
+            for i in range(length):
+
+                curr = curr_clip[i]
+                prev = curr_clip[(i - 1) % length]
+
+                curr_rc = self.region_code(curr)
+                prev_rc = self.region_code(prev)
+
+                if((curr_rc & region.value) == 0b0000):
+                    #curr está dentro
+                    if((prev_rc & region.value) != 0b0000):
+                        #curr está dentro e prev está fora
+                        intersect =  self.cohen_sutherland_intersect(curr, prev, region.value)
+                        clipped.append(intersect)
+
+                    #já que está dentro, fica
+                    clipped.append(curr)
+                elif((prev_rc & region.value) == 0b0000):
+                    #curr está fora e prev está dentro
+                    intersect =  self.cohen_sutherland_intersect(prev, curr, region.value)
+                    clipped.append(intersect)
+
+                    #curr é "eliminado"
+                    """
+                    Apesar de prev estar dentro seu valor não é adicionado agora,
+                    pois esse vértice foi adicionado quando foi atribuído à curr,
+                    na iteração anterior
+                    """
+
+
+        if(len(clipped) == 0):
+            clipped = None
+        return clipped
+
+
     """
     Normaliza e clipa pontos e linhas
     """
@@ -517,10 +560,12 @@ class Graphics:
             scn_clipped_coords = None
 
             for coords in obj.coords:
+                #normalização
                 new_coords = self.transform(coords,normalization_matrix)
                 scn_coords.append(new_coords)
 
             if(self.enable_clipping == True):
+                #clipping
 
                 if(obj.obj_type == ObjType.POINT):
                     scn_clipped_coords = self.point_clipping(scn_coords)
@@ -535,9 +580,16 @@ class Graphics:
 
                     if(scn_clipped_coords != None):
                         display.append((scn_clipped_coords, obj.color))
-                else:
-                    display.append((scn_coords, obj.color))
+                elif(obj.obj_type == ObjType.WIREFRAME):
+                    scn_clipped_coords = self.sutherland_hodgeman_clipping(scn_coords)
+
+                    if(scn_clipped_coords != None):
+                        scn_clipped_coords.append(scn_clipped_coords[0])
+                        display.append((scn_clipped_coords, obj.color))
             else:
+                #caso o clipping esteja desativado
+                if(obj.obj_type == ObjType.WIREFRAME):
+                    scn_coords.append(scn_coords[0])
                 display.append((scn_coords, obj.color))
 
 

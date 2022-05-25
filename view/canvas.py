@@ -1,9 +1,10 @@
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QResizeEvent
 
 class Canvas(QtWidgets.QLabel):
-    resize = pyqtSignal(int)
+    resize = pyqtSignal(QResizeEvent)
     zoom = pyqtSignal(int)
 
     pan = pyqtSignal(int)
@@ -41,7 +42,7 @@ class Canvas(QtWidgets.QLabel):
         if(self.lock_size == False):
             self.canvas = self.canvas.scaled(self.width(), self.height())
             self.setPixmap(self.canvas)
-            self.resize.emit(1)
+            self.resize.emit(event)
 
     def draw(self, coordinates, color):
         painter = QtGui.QPainter(self.pixmap())

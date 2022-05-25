@@ -54,6 +54,7 @@ class Graphics:
         self.border = 20
         self.line_clipping = LineClipping.LIAN_BARSK
         self.enable_clipping = True
+        self.default_window = None
 
     def window_width(self):
         return self.window["x_max"] - self.window["x_min"]
@@ -103,6 +104,8 @@ class Graphics:
         self.window["y_max"] = y + half_height
 
 
+    def reset_window(self):
+        self.set_window(self.default_window)
     """
     Define o tamanho da window, mantendo a proporção da window anterior
     """
@@ -116,6 +119,11 @@ class Graphics:
 
         if(self.window_height() < height):
             self.set_window_height(height,center,aspect)
+
+        self.default_window = window
+
+    def get_window(self):
+        return (self.window_center(),(self.window_width(),self.window_height()))
 
     """
     A seguir são as funções que de navegação. Elas se orientam a um valor de passo, definido no parametro "step".

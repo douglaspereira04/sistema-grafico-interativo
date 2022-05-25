@@ -128,11 +128,6 @@ class GraphicsController:
 
 
     def load_from_file(self):
-        if(self.normalization_test != None):
-            self.toggle_normalization_test()
-
-
-        self.erase()
 
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
 
@@ -151,6 +146,8 @@ class GraphicsController:
                 mtlib_map[mtlib_name] = mtlib_data
             
             (objects, window_inf) = WavefrontObj.compose(obj_data,mtlib_map)
+            self.erase()
+
             self.graphic.objects = objects
 
             if(window_inf != None):
@@ -158,13 +155,12 @@ class GraphicsController:
 
             self.draw()
             self.make_list()
+
         self.log("Load from file: "+file_name[0]+";")
 
 
 
     def save_to_file(self):
-        if(self.normalization_test != None):
-            self.toggle_normalization_test()
 
         file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Obj files (*.obj)")
         
@@ -243,7 +239,9 @@ class GraphicsController:
 
     def on_window_resize(self):
         self.erase()
+        window = self.graphic.get_window()
         self.reset_window_viewport_state()
+        self.graphic.set_window(window)
         self.draw()
 
     def string_to_obj(self, string_coords):

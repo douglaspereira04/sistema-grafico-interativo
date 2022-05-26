@@ -263,17 +263,22 @@ class GraphicsController:
         dialog = ObjectDialog()
 
         if dialog.exec():
-            self.erase()
 
-            (name, string_coords, color) = dialog.get_inputs()
+            try:
+                (name, string_coords, color, filled) = dialog.get_inputs()
 
-            (obj_type, coords) = self.string_to_obj(string_coords)
+                (obj_type, coords) = self.string_to_obj(string_coords)
 
-            obj = GraphicObject(name, obj_type, coords, color)
-            self.graphic.objects.append(obj)
+                obj = GraphicObject(name, obj_type, coords, color, filled)
+                
+                self.erase()
 
-            self.draw()
-            self.make_list()
+                self.graphic.objects.append(obj)
+
+                self.draw()
+                self.make_list()
+            except Exception as e:
+                show_warning_box("Unable to create object: "+ str(e))
 
 
     def edit_object(self):
@@ -285,19 +290,21 @@ class GraphicsController:
             name = _object.name
             coords = str(_object.coords)[1:-1]
             color = _object.color
+            filled = _object.filled
 
-            dialog = ObjectDialog(self.view, name, coords, color)
+            dialog = ObjectDialog(self.view, name, coords, color, filled)
             result = dialog.exec()
             if (result):
                 self.erase()
                 
-                (new_name, new_string_coords, new_color) = dialog.get_inputs()
+                (new_name, new_string_coords, new_color, new_filled) = dialog.get_inputs()
 
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
                 _object.name = new_name
                 _object.obj_type = new_obj_type
                 _object.coords = new_coords
                 _object.color = new_color
+                _object.filled = new_filled
             
                 self.draw()
                 self.make_list()

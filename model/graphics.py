@@ -591,7 +591,9 @@ class Graphics:
                     scn_clipped_coords = self.sutherland_hodgman_clipping(scn_coords)
 
                     if(scn_clipped_coords != None):
-                        scn_clipped_coords.append(scn_clipped_coords[0])
+                        if(obj.filled):
+                            scn_clipped_coords.append(scn_clipped_coords[0])
+                            
                         display.append((scn_clipped_coords, obj.color, obj.filled))
             else:
                 #caso o clipping esteja desativado

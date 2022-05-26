@@ -52,14 +52,13 @@ class Canvas(QtWidgets.QLabel):
 
         if (length == 1):
             painter.drawPoint(coordinates[0][0], coordinates[0][1])
-        elif(length < 3):
+        elif(length < 3 or (not filled)):
             i=0
             while(i+1 < len(coordinates)):
                 painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
                 i = i+1
         else:
-            if(filled):
-                painter.setBrush(QtGui.QBrush(color))
+            painter.setBrush(QtGui.QBrush(color))
          
             vertices = [QPoint(x,y) for (x,y) in coordinates] 
             polygon = QtGui.QPolygon(vertices)

@@ -1,14 +1,18 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox, QFormLayout
+from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox, QFormLayout, QCheckBox
+import numbers
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="", coords="", color=""):
+    def __init__(self, parent=None, name="", coords="", color="", filled=False):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
 
         self.name = QLineEdit(name)
         self.color = QLineEdit(color)
+        self.filled = QCheckBox()
+        self.filled.setChecked(filled)
+        self.filled.setEnabled(False)
         self.coordinates = QPlainTextEdit(coords)
         self.buttonBox = None
 
@@ -24,8 +28,24 @@ class ObjectDialog(QDialog):
         layout = QFormLayout(self)
         layout.addRow("Name: ", self.name)
         layout.addRow("Color: ", self.color)
+        layout.addRow("Filled: ", self.filled)
         layout.addRow("Coordinates: ", self.coordinates)
         layout.addWidget(buttonBox)
 
+
+        self.coordinates.textChanged.connect(self.set_filled_state)
+        self.set_filled_state()
+
     def get_inputs(self):
-        return (self.name.text(), self.coordinates.toPlainText(), self.color.text())
+        return (self.name.text(), self.coordinates.toPlainText(), self.color.text(), self.filled.isChecked())
+
+    def set_filled_state(self):
+        try:
+            obj_list = list(eval(self.coordinates.toPlainText()))
+            if(len(obj_list)>2 and all(isinstance(x, numbers.Number) and isinstance(y, numbers.Number) for (x,y) in obj_list)):
+                self.filled.setEnabled(True)
+            else:
+                self.filled.setEnabled(False)
+        except Exception as e:
+            self.filled.setEnabled(False)
+

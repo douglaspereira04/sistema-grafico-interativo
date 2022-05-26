@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QResizeEvent
 
@@ -44,21 +44,34 @@ class Canvas(QtWidgets.QLabel):
             self.setPixmap(self.canvas)
             self.resize.emit(event)
 
-    def draw(self, coordinates, color):
+    def draw(self, coordinates, color, filled=False):
         painter = QtGui.QPainter(self.pixmap())
         painter.setPen(color)
 
-        self.coordinates = coordinates
+        length = len(coordinates)
 
-        if (len(coordinates) == 1):
+        if (length == 1):
             painter.drawPoint(coordinates[0][0], coordinates[0][1])
-        else:
+        elif(length < 3):
             i=0
             while(i+1 < len(coordinates)):
                 painter.drawLine(coordinates[i][0], coordinates[i][1], coordinates[i+1][0], coordinates[i+1][1])
                 i = i+1
+        else:
+            if(filled):
+                painter.setBrush(QtGui.QBrush(color))
+         
+            vertices = [QPoint(x,y) for (x,y) in coordinates] 
+            polygon = QtGui.QPolygon(vertices)
+         
+            painter.drawPolygon(polygon)
+
+
         painter.end()
 
+    def drawPolygon(self, coordinates, color):
+        painter = QPainter(self.pixmap())
+        painter.setPen(color)
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:

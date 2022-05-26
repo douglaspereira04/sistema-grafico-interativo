@@ -37,7 +37,7 @@ class WavefrontObj:
             elif(obj.obj_type == ObjType.LINE):
                 _type = "l"
             elif(obj.obj_type == ObjType.WIREFRAME):
-                if(obj.coords[0] == obj.coords[len(obj.coords)-1]):
+                if(obj.filled):
                     _type = "f"
                 else:
                     _type = "l"
@@ -51,8 +51,6 @@ class WavefrontObj:
                 color_count +=1
 
             _len = len(obj.coords)
-            if(_type == "f"):
-                _len -=1
             for i in range(_len):
                 if(not (obj.coords[i] in vertex_to_pos.keys())):
                     vertex_to_pos[obj.coords[i]] = vertex_count
@@ -157,6 +155,7 @@ class WavefrontObj:
                     obj.obj_type = ObjType.WIREFRAME
             elif(_type == "f"):
                 obj.obj_type = ObjType.WIREFRAME
+                obj.filled = True
 
 
             obj.coords = coords
@@ -205,7 +204,6 @@ class WavefrontObj:
 
             i+=1
         return mtl_to_hex
-
 
 
     def hex_to_rgb(value):

@@ -1,11 +1,10 @@
 class GraphicObject:
-    def __init__(self, name=None, obj_type=None,coords=[], color="black"):
+    def __init__(self, name=None, obj_type=None,coords=[], color="black", filled=False):
         self.name = name
         self.obj_type = obj_type
         self.coords = coords
         self.color = color
-
-        self.scn_coords = []
+        self.filled = filled
 
     def centroid(self):
 

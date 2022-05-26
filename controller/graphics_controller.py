@@ -357,9 +357,15 @@ class GraphicsController:
         for ob in self.graphic.display:
             viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob[0]]
             if(color == None):
-                self.view.canvas.draw(viewport_coords, QColor(ob[1]))
+                filled = False
+                if(len(ob[0])>2):
+                    filled = ob[2]
+                self.view.canvas.draw(viewport_coords, QColor(ob[1]), filled)
             else:
-                self.view.canvas.draw(viewport_coords, color)
+                filled = False
+                if(len(ob[0])>2):
+                    filled = ob[2]
+                self.view.canvas.draw(viewport_coords, color, filled)
 
         self.view.canvas.update()
 

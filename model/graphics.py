@@ -506,11 +506,6 @@ class Graphics:
     com clip de linhas Cohen-Sutherland
     """
     def sutherland_hodgman_clipping(self, polygon):
-        clipping_polygon = polygon.copy()
-        length = 0
-        intersection_list = []
-        clipping_polygon_edges = []
-
         regions = [RegionCode.LEFT, RegionCode.RIGHT, RegionCode.TOP, RegionCode.BOTTOM]
 
         clipped = polygon.copy()
@@ -597,12 +592,10 @@ class Graphics:
 
                     if(scn_clipped_coords != None):
                         scn_clipped_coords.append(scn_clipped_coords[0])
-                        display.append((scn_clipped_coords, obj.color))
+                        display.append((scn_clipped_coords, obj.color, obj.filled))
             else:
                 #caso o clipping esteja desativado
-                if(obj.obj_type == ObjType.WIREFRAME):
-                    scn_coords.append(scn_coords[0])
-                display.append((scn_coords, obj.color))
+                display.append((scn_coords, obj.color, obj.filled))
 
 
         self.display = display

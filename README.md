@@ -20,6 +20,8 @@ python3 main.py
 Na lateral esquerda da tela do programa temos: 
 - Botão "Add" permite abrir uma tela para adição de novos objetos;
   - Formato de cor em hexadecimal (#FFFFFF) e coordenadas no formato (x1,y1),(x2,y2),...,(xn,yn)
+  - Opção para objeto ser preenchido. Quando selecionada, o objeto será apresentado com uma aresta do
+  ultimo ao primeiro vértice, sem necessidade de "fechar" o polígono manualmente.
 - Botão "Edit" que permite editar um objeto selecionado da lista de objetos;
 - Botão "Del" que permite excluir o objeto selecionado.
 

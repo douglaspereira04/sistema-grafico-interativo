@@ -4,7 +4,7 @@ from PyQt5.QtGui import QDoubleValidator, QFont
 from PyQt5.QtCore import Qt
 
 class SideMenu(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, max_width):
         QtWidgets.QWidget.__init__(self)
 
         self.layout = QtWidgets.QVBoxLayout()
@@ -19,7 +19,7 @@ class SideMenu(QtWidgets.QWidget):
         self.step.setPlaceholderText("Navigation Steps");
         self.step.setValidator(QDoubleValidator());
 
-        self.steps_label = QtWidgets.QLabel('Steps: ')
+        self.steps_label = QtWidgets.QLabel('Step: ')
         self.zoom_label = QtWidgets.QLabel('Zoom: ')
 
         self.left_btn = QtWidgets.QPushButton('<')
@@ -42,12 +42,12 @@ class SideMenu(QtWidgets.QWidget):
         self.layout.addLayout(self.navigation_layout)
 
         self.edit_layout.addWidget(self.add_btn, 0,0)
-        self.edit_layout.addWidget(self.edit_btn, 0,1)
-        self.edit_layout.addWidget(self.remove_btn, 0,2)
-        self.edit_layout.addWidget(self.transform_btn, 1,0,1,3)
+        self.edit_layout.addWidget(self.remove_btn, 0,1)
+        self.edit_layout.addWidget(self.edit_btn, 1,0, 1, 2)
+        self.edit_layout.addWidget(self.transform_btn, 2,0, 1,2)
 
-        self.navigation_layout.addWidget(self.steps_label, 0,0,1,1)
-        self.navigation_layout.addWidget(self.step, 0,1,1,3)
+        self.navigation_layout.addWidget(self.steps_label, 0,0,1,2)
+        self.navigation_layout.addWidget(self.step, 0,2,1,2)
         self.navigation_layout.addWidget(self.up_btn, 1,1,1,2)
         self.navigation_layout.addWidget(self.left_btn, 2,0,1,2)
         self.navigation_layout.addWidget(self.right_btn,2,2,1,2)
@@ -58,7 +58,7 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.rotation_button, 5,0, 1,2)
         self.navigation_layout.addWidget(self.rotation_slider, 5,2,1,2)
 
-        self.setMaximumWidth(100)
+        self.setMaximumWidth(max_width)
 
 
     def make_list(self,obj_list):

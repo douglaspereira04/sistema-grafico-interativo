@@ -8,7 +8,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
 
-        self.setFont(QFont('Arial', 8))
+        self.setFont(QFont('Arial', 10))
 
         self.setWindowTitle("Computação Gráfica")
         ## Generate the structure parts of the MainWindow
@@ -22,7 +22,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
 
-        self.side_menu = SideMenu()
+        self.side_menu = SideMenu(100)
         # self.exitBtn = QtWidgets.QPushButton('Exit')
         ## Build the structure
         self.setCentralWidget(self.central_widget)
@@ -86,9 +86,9 @@ class GraphicsWindow(QtWidgets.QMainWindow):
 
 
 
-        test_menu.setFont(QFont('Arial', 8))
-        clipping_menu.setFont(QFont('Arial', 8))
-        file_menu.setFont(QFont('Arial', 8))
+        test_menu.setFont(QFont('Arial', 10))
+        clipping_menu.setFont(QFont('Arial', 10))
+        file_menu.setFont(QFont('Arial', 10))
     def set_canvas_color(self, color):
         self.canvas.canvas.fill(QtGui.QColor(color))
 

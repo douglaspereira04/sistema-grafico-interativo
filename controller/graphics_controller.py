@@ -265,7 +265,7 @@ class GraphicsController:
         if dialog.exec():
 
             try:
-                (name, string_coords, color, filled) = dialog.get_inputs()
+                (name, string_coords, color, filled, bezier) = dialog.get_inputs()
 
                 (obj_type, coords) = self.string_to_obj(string_coords)
 
@@ -297,7 +297,7 @@ class GraphicsController:
             if (result):
                 self.erase()
                 
-                (new_name, new_string_coords, new_color, new_filled) = dialog.get_inputs()
+                (new_name, new_string_coords, new_color, new_filled, bezier) = dialog.get_inputs()
 
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
                 _object.name = new_name

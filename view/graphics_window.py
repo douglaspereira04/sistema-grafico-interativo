@@ -22,7 +22,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.log = QPlainTextEdit(self)
         self.log.setReadOnly(True)
 
-        self.side_menu = SideMenu(100)
+        self.side_menu = SideMenu(140)
         # self.exitBtn = QtWidgets.QPushButton('Exit')
         ## Build the structure
         self.setCentralWidget(self.central_widget)

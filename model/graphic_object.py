@@ -39,6 +39,7 @@ class GraphicObject:
     para a matriz de transformação correspondente
     """
     def get_transformation_matrix(self, transformation):
+
         if (transformation.transformation_type == TransformationType.ROTATION):
             if(transformation.rotation_type == RotationType.OBJECT_CENTER):
                 return transformation.get_matrix(self.center[0], self.center[1])

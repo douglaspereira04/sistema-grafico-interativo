@@ -1,6 +1,7 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
+from model.curve_object import CurveObject
 from model.clipper import LineClipping
 from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling
 from model.obj_type import ObjType
@@ -267,9 +268,9 @@ class GraphicsController:
             (obj_type, coords) = self.string_to_obj(string_coords)
 
             if(bezier):
-                obj_type = ObjType.BEZIER
-
-            obj = GraphicObject(name, obj_type, coords, color, filled)
+                obj = CurveObject(name, coords, color, filled)
+            else:
+                obj = GraphicObject(name, obj_type, coords, color, filled)
             
             self.erase()
 

@@ -231,7 +231,7 @@ class Graphics:
             obj_coords = None
             is_line_set = False
             if(obj.obj_type == ObjType.BEZIER):
-                obj_coords = self.blended_points(obj.coords)
+                obj_coords = obj.blended_points(int(self.viewport_width()*self.zoom/4))
                 is_line_set = True
             else:
                 obj_coords = obj.coords
@@ -278,36 +278,3 @@ class Graphics:
                 display.append(display_object)
 
         self.display = display
-
-    def bezier_matrix(self):
-        return [
-            [-1,  3, -3, 1],
-            [ 3, -6,  3, 0],
-            [-3,  3,  0, 0],
-            [ 1,  0,  0, 0]]
-
-    def bezier_point(self, t, control_points):
-        t = [t*t*t, t*t, t, 1]
-        bezier_matrix = self.bezier_matrix()
-
-        control_x = [point[0] for point in control_points]
-        control_y = [point[1] for point in control_points]
-
-        t_bezier = np.matmul(t, bezier_matrix)
-
-        x =  np.matmul(t_bezier, control_x)
-        y = np.matmul(t_bezier, control_y)
-
-
-        return (x,y)
-
-    def blended_points(self, control_points):
-        curve_points = []
-        width = int(self.viewport_width()*self.zoom/4)
-        length = len(control_points)
-        for i in range(0, length-1, 3):
-            curr_control_points = control_points[i:i+4]
-            for j in range(width):
-                curve_points.append(self.bezier_point(j/width, curr_control_points))
-
-        return curve_points

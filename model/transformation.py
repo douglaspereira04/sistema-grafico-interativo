@@ -88,6 +88,10 @@ class Rotation(Transformation):
 			parcial = np.matmul(Transformation.translation_matrix(-x, -y),Transformation.rotation_matrix(self.degrees))
 			return np.matmul(parcial,Transformation.translation_matrix(x, y))
 
+	def __str__(self):
+		return str((self.transformation_type, self.rotation_type.name, self.degrees, self.x, self.y))
+
+
 class Translation(Transformation):
 	def __init__(self, x, y):
 		super().__init__(TransformationType.TRANSLATION)
@@ -101,6 +105,9 @@ class Translation(Transformation):
 
 		return Transformation.translation_matrix(x, y)
 
+	def __str__(self):
+		return str((self.transformation_type, self.x, self.y))
+
 class Scaling(Transformation):
 	def __init__(self, factor):
 		super().__init__(TransformationType.SCALING)
@@ -109,4 +116,8 @@ class Scaling(Transformation):
 	def get_matrix(self, x = 0, y = 0):
 		parcial = np.matmul(Transformation.translation_matrix(-x, -y),Transformation.scaling_matrix(self.factor,self.factor))
 		return np.matmul(parcial,Transformation.translation_matrix(x, y))
+
+
+	def __str__(self):
+		return str((self.transformation_type, self.factor))
 

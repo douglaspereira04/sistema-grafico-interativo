@@ -341,7 +341,7 @@ class GraphicsController:
             else:
                 transformation_list = transformation
 
-            self.log("Trasformation: "+name+"; "+str(transformation_list))
+            self.log("Trasformation: "+name+"; "+" ".join(str(t) for t in transformation_list))
 
             if(len(transformation_list) > 0):
                 self.erase()

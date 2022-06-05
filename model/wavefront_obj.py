@@ -36,7 +36,7 @@ class WavefrontObj:
                 _type = "p"
             elif(obj.obj_type == ObjType.LINE):
                 _type = "l"
-            elif(obj.obj_type == ObjType.WIREFRAME):
+            elif(obj.obj_type == ObjType.WIREFRAME or obj.obj_type == ObjType.BEZIER):
                 if(obj.filled):
                     _type = "f"
                 else:
@@ -50,13 +50,20 @@ class WavefrontObj:
                 color_to_mtlib[obj.color] = "color_" + str(color_count)
                 color_count +=1
 
-            _len = len(obj.coords)
+            obj_coords = None
+
+            if(obj.obj_type == ObjType.BEZIER):
+                obj_coords = obj.blended_points(int(graphics.viewport_width()/4))
+            else:
+                obj_coords = obj.coords
+
+            _len = len(obj_coords)
             for i in range(_len):
-                if(not (obj.coords[i] in vertex_to_pos.keys())):
-                    vertex_to_pos[obj.coords[i]] = vertex_count
+                if(not (obj_coords[i] in vertex_to_pos.keys())):
+                    vertex_to_pos[obj_coords[i]] = vertex_count
                     vertex_count += 1
 
-                vertex_pos = vertex_to_pos[obj.coords[i]]
+                vertex_pos = vertex_to_pos[obj_coords[i]]
 
                 obj_string += " "+ str(vertex_pos)
 

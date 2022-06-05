@@ -79,14 +79,14 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         clipping_menu.addAction(self.lian_barsk)
         clipping_menu.addAction(self.cohen_sutherland)
 
-        test_menu = menu_bar.addMenu('Test')
+        #test_menu = menu_bar.addMenu('Test')
         self.test_normalization = QAction('Normalization Demonstration', self)
 
-        test_menu.addAction(self.test_normalization)
+        #test_menu.addAction(self.test_normalization)
 
 
 
-        test_menu.setFont(QFont('Arial', 10))
+        #test_menu.setFont(QFont('Arial', 10))
         clipping_menu.setFont(QFont('Arial', 10))
         file_menu.setFont(QFont('Arial', 10))
     def set_canvas_color(self, color):

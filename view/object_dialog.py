@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox
 import numbers
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="", coords="", color="", filled=False, bezier=False):
+    def __init__(self, parent=None, name="A", coords="(-20, -20), (0, -40), (20, 0), (40, 0), (50,-10),(60,-20),(70,10)", color="#FF0000", filled=False, bezier=False):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -33,9 +33,9 @@ class ObjectDialog(QDialog):
         layout.addRow("Name: ", self.name)
         layout.addRow("Color: ", self.color)
         layout.addRow("Coordinates: ", self.coordinates)
-        layout.addWidget(buttonBox)
         layout.addRow("Filled: ", self.filled)
         layout.addRow("Bezier Curve: ", self.bezier)
+        layout.addWidget(buttonBox)
 
 
         self.coordinates.textChanged.connect(self.set_filled_state)
@@ -50,26 +50,32 @@ class ObjectDialog(QDialog):
 
         try:
             obj_list = list(eval(self.coordinates.toPlainText()))
-            if(len(obj_list)>2 and all(isinstance(x, numbers.Number) and isinstance(y, numbers.Number) for (x,y) in obj_list)):
-                self.filled.setEnabled(True)
-                self.bezier.setEnabled(True)
+            well_written = all(isinstance(x, numbers.Number) and isinstance(y, numbers.Number) for (x,y) in obj_list)
+
+            if(well_written and len(obj_list)>2):
+                self.enable_filled(True)
             else:
-                self.filled.setChecked(False)
-                self.filled.setEnabled(False)
-                self.bezier.setChecked(False)
-                self.bezier.setEnabled(False)
+                self.enable_filled(False)
+
+            if(well_written and (len(obj_list)%3 == 1)):
+                self.enable_bezier(True)
+            else:
+                self.enable_bezier(False)
         except Exception as e:
-            self.filled.setChecked(False)
-            self.filled.setEnabled(False)
-            self.bezier.setChecked(False)
-            self.bezier.setEnabled(False)
+            self.enable_filled(False)
+            self.enable_bezier(False)
 
-        if(self.bezier.isChecked()):
-            self.filled.setChecked(False)
-            self.filled.setEnabled(False)
 
-        if(self.filled.isChecked()):
+    def enable_filled(self, enabled):
+        if(self.filled.isChecked() and (not enabled)):
+            self.filled.setChecked(False)
+        self.filled.setEnabled(enabled)
+        
+
+    def enable_bezier(self, enabled):
+        self.bezier.setEnabled(enabled)
+        if(self.bezier.isChecked() and (not enabled)):
             self.bezier.setChecked(False)
-            self.bezier.setEnabled(False)
+        
 
 

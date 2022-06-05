@@ -44,13 +44,16 @@ class Canvas(QtWidgets.QLabel):
             self.setPixmap(self.canvas)
             self.resize.emit(event)
 
-    def draw(self, coordinates, color, filled=False):
+    def draw(self, coordinates, color, filled=False, line_set=False):
         painter = QtGui.QPainter(self.pixmap())
         painter.setPen(color)
 
         length = len(coordinates)
 
-        if (length == 1):
+        if(line_set):
+            for ((x0,y0), (x1,y1)) in coordinates:
+                painter.drawLine(x0,y0,x1,y1)
+        elif (length == 1):
             painter.drawPoint(coordinates[0][0], coordinates[0][1])
         elif(length < 3 or (not filled)):
             i=0

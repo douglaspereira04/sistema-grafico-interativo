@@ -1,7 +1,8 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
-from model.graphics import TransformationType, RotationType, LineClipping
+from model.clipper import LineClipping
+from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -50,7 +51,6 @@ class GraphicsController:
         self.view.lian_barsk.triggered.connect(self.config_clipping)
         self.view.cohen_sutherland.triggered.connect(self.config_clipping)
 
-
         self.view.test_normalization.triggered.connect(self.toggle_normalization_test)
         self.normalization_test = None
 
@@ -91,10 +91,8 @@ class GraphicsController:
         selected = self.view.side_menu.list.currentRow()
 
         if(selected != -1):
-            centroid = self.graphic.objects[selected].centroid()
-
             if(x_diff != 0 or y_diff != 0):
-                transformation = self.graphic.natural_rotation(y_diff, centroid)
+                transformation = Rotation(RotationType.OBJECT_CENTER, y_diff, 0, 0)
                 self.transform_object([transformation])
 
 
@@ -102,7 +100,7 @@ class GraphicsController:
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
 
         if(x_diff != 0 or y_diff != 0):
-            transformation = self.graphic.scale(1-(0.01*y_diff))
+            transformation = Scaling(1-(0.01*y_diff))
             self.transform_object([transformation])
 
     def object_grab(self):
@@ -112,7 +110,7 @@ class GraphicsController:
         y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom
 
         if(x_diff != 0 or y_diff != 0):
-            transformation = self.graphic.translation(x_diff,-y_diff)
+            transformation = Translation(x_diff,-y_diff)
             self.transform_object([transformation])
 
 
@@ -264,21 +262,21 @@ class GraphicsController:
 
         if dialog.exec():
 
-            try:
-                (name, string_coords, color, filled, bezier) = dialog.get_inputs()
+            (name, string_coords, color, filled, bezier) = dialog.get_inputs()
 
-                (obj_type, coords) = self.string_to_obj(string_coords)
+            (obj_type, coords) = self.string_to_obj(string_coords)
 
-                obj = GraphicObject(name, obj_type, coords, color, filled)
-                
-                self.erase()
+            if(bezier):
+                obj_type = ObjType.BEZIER
 
-                self.graphic.objects.append(obj)
+            obj = GraphicObject(name, obj_type, coords, color, filled)
+            
+            self.erase()
 
-                self.draw()
-                self.make_list()
-            except Exception as e:
-                show_warning_box("Unable to create object: "+ str(e))
+            self.graphic.objects.append(obj)
+
+            self.draw()
+            self.make_list()
 
 
     def edit_object(self):
@@ -300,6 +298,10 @@ class GraphicsController:
                 (new_name, new_string_coords, new_color, new_filled, bezier) = dialog.get_inputs()
 
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
+
+                if(bezier):
+                    new_obj_type = ObjType.BEZIER
+
                 _object.name = new_name
                 _object.obj_type = new_obj_type
                 _object.coords = new_coords
@@ -350,29 +352,36 @@ class GraphicsController:
     def view_to_model_transformation(self, view_entry):
         transformation_type = TransformationType[view_entry[0].name]
         transformation = None
-        if(transformation_type == TransformationType.ROTATION):
-            transformation = (RotationType[view_entry[1][0]],view_entry[1][1],view_entry[1][2],view_entry[1][3])
-        else:
-            transformation = view_entry[1]
 
-        return (transformation_type,transformation)
+        if(transformation_type == TransformationType.ROTATION):
+            (rotation_type, degrees, x, y) = (RotationType[view_entry[1][0]], view_entry[1][1],view_entry[1][2],view_entry[1][3])
+            transformation = Rotation(rotation_type, degrees, x, y)
+        elif(transformation_type == TransformationType.TRANSLATION):
+            (x, y) = view_entry[1]
+            transformation = Translation(x, y)
+        elif(transformation_type == TransformationType.SCALING):
+            factor = view_entry[1]
+            transformation = Scaling(factor)
+
+        return transformation
 
     def draw_color(self, color):
         self.graphic.normalize_and_clip()
 
         obj_list = []
-        for ob in self.graphic.display:
-            viewport_coords = [self.graphic.viewport_transformation(point[0],point[1]) for point in ob[0]]
+        for display_object in self.graphic.display:
             if(color == None):
-                filled = False
-                if(len(ob[0])>2):
-                    filled = ob[2]
-                self.view.canvas.draw(viewport_coords, QColor(ob[1]), filled)
+                obj_color = QColor(display_object.color)
             else:
-                filled = False
-                if(len(ob[0])>2):
-                    filled = ob[2]
-                self.view.canvas.draw(viewport_coords, color, filled)
+                obj_color = color
+
+            if((self.graphic.enable_clipping) and (not display_object.is_filled) and (len(display_object.coords) > 1)):
+                for i in range(0, len(display_object.coords)-1, 2):
+                    p0 = display_object.coords[i]
+                    p1 = display_object.coords[i+1]
+                    self.view.canvas.draw([p0,p1], obj_color, False)
+            else:
+                self.view.canvas.draw(display_object.coords, obj_color, display_object.is_filled)
 
         self.view.canvas.update()
 
@@ -529,7 +538,6 @@ class GraphicsController:
 
     def log(self,text):
         self.view.log.appendPlainText(text)
-
 
 
     def toggle_normalization_test(self):

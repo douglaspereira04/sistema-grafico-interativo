@@ -3,6 +3,7 @@ from model.graphic_object import GraphicObject
 from model.point_object import PointObject
 from model.line_object import LineObject
 from model.wireframe_object import WireframeObject
+from model.curve_object import CurveObject
 import re
 
 class WavefrontObj:
@@ -56,9 +57,9 @@ class WavefrontObj:
             obj_coords = None
 
             if(obj.obj_type == ObjType.BEZIER):
-                obj_coords = obj.blended_points(int(graphics.viewport_width()/4))
+                obj_coords = CurveObject.blended_points(int(graphics.viewport_width()/4), obj.coords)
             elif(obj.obj_type == ObjType.SPLINE):
-                obj_coords = obj.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width())
+                obj_coords = CurveObject.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width(), obj.coords)
             else:
                 obj_coords = obj.coords
 

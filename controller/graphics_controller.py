@@ -167,37 +167,35 @@ class GraphicsController:
         file_name = QFileDialog.getSaveFileName(self.view, 'Save file', '',"Obj files (*.obj)")
         
         file_name = file_name[0]
-        try:
-            if(file_name!=''):
+        
+        if(file_name!=''):
 
-                if(not file_name.endswith(".obj")):
-                    file_name +=".obj"
+            if(not file_name.endswith(".obj")):
+                file_name +=".obj"
 
-                (mtlib_name, done) = show_input_box("Mtlib name: ")
+            (mtlib_name, done) = show_input_box("Mtlib name: ")
 
-                if (done and mtlib_name!=""):
+            if (done and mtlib_name!=""):
 
-                    if(not mtlib_name.endswith(".mtl")):
-                        mtlib_name +=".mtl"
+                if(not mtlib_name.endswith(".mtl")):
+                    mtlib_name +=".mtl"
 
-                    (obj, mtlib) = WavefrontObj.parse(self.graphic, mtlib_name)
+                (obj, mtlib) = WavefrontObj.parse(self.graphic, mtlib_name)
 
-                    mtlib_name = os.path.join(os.path.dirname(file_name),mtlib_name)
+                mtlib_name = os.path.join(os.path.dirname(file_name),mtlib_name)
 
-                    f = open(file_name, "w")
-                    for line in obj:
-                        f.write(line)
-                    f.close()
+                f = open(file_name, "w")
+                for line in obj:
+                    f.write(line)
+                f.close()
 
 
-                    f = open(mtlib_name, "w")
-                    for line in mtlib:
-                        f.write(line)
-                    f.close()
+                f = open(mtlib_name, "w")
+                for line in mtlib:
+                    f.write(line)
+                f.close()
 
-            self.log("Save to file: "+file_name+";")
-        except Exception as e:
-            show_warning_box("Unable to save file: "+ str(e))
+        self.log("Save to file: "+file_name+";")
 
 
     def reset_window_viewport_state(self):

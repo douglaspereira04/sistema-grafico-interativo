@@ -25,7 +25,7 @@ class WireframeObject(GraphicObject):
         centroid_y = sum_y/_len
         return (centroid_x, centroid_y)
 
-    def clip(self):
+    def clipped(self):
         if(not self.filled):
             return Clipper.line_set_clipping(self.scn, LineClipping.COHEN_SUTHERLAND)
         else:

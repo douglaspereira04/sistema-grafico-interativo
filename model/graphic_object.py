@@ -52,5 +52,5 @@ class GraphicObject:
         Transformation.transform(self.scn, normalization_matrix)
         return self.scn
 
-    def clip(self):
+    def clipped(self):
         pass

@@ -10,5 +10,5 @@ class PointObject(GraphicObject):
     def center(self):
         return self.coords[0]
 
-    def clip(self):
+    def clipped(self):
         return Clipper.point_clipping(self.scn)

@@ -225,36 +225,29 @@ class Graphics:
         normalization_matrix = self.normalization_matrix()
 
         for obj in self.objects:
-            scn_clipped_coords = None
-
             obj.normalize(normalization_matrix)
 
-            display_object = None
+            display_coords = None
             if(self.enable_clipping == True):
                 #clipping
 
                 if(obj.obj_type == ObjType.POINT):
-                    scn_clipped_coords = obj.clip()
+                    display_coords = obj.clipped()
                 elif(obj.obj_type == ObjType.LINE):
-                    scn_clipped_coords = obj.clip(self.line_clipping)
+                    display_coords = obj.clipped(self.line_clipping)
                 elif(obj.obj_type == ObjType.WIREFRAME):
-                    scn_clipped_coords = obj.clip()
+                    display_coords = obj.clipped()
                 elif(obj.obj_type == ObjType.BEZIER):
-                    scn_clipped_coords = obj.clip(int(self.viewport_width()/10))
+                    display_coords = obj.clipped(int(self.viewport_width()/10))
                 elif(obj.obj_type == ObjType.SPLINE):
-                    scn_clipped_coords = obj.clip(self.window_width()*0.1/self.viewport_width())
-
-                
-                if(scn_clipped_coords != None):
-                    display_object = DisplayObject(scn_clipped_coords, obj.color, obj.filled)
-
-
+                    display_coords = obj.clipped(self.window_width()*0.1/self.viewport_width())
             else:
                 #caso o clipping esteja desativado
-                display_object = DisplayObject(obj.scn, obj.color, obj.filled)
+                display_coords = obj.scn
 
-            if(display_object != None):
-                display_object.coords = [self.viewport_transformation(point[0],point[1]) for point in display_object.coords]
+            if(display_coords != None):
+                display_coords = [self.viewport_transformation(point[0],point[1]) for point in display_coords]
+                display_object = DisplayObject(display_coords, obj.color, obj.filled)
                 display.append(display_object)
 
         self.display = display

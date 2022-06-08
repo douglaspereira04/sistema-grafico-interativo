@@ -14,7 +14,7 @@ class LineObject(GraphicObject):
 
         return (xm, ym)
 
-    def clip(self, line_clipping):
+    def clipped(self, line_clipping):
         if(line_clipping == LineClipping.LIAN_BARSK):
             return Clipper.lian_barsk_clipping(self.scn)
         else:

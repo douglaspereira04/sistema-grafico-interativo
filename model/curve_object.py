@@ -59,7 +59,7 @@ class CurveObject(GraphicObject):
 
         return (x,y)
 
-    def blended_points(self, resolution, control_points):
+    def blended_points(resolution, control_points):
         curve_points = []
         width = resolution
         length = len(control_points)
@@ -127,10 +127,10 @@ class CurveObject(GraphicObject):
         return curve_points
 
 
-    def clip(self, d):
+    def clipped(self, d):
         coords = None
         if(self.obj_type == ObjType.BEZIER):
-            coords = self.blended_points(d, self.scn)
+            coords = CurveObject.blended_points(d, self.scn)
         else:
             coords = CurveObject.forward_difference_points(d, self.scn)
 

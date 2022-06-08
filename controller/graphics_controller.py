@@ -29,8 +29,8 @@ class GraphicsController:
 
         self.view.side_menu.rotated_right.connect(lambda : self.rotate(1))
         self.view.side_menu.rotated_left.connect(lambda : self.rotate(-1))
-        self.view.side_menu.zoomed_in.connect(self.zoom_in)
-        self.view.side_menu.zoomed_out.connect(self.zoom_out)
+        self.view.side_menu.zoomed_in.connect(lambda : self.zoom_button(1))
+        self.view.side_menu.zoomed_out.connect(lambda : self.zoom_button(-1))
 
         self.view.side_menu.up.connect(lambda : self.pan_button(0,-1))
         self.view.side_menu.down.connect(lambda : self.pan_button(0,1))
@@ -69,10 +69,7 @@ class GraphicsController:
 
 
     def canvas_scroll(self):
-        if(self.view.canvas.wheel_y_angle > 0):
-            self.zoom_in(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
-        elif(self.view.canvas.wheel_y_angle < 0):
-            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
+        self.zoom(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
 
 
     def canvas_pan(self):
@@ -409,64 +406,32 @@ class GraphicsController:
         if (self.view.side_menu.step.text().strip() == ""):
             self.view.side_menu.step.setText("10")
 
-    def zoom_in(self, step):
-
-        self.erase()
-
+    def zoom_button(self, direction):
         self.reset_multiplier()
+        step = float(self.view.side_menu.step.text())
+        self.zoom(step*direction)
 
-        zoom_by_button = step == True
-
-        if(zoom_by_button):
-            step = float(self.view.side_menu.step.text())
-
-        zoomed = self.graphic.zoom_in(step)
-
-        self.draw()
-
-        if(zoom_by_button and (not zoomed)):
-            show_warning_box("Too much zoom.\nSet smaller step value.")
-
-        self.log("Zoom In: "+str(step)+";")
-
-    def zoom_out(self, step):
-
+    def zoom(self, step):
         self.erase()
-
-        self.reset_multiplier()
-
-        zoom_by_button = step == True
-
-        if(zoom_by_button):
-            step = float(self.view.side_menu.step.text())
-
-        self.graphic.zoom_out(step)
-
+        self.graphic.zoom(step)
         self.draw()
-
-        self.log("Zoom Out: "+str(step)+";")
+        self.log("Zoom: "+str(step)+";")
 
 
     def pan_button(self, x, y):
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
-
         self.pan(x*step, y*step)
 
 
     def pan(self, x, y):
-
         self.erase()
-
         self.graphic.pan(x, y)
-
         self.draw()
-
         self.log("Panning: ("+str(x)+","+str(y)+");")
 
     def rotate(self, direction):
         self.erase()
-
         self.reset_multiplier()
         degrees = float(self.view.side_menu.step.text())
 

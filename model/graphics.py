@@ -3,7 +3,7 @@ import numpy as np
 from model.obj_type import ObjType
 from model.graphic_object import GraphicObject
 from model.display_object import DisplayObject
-from model.transformation import Transformation, RotationType, Rotation
+from model.transformation import Transformation, RotationType, Rotation, Translation
 from model.clipper import LineClipping
 
 class Graphics:
@@ -112,13 +112,14 @@ class Graphics:
         return Transformation.transform_point((x,y), rotation_matrix)
 
 
+
     """
     A seguir são as funções que de navegação. Elas se orientam a um valor de passo, definido no parametro "step".
     A função zoom_in diminui a window, limitando a um tamanho maior que zero e zoom_out aumenta a window.
     As funções de panning movem a window considerando o angulo em que ela está rotacionada, 
     ou seja, o angulo de view up vector 
     """
-    def zoom_in(self, step):
+    def zoom(self, step):
         aspect = self.window_aspect_ratio()
 
         xmax = self.window["x_max"] - ((step/2)*aspect)
@@ -136,15 +137,6 @@ class Graphics:
             self.window["y_min"] = ymin
             
             return True
-
-
-    def zoom_out(self, step):
-        aspect = self.window_aspect_ratio()
-
-        self.window["x_max"] += (step/2)*aspect
-        self.window["y_max"] += (step/2)
-        self.window["x_min"] -= (step/2)*aspect
-        self.window["y_min"] -= (step/2)
 
 
     def pan(self, x, y):

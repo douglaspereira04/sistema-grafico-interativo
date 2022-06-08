@@ -245,7 +245,9 @@ class GraphicsController:
                 obj = CurveObject(name, ObjType.SPLINE, coords, color, filled)
             elif(obj_type == ObjType.POINT):
                 obj = PointObject(name, coords, color)
-            elif(obj_type == ObjType.LINE or obj_type == ObjType.WIREFRAME):
+            elif(obj_type == ObjType.LINE):
+                obj = LineObject(name, coords, color)
+            elif(obj_type == ObjType.WIREFRAME):
                 obj = WireframeObject(name, coords, color, filled)
             
             self.erase()

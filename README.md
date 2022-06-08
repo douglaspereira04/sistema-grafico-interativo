@@ -20,8 +20,9 @@ python3 main.py
 Na lateral esquerda da tela do programa temos: 
 - Botão "Add" permite abrir uma tela para adição de novos objetos;
   - Formato de cor em hexadecimal (#FFFFFF) e coordenadas no formato (x1,y1),(x2,y2),...,(xn,yn)
-  - Opção para objeto ser preenchido. Quando selecionada, o objeto será apresentado com uma aresta do
+  - Caixa de seleção para definir se o objeto que será criado é preenchido. Quando selecionada, o objeto será apresentado com uma aresta do
   ultimo ao primeiro vértice, sem necessidade de "fechar" o polígono manualmente.
+  - Caixas de seleção para definir se o objeto que será criado é uma cruva bezier ou spline
 - Botão "Edit" que permite editar um objeto selecionado da lista de objetos;
 - Botão "Del" que permite excluir o objeto selecionado.
 
@@ -32,8 +33,7 @@ Também na lateral esquerda:
   - Tabém é possível navegar pressionando Shift, Alt, segurar o Botão Esquerdo do Mouse e arrastar.
 - Botões "+" e "-" para aumentar e reduzir o "zoom" de acordo com o passo definido no campo "step";
   - Também é possível aumentar e reduzir o zoom usando o scroll do mouse.
-- Botão de rotação. O ângulo de rotação é definido pelo valor do campo "step", em graus.
-- Slider de rotação. Se o passo é 1, o slider oferecerá ângulos de 0 à 360 graus. O valor do campo "step" é multiplicador desse ângulo.
+- Botões de rotação. O ângulo de rotação é definido pelo valor do campo "step", em graus.
 
 ### Transformações
 O botão de transformação permite abrir uma tela para realizar as transformações de translação, escalonamento e rotação em um objeto selecionado.
@@ -44,7 +44,7 @@ Também é possível transformar usando atalhos da seguinte forma:
   - Rotação pode ser feita segurando a tecla R, o Botão Esquerdo do Mouse e arrastar para cima ou para baiaxo.
 
 ### Clipping
-Na parte superior da aplicação existem os menus "clipping" e "test". No menu clipping é possível habilitar/desabilitar o clipping e escolher o tipo de clipping de linha. O algoritimo de clipping de linhas pode ser Lian-Barsk ou Cohen-Sutherland. O clipping de objetos é feito com o algoritimo de Sutherland-Hodgman. No menu test, pode-se habilitar uma demonstração para verificar o espaço normalizado da window. O ideal é habilitar a demonstração sem nenhum outro objeto. Quando habilitado, um ponto é adicionado, e as coordenadas normalizadas do ponto podem ser monitoradas pelo terminal através de prints.
+Na parte superior da aplicação existem os menus "clipping" e "test". No menu clipping é possível habilitar/desabilitar o clipping e escolher o tipo de clipping de linha. O algoritimo de clipping de linhas pode ser Lian-Barsk ou Cohen-Sutherland. O clipping de objetos é feito com o algoritimo de Sutherland-Hodgman.
 
 ### Arquivos .obj
 Arquivos .obj podem ser salvos ou carregados pelo programa através do menu "File".<br>

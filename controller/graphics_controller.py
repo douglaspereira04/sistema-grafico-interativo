@@ -456,7 +456,7 @@ class GraphicsController:
         self.erase()
 
         self.reset_multiplier()
-        if(step == False):
+        if(step == True):
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_right(step)
@@ -471,7 +471,7 @@ class GraphicsController:
         self.erase()
 
         self.reset_multiplier()
-        if(step == False):
+        if(step == True):
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_left(step)
@@ -485,7 +485,7 @@ class GraphicsController:
         self.erase()
 
         self.reset_multiplier()
-        if(step == False):
+        if(step == True):
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_up(step)
@@ -499,7 +499,7 @@ class GraphicsController:
         self.erase()
 
         self.reset_multiplier()
-        if(step == False):
+        if(step == True):
             step = float(self.view.side_menu.step.text())
 
         self.graphic.pan_down(step)
@@ -520,7 +520,6 @@ class GraphicsController:
         self.draw()
 
 
-        self.log("Rotate: "+str(degrees)+"°;")
 
     def rotate_right(self):
         self.erase()
@@ -531,6 +530,7 @@ class GraphicsController:
         self.graphic.vup_angle += degrees
 
         self.draw()
+        self.log("Rotate Clockwise: "+str(degrees)+"°;")
 
     def rotate_left(self):
         self.erase()
@@ -541,6 +541,7 @@ class GraphicsController:
         self.graphic.vup_angle -= degrees
 
         self.draw()
+        self.log("Rotate Counterclockwise: "+str(degrees)+"°;")
 
 
     def log(self,text):

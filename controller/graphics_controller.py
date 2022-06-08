@@ -2,6 +2,9 @@ from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphic_object import GraphicObject
 from model.curve_object import CurveObject
+from model.point_object import PointObject
+from model.line_object import LineObject
+from model.wireframe_object import WireframeObject
 from model.clipper import LineClipping
 from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling
 from model.obj_type import ObjType
@@ -67,15 +70,15 @@ class GraphicsController:
 
     def canvas_scroll(self):
         if(self.view.canvas.wheel_y_angle > 0):
-            self.zoom_in(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom)
+            self.zoom_in(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
         elif(self.view.canvas.wheel_y_angle < 0):
-            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom)
+            self.zoom_out((-1)*self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
 
     def canvas_pan(self):
         
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.graphic.zoom
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
         if(x_diff > 0):
             self.pan_left(x_diff)
         elif(x_diff < 0):
@@ -107,8 +110,8 @@ class GraphicsController:
     def object_grab(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
         
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())*self.graphic.zoom
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())*self.graphic.zoom
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
 
         if(x_diff != 0 or y_diff != 0):
             transformation = Translation(x_diff,-y_diff)
@@ -196,28 +199,6 @@ class GraphicsController:
         except Exception as e:
             show_warning_box("Unable to save file: "+ str(e))
 
-            
-
-    def read_graphics_data(self, data):
-        obj_list = list(eval(data))
-
-
-        new_objects = []
-
-        for obj_string in obj_list:
-
-            obj_type = ObjType[obj_string[0]]
-            name = obj_string[1]
-            coords = obj_string[2]
-            color = obj_string[3]
-
-            obj = GraphicObject(name, obj_type, coords, color)
-            new_objects.append(obj)
-
-        self.graphic.objects = new_objects
-
-    def compile_graphics_data(self):
-        return [(obj.obj_type.name, obj.name, obj.coords, obj.color) for obj in self.graphic.objects]
 
     def reset_window_viewport_state(self):
 
@@ -263,14 +244,18 @@ class GraphicsController:
 
         if dialog.exec():
 
-            (name, string_coords, color, filled, bezier) = dialog.get_inputs()
+            (name, string_coords, color, filled, bezier, spline) = dialog.get_inputs()
 
             (obj_type, coords) = self.string_to_obj(string_coords)
 
             if(bezier):
-                obj = CurveObject(name, coords, color, filled)
-            else:
-                obj = GraphicObject(name, obj_type, coords, color, filled)
+                obj = CurveObject(name, ObjType.BEZIER, coords, color, filled)
+            elif(spline):
+                obj = CurveObject(name, ObjType.SPLINE, coords, color, filled)
+            elif(obj_type == ObjType.POINT):
+                obj = PointObject(name, coords, color)
+            elif(obj_type == ObjType.LINE or obj_type == ObjType.WIREFRAME):
+                obj = WireframeObject(name, coords, color, filled)
             
             self.erase()
 
@@ -290,24 +275,30 @@ class GraphicsController:
             coords = str(_object.coords)[1:-1]
             color = _object.color
             filled = _object.filled
+            is_bezier = _object.obj_type == ObjType.BEZIER
+            is_spline = _object.obj_type == ObjType.SPLINE
 
-            dialog = ObjectDialog(self.view, name, coords, color, filled)
+            dialog = ObjectDialog(self.view, name, coords, color, filled, is_bezier, is_spline)
             result = dialog.exec()
             if (result):
                 self.erase()
                 
-                (new_name, new_string_coords, new_color, new_filled, bezier) = dialog.get_inputs()
-
+                new_object = None
+                (new_name, new_string_coords, new_color, new_filled, bezier, spline) = dialog.get_inputs()
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
 
                 if(bezier):
-                    new_obj_type = ObjType.BEZIER
+                    new_object = CurveObject(new_name, ObjType.BEZIER, new_coords, new_color, new_filled)
+                elif(spline):
+                    new_object = CurveObject(new_name, ObjType.SPLINE, new_coords, new_color, new_filled)
+                elif(new_obj_type == ObjType.POINT):
+                    new_object = PointObject(new_name, new_coords, new_color)
+                elif(new_obj_type == ObjType.LINE):
+                    new_object = LineObject(new_name, new_coords, new_color)
+                else:
+                    new_object = WireframeObject(new_name, new_coords, new_color, new_filled)
 
-                _object.name = new_name
-                _object.obj_type = new_obj_type
-                _object.coords = new_coords
-                _object.color = new_color
-                _object.filled = new_filled
+                self.graphic.objects[selected] = new_object
             
                 self.draw()
                 self.make_list()
@@ -442,7 +433,7 @@ class GraphicsController:
         if(zoom_by_button and (not zoomed)):
             show_warning_box("Too much zoom.\nSet smaller step value.")
 
-        self.log("Zoom In: "+str(step)+"; Zoom level: "+str(self.graphic.zoom)+";")
+        self.log("Zoom In: "+str(step)+";")
 
     def zoom_out(self, step):
 
@@ -457,7 +448,7 @@ class GraphicsController:
 
         self.draw()
 
-        self.log("Zoom Out: "+str(step)+"; Zoom level: "+str(self.graphic.zoom)+";")
+        self.log("Zoom Out: "+str(step)+";")
 
 
     def pan_right(self, step):

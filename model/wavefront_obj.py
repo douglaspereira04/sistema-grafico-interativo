@@ -1,5 +1,8 @@
 from model.obj_type import ObjType
 from model.graphic_object import GraphicObject
+from model.point_object import PointObject
+from model.line_object import LineObject
+from model.wireframe_object import WireframeObject
 import re
 
 class WavefrontObj:
@@ -36,7 +39,7 @@ class WavefrontObj:
                 _type = "p"
             elif(obj.obj_type == ObjType.LINE):
                 _type = "l"
-            elif(obj.obj_type == ObjType.WIREFRAME or obj.obj_type == ObjType.BEZIER):
+            else:
                 if(obj.filled):
                     _type = "f"
                 else:
@@ -54,6 +57,8 @@ class WavefrontObj:
 
             if(obj.obj_type == ObjType.BEZIER):
                 obj_coords = obj.blended_points(int(graphics.viewport_width()/4))
+            elif(obj.obj_type == ObjType.SPLINE):
+                obj_coords = obj.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width())
             else:
                 obj_coords = obj.coords
 
@@ -111,6 +116,7 @@ class WavefrontObj:
         curr_object = None
         window_inf = None
         vertices = []
+        name = None
 
         for line in obj.splitlines():
             line = list(filter(None, re.split(r'\s|\t', line)))
@@ -124,27 +130,37 @@ class WavefrontObj:
                     curr_mtl_to_hex = WavefrontObj.get_mtl_to_hex(mtlib_map,line[1])
 
                 elif(line[0] == "o"):
-                    obj = GraphicObject(name=line[1])
-                    curr_object = obj
-                    object_to_vertices[curr_object] = None
+                    name = line[1]
 
                 elif(line[0] == "p" or line[0] == "l" or line[0] == "f"):
+                    obj_vertices = (last_vertex, [int(vertex) for vertex in line[1:]])
+                    length = len(obj_vertices[1])
                     last_vertex = len(vertices)-1
-                    object_to_vertices[curr_object] = (line[0], last_vertex, [int(vertex) for vertex in line[1:]])
+
+                    if(line[0] == "p"):
+                        curr_object = PointObject(name=name)
+                    elif(line[0] == "l"):
+                        if(length > 2):
+                            curr_object = WireframeObject(name=name, filled=False)
+                        else:
+                            curr_object = LineObject(name=name)
+                    elif(line[0] == "f"):
+                        curr_object = WireframeObject(name=name, filled=True)
+
+                    object_to_vertices[curr_object] = obj_vertices
 
                 elif(line[0] == "usemtl"):
                     _hex = curr_mtl_to_hex[line[1]]
                     curr_object.color = _hex
 
                 elif(line[0] == "w"):
-                    del object_to_vertices[curr_object] 
                     last_vertex = len(vertices)-1
                     window_inf = [int(line[1]),int(line[2]), last_vertex]
 
 
 
         for obj in object_to_vertices.keys():
-            (_type, last_vertex, vertices_indexes) = object_to_vertices[obj]
+            (last_vertex, vertices_indexes) = object_to_vertices[obj]
             
             coords = []
             for vertex in vertices_indexes:
@@ -152,17 +168,6 @@ class WavefrontObj:
                     coords.append(vertices[1+last_vertex+vertex])
                 elif(vertex>0):
                     coords.append(vertices[vertex-1])
-
-            if(_type == "p"):
-                obj.obj_type = ObjType.POINT
-            elif(_type == "l"):
-                if(len(coords)<3):
-                    obj.obj_type = ObjType.LINE
-                else:
-                    obj.obj_type = ObjType.WIREFRAME
-            elif(_type == "f"):
-                obj.obj_type = ObjType.WIREFRAME
-                obj.filled = True
 
 
             obj.coords = coords

@@ -5,3 +5,4 @@ class ObjType(Enum):
     LINE = 2
     WIREFRAME = 3
     BEZIER = 4
+    SPLINE = 5

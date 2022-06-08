@@ -37,7 +37,6 @@ class Transformation:
 
 	"""
 	Transforma todos os pontos dado uma matriz de transformação
-	Recalcula o centroid
 	"""
 	def transform(coords, transformation_matrix):
 		if(len(transformation_matrix)>0):

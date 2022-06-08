@@ -4,7 +4,7 @@ from model.obj_type import ObjType
 from model.graphic_object import GraphicObject
 from model.display_object import DisplayObject
 from model.transformation import Transformation
-from model.clipper import Clipper, LineClipping
+from model.clipper import LineClipping
 
 class Graphics:
     def __init__(self):
@@ -31,7 +31,6 @@ class Graphics:
             "y_min": 0
         }
 
-        self.zoom = 1
         self.vup_angle = 0
         self.border = 20
         self.line_clipping = LineClipping.LIAN_BARSK
@@ -222,56 +221,37 @@ class Graphics:
     """
     def normalize_and_clip(self):
         display = []
-        objects_temp = self.objects.copy()
 
         normalization_matrix = self.normalization_matrix()
-        for obj in objects_temp:
-            scn_coords = []
-            scn_clipped_coords = None
-            obj_coords = None
-            is_line_set = False
-            if(obj.obj_type == ObjType.BEZIER):
-                obj_coords = obj.blended_points(int(self.viewport_width()*self.zoom/4))
-                is_line_set = True
-            else:
-                obj_coords = obj.coords
 
-            for coords in obj_coords:
-                #normalização
-                new_coords = Transformation.transform_point(coords,normalization_matrix)
-                scn_coords.append(new_coords)
+        for obj in self.objects:
+            scn_clipped_coords = None
+
+            obj.normalize(normalization_matrix)
 
             display_object = None
             if(self.enable_clipping == True):
                 #clipping
 
                 if(obj.obj_type == ObjType.POINT):
-                    scn_clipped_coords = Clipper.point_clipping(scn_coords)
-
-                    if(scn_clipped_coords != None):
-                        display_object = DisplayObject(scn_clipped_coords, obj.color, False)
+                    scn_clipped_coords = obj.clip()
                 elif(obj.obj_type == ObjType.LINE):
-                    if(self.line_clipping == LineClipping.LIAN_BARSK):
-                        scn_clipped_coords = Clipper.lian_barsk_clipping(scn_coords)
-                    else:
-                        scn_clipped_coords = Clipper.cohen_sutherland_clipping(scn_coords)
+                    scn_clipped_coords = obj.clip(self.line_clipping)
+                elif(obj.obj_type == ObjType.WIREFRAME):
+                    scn_clipped_coords = obj.clip()
+                elif(obj.obj_type == ObjType.BEZIER):
+                    scn_clipped_coords = obj.clip(int(self.viewport_width()/10))
+                elif(obj.obj_type == ObjType.SPLINE):
+                    scn_clipped_coords = obj.clip(self.window_width()*0.1/self.viewport_width())
 
-                    if(scn_clipped_coords != None):
-                        display_object = DisplayObject(scn_clipped_coords, obj.color, False)
-                elif(obj.obj_type == ObjType.WIREFRAME or obj.obj_type == ObjType.BEZIER):
-                    if(not obj.filled):
-                        scn_clipped_coords = Clipper.line_set_clipping(scn_coords, self.line_clipping)
-                    else:
-                        scn_clipped_coords = Clipper.sutherland_hodgman_clipping(scn_coords)
-
-
-                    if(scn_clipped_coords != None):
-                        display_object = DisplayObject(scn_clipped_coords, obj.color, obj.filled)
+                
+                if(scn_clipped_coords != None):
+                    display_object = DisplayObject(scn_clipped_coords, obj.color, obj.filled)
 
 
             else:
                 #caso o clipping esteja desativado
-                display_object = DisplayObject(scn_coords, obj.color, obj.filled)
+                display_object = DisplayObject(obj.scn, obj.color, obj.filled)
 
             if(display_object != None):
                 display_object.coords = [self.viewport_transformation(point[0],point[1]) for point in display_object.coords]

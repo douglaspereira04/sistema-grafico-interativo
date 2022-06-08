@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox
 import numbers
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="A", coords="(-20, -20), (0, -40), (20, 0), (40, 0), (50,-10),(60,-20),(70,10)", color="#FF0000", filled=False, bezier=False):
+    def __init__(self, parent=None, name="A", coords="(-20, -20), (0, -40), (20, 0), (40, 0), (50,-10),(60,-20),(70,10)", color="#FF0000", filled=False, bezier=False, spline=False):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -20,6 +20,10 @@ class ObjectDialog(QDialog):
         self.bezier.setChecked(bezier)
         self.bezier.setEnabled(False)
 
+        self.spline = QCheckBox()
+        self.spline.setChecked(spline)
+        self.spline.setEnabled(False)
+
 
         self.name.setPlaceholderText("Name")
         self.color.setPlaceholderText("Color HEX value")
@@ -35,16 +39,18 @@ class ObjectDialog(QDialog):
         layout.addRow("Coordinates: ", self.coordinates)
         layout.addRow("Filled: ", self.filled)
         layout.addRow("Bezier Curve: ", self.bezier)
+        layout.addRow("Spline Curve: ", self.spline)
         layout.addWidget(buttonBox)
 
 
         self.coordinates.textChanged.connect(self.set_filled_state)
         self.bezier.stateChanged.connect(self.set_filled_state)
+        self.spline.stateChanged.connect(self.set_filled_state)
         self.filled.stateChanged.connect(self.set_filled_state)
         self.set_filled_state()
 
     def get_inputs(self):
-        return (self.name.text(), self.coordinates.toPlainText(), self.color.text(), self.filled.isChecked(), self.bezier.isChecked())
+        return (self.name.text(), self.coordinates.toPlainText(), self.color.text(), self.filled.isChecked(), self.bezier.isChecked(), self.spline.isChecked())
 
     def set_filled_state(self):
 
@@ -57,10 +63,17 @@ class ObjectDialog(QDialog):
             else:
                 self.enable_filled(False)
 
-            if(well_written and (len(obj_list)%3 == 1)):
+            if(well_written and (len(obj_list)%3 == 1) and (not self.spline.isChecked())):
                 self.enable_bezier(True)
             else:
                 self.enable_bezier(False)
+
+
+            if(well_written and len(obj_list)>3 and (not self.bezier.isChecked())):
+                self.enable_spline(True)
+            else:
+                self.enable_spline(False)
+
         except Exception as e:
             self.enable_filled(False)
             self.enable_bezier(False)
@@ -76,6 +89,11 @@ class ObjectDialog(QDialog):
         self.bezier.setEnabled(enabled)
         if(self.bezier.isChecked() and (not enabled)):
             self.bezier.setChecked(False)
+
+    def enable_spline(self, enabled):
+        self.spline.setEnabled(enabled)
+        if(self.spline.isChecked() and (not enabled)):
+            self.spline.setChecked(False)
         
 
 

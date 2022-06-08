@@ -27,8 +27,8 @@ class GraphicsController:
         self.view.side_menu.remove.connect(self.remove_object)
         self.view.side_menu.transform.connect(self.transform_object)
 
-        self.view.side_menu.rotated_right.connect(self.rotate_right)
-        self.view.side_menu.rotated_left.connect(self.rotate_left)
+        self.view.side_menu.rotated_right.connect(lambda : self.rotate(1))
+        self.view.side_menu.rotated_left.connect(lambda : self.rotate(-1))
         self.view.side_menu.zoomed_in.connect(self.zoom_in)
         self.view.side_menu.zoomed_out.connect(self.zoom_out)
 
@@ -62,6 +62,7 @@ class GraphicsController:
         self.set_enable_object_options(False)
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
+        self.view.canvas.pan.connect(self.canvas_pan)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
         self.view.canvas.grab.connect(self.object_grab)
@@ -79,8 +80,8 @@ class GraphicsController:
         x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
         y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
 
-        if(x_diff != 0 or y_difd != 0):
-            self.pan(x_diff, y_diff)
+        if(x_diff != 0 or y_diff != 0):
+            self.pan(-x_diff, -y_diff)
 
 
     def object_rotate(self):
@@ -447,17 +448,10 @@ class GraphicsController:
 
 
     def pan_button(self, x, y):
-
-        self.erase()
-
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
 
-        self.graphic.pan(x*step, y*step)
-
-        self.draw()
-
-        self.log("Panning: ("+str(x*step)+","+str(y*step)+");")
+        self.pan(x*step, y*step)
 
 
     def pan(self, x, y):
@@ -470,40 +464,16 @@ class GraphicsController:
 
         self.log("Panning: ("+str(x)+","+str(y)+");")
 
-    def rotate(self):
-
+    def rotate(self, direction):
         self.erase()
 
         self.reset_multiplier()
         degrees = float(self.view.side_menu.step.text())
 
-        self.graphic.vup_angle = degrees
+        self.graphic.vup_angle += degrees*direction
 
         self.draw()
-
-
-
-    def rotate_right(self):
-        self.erase()
-
-        self.reset_multiplier()
-        degrees = float(self.view.side_menu.step.text())
-
-        self.graphic.vup_angle += degrees
-
-        self.draw()
-        self.log("Rotate Clockwise: "+str(degrees)+"°;")
-
-    def rotate_left(self):
-        self.erase()
-
-        self.reset_multiplier()
-        degrees = float(self.view.side_menu.step.text())
-
-        self.graphic.vup_angle -= degrees
-
-        self.draw()
-        self.log("Rotate Counterclockwise: "+str(degrees)+"°;")
+        self.log("Rotate: "+str(degrees)+"°;")
 
 
     def log(self,text):

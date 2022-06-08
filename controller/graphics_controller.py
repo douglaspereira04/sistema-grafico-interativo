@@ -22,20 +22,20 @@ class GraphicsController:
         self.graphic = graphics
         self.view = view
 
-        self.view.side_menu.zin_btn.clicked.connect(self.zoom_in)
-        self.view.side_menu.zout_btn.clicked.connect(self.zoom_out)
-        self.view.side_menu.add_btn.clicked.connect(self.save_object)
-        self.view.side_menu.edit_btn.clicked.connect(self.edit_object)
-        self.view.side_menu.remove_btn.clicked.connect(self.remove_object)
-        self.view.side_menu.transform_btn.clicked.connect(self.transform_object)
+        self.view.side_menu.add.connect(self.save_object)
+        self.view.side_menu.edit.connect(self.edit_object)
+        self.view.side_menu.remove.connect(self.remove_object)
+        self.view.side_menu.transform.connect(self.transform_object)
 
-        self.view.side_menu.left_btn.clicked.connect(self.pan_left)
-        self.view.side_menu.right_btn.clicked.connect(self.pan_right)
-        self.view.side_menu.up_btn.clicked.connect(self.pan_up)
-        self.view.side_menu.down_btn.clicked.connect(self.pan_down)
+        self.view.side_menu.rotated_right.connect(self.rotate_right)
+        self.view.side_menu.rotated_left.connect(self.rotate_left)
+        self.view.side_menu.zoomed_in.connect(self.zoom_in)
+        self.view.side_menu.zoomed_out.connect(self.zoom_out)
 
-        self.view.side_menu.rotation_slider.valueChanged.connect(self.rotate)
-        self.view.side_menu.rotation_button.clicked.connect(self.rotate)
+        self.view.side_menu.up.connect(self.pan_up)
+        self.view.side_menu.down.connect(self.pan_down)
+        self.view.side_menu.left.connect(self.pan_left)
+        self.view.side_menu.right.connect(self.pan_right)
 
 
         self.view.show()
@@ -321,7 +321,7 @@ class GraphicsController:
 
             transformation_list = []
 
-            if(transformation == False):
+            if(transformation == True):
                 dialog = TransformationDialog(self.view, name)
 
                 result = dialog.exec()
@@ -419,7 +419,7 @@ class GraphicsController:
 
         self.reset_multiplier()
 
-        zoom_by_button = step == False
+        zoom_by_button = step == True
 
         if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
@@ -439,7 +439,9 @@ class GraphicsController:
 
         self.reset_multiplier()
 
-        if(step == False):
+        zoom_by_button = step == True
+
+        if(zoom_by_button):
             step = float(self.view.side_menu.step.text())
 
         self.graphic.zoom_out(step)
@@ -506,17 +508,12 @@ class GraphicsController:
 
         self.log("Panning Down: "+str(step)+";")
 
-    def rotate(self, value):
+    def rotate(self):
 
         self.erase()
 
         self.reset_multiplier()
-        step = float(self.view.side_menu.step.text())
-
-        if(value != False):
-            degrees = value*36*0.1*step
-        else:
-            degrees = step
+        degrees = float(self.view.side_menu.step.text())
 
         self.graphic.vup_angle = degrees
 
@@ -524,6 +521,26 @@ class GraphicsController:
 
 
         self.log("Rotate: "+str(degrees)+"°;")
+
+    def rotate_right(self):
+        self.erase()
+
+        self.reset_multiplier()
+        degrees = float(self.view.side_menu.step.text())
+
+        self.graphic.vup_angle += degrees
+
+        self.draw()
+
+    def rotate_left(self):
+        self.erase()
+
+        self.reset_multiplier()
+        degrees = float(self.view.side_menu.step.text())
+
+        self.graphic.vup_angle -= degrees
+
+        self.draw()
 
 
     def log(self,text):

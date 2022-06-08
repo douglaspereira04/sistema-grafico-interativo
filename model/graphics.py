@@ -3,7 +3,7 @@ import numpy as np
 from model.obj_type import ObjType
 from model.graphic_object import GraphicObject
 from model.display_object import DisplayObject
-from model.transformation import Transformation
+from model.transformation import Transformation, RotationType, Rotation
 from model.clipper import LineClipping
 
 class Graphics:
@@ -106,6 +106,12 @@ class Graphics:
     def get_window(self):
         return (self.window_center(),(self.window_width(),self.window_height()))
 
+    def rotate_view_vector(self, x,y):
+        rotation = Rotation(RotationType.OBJECT_CENTER, -self.vup_angle, 0, 0)
+        rotation_matrix = rotation.get_matrix()
+        return Transformation.transform_point((x,y), rotation_matrix)
+
+
     """
     A seguir são as funções que de navegação. Elas se orientam a um valor de passo, definido no parametro "step".
     A função zoom_in diminui a window, limitando a um tamanho maior que zero e zoom_out aumenta a window.
@@ -141,42 +147,15 @@ class Graphics:
         self.window["y_min"] -= (step/2)
 
 
-    def pan_right(self, step):
-        _sin = (math.sin(math.radians(self.vup_angle)))
-        _cos = (math.cos(math.radians(self.vup_angle)))
+    def pan(self, x, y):
 
-        self.window["x_max"] += _cos*step
-        self.window["x_min"] += _cos*step
-        self.window["y_max"] -= _sin*step
-        self.window["y_min"] -= _sin*step
+        (rotated_x, rotated_y) = self.rotate_view_vector(x,y)
 
+        self.window["x_max"] += rotated_x
+        self.window["x_min"] += rotated_x
+        self.window["y_max"] -= rotated_y
+        self.window["y_min"] -= rotated_y
 
-    def pan_left(self, step):
-        _sin = (math.sin(math.radians(self.vup_angle)))
-        _cos = (math.cos(math.radians(self.vup_angle)))
-
-        self.window["x_max"] -= _cos*step
-        self.window["x_min"] -= _cos*step
-        self.window["y_max"] += _sin*step
-        self.window["y_min"] += _sin*step
-
-    def pan_up(self, step):
-        _sin = (math.sin(math.radians(self.vup_angle)))
-        _cos = (math.cos(math.radians(self.vup_angle)))
-
-        self.window["x_max"] += _sin*step
-        self.window["x_min"] += _sin*step
-        self.window["y_max"] += _cos*step
-        self.window["y_min"] += _cos*step
-
-    def pan_down(self, step):
-        _sin = (math.sin(math.radians(self.vup_angle)))
-        _cos = (math.cos(math.radians(self.vup_angle)))
-
-        self.window["x_max"] -= _sin*step
-        self.window["x_min"] -= _sin*step
-        self.window["y_max"] -= _cos*step
-        self.window["y_min"] -= _cos*step
 
     """
     Transforma, por uma dada lista de transformações, um dado objeto

@@ -6,7 +6,7 @@ from model.point_object import PointObject
 from model.line_object import LineObject
 from model.wireframe_object import WireframeObject
 from model.clipper import LineClipping
-from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling
+from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling, Transformation
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -32,10 +32,10 @@ class GraphicsController:
         self.view.side_menu.zoomed_in.connect(self.zoom_in)
         self.view.side_menu.zoomed_out.connect(self.zoom_out)
 
-        self.view.side_menu.up.connect(self.pan_up)
-        self.view.side_menu.down.connect(self.pan_down)
-        self.view.side_menu.left.connect(self.pan_left)
-        self.view.side_menu.right.connect(self.pan_right)
+        self.view.side_menu.up.connect(lambda : self.pan_button(0,-1))
+        self.view.side_menu.down.connect(lambda : self.pan_button(0,1))
+        self.view.side_menu.left.connect(lambda : self.pan_button(-1,0))
+        self.view.side_menu.right.connect(lambda : self.pan_button(1,0))
 
 
         self.view.show()
@@ -62,7 +62,6 @@ class GraphicsController:
         self.set_enable_object_options(False)
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
-        self.view.canvas.pan.connect(self.canvas_pan)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
         self.view.canvas.grab.connect(self.object_grab)
@@ -74,20 +73,15 @@ class GraphicsController:
         elif(self.view.canvas.wheel_y_angle < 0):
             self.zoom_out((-1)*self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
 
+
     def canvas_pan(self):
-        
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
         x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
         y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
-        if(x_diff > 0):
-            self.pan_left(x_diff)
-        elif(x_diff < 0):
-            self.pan_right(-x_diff)
 
-        if(y_diff > 0):
-            self.pan_up(y_diff)
-        elif(y_diff < 0):
-            self.pan_down(-y_diff)
+        if(x_diff != 0 or y_difd != 0):
+            self.pan(x_diff, y_diff)
+
 
     def object_rotate(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
@@ -114,6 +108,7 @@ class GraphicsController:
         y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
 
         if(x_diff != 0 or y_diff != 0):
+            (x_diff, y_diff) = self.graphic.rotate_view_vector(x_diff,y_diff)
             transformation = Translation(x_diff,-y_diff)
             self.transform_object([transformation])
 
@@ -451,62 +446,29 @@ class GraphicsController:
         self.log("Zoom Out: "+str(step)+";")
 
 
-    def pan_right(self, step):
+    def pan_button(self, x, y):
 
         self.erase()
 
         self.reset_multiplier()
-        if(step == True):
-            step = float(self.view.side_menu.step.text())
+        step = float(self.view.side_menu.step.text())
 
-        self.graphic.pan_right(step)
+        self.graphic.pan(x*step, y*step)
 
         self.draw()
 
-        self.log("Panning Right: "+str(step)+";")
+        self.log("Panning: ("+str(x*step)+","+str(y*step)+");")
 
 
-    def pan_left(self, step):
+    def pan(self, x, y):
 
         self.erase()
 
-        self.reset_multiplier()
-        if(step == True):
-            step = float(self.view.side_menu.step.text())
-
-        self.graphic.pan_left(step)
+        self.graphic.pan(x, y)
 
         self.draw()
 
-        self.log("Panning Left: "+str(step)+";")
-
-    def pan_up(self, step):
-
-        self.erase()
-
-        self.reset_multiplier()
-        if(step == True):
-            step = float(self.view.side_menu.step.text())
-
-        self.graphic.pan_up(step)
-
-        self.draw()
-
-        self.log("Panning Up: "+str(step)+";")
-
-    def pan_down(self, step):
-
-        self.erase()
-
-        self.reset_multiplier()
-        if(step == True):
-            step = float(self.view.side_menu.step.text())
-
-        self.graphic.pan_down(step)
-
-        self.draw()
-
-        self.log("Panning Down: "+str(step)+";")
+        self.log("Panning: ("+str(x)+","+str(y)+");")
 
     def rotate(self):
 

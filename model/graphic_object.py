@@ -1,5 +1,5 @@
-from model.transformation import TransformationType, RotationType, Transformation
 from model.clipper import Clipper
+from model.transformation_3d import Transformation3D
 
 class GraphicObject:
     def __init__(self, name=None, obj_type=None,coords=[], color="black", filled=False):
@@ -8,7 +8,6 @@ class GraphicObject:
         self.coords = coords
         self.color = color
         self.filled = filled
-        self.scn = None
 
     def center(self):
         pass
@@ -17,24 +16,7 @@ class GraphicObject:
     Transforma todos os pontos dado uma matriz de transformação
     """
     def transform(self, transformation_matrix):
-        Transformation.transform(self.coords, transformation_matrix)
-
-    """
-    Traduz um objeto que representa uma transformação 
-    para a matriz de transformação correspondente
-    """
-    def get_transformation_matrix(self, transformation, center):
-
-        if (transformation.transformation_type == TransformationType.ROTATION):
-            if(transformation.rotation_type == RotationType.OBJECT_CENTER):
-                return transformation.get_matrix(center[0], center[1])
-
-
-        if (transformation.transformation_type == TransformationType.SCALING):
-            return transformation.get_matrix(center[0], center[1])
-
-        return transformation.get_matrix()
-
+        Transformation3D.transform(self.coords, transformation_matrix)
 
     """
     Transforma, por uma dada lista de transformações, um dado objeto
@@ -43,14 +25,9 @@ class GraphicObject:
         center = self.center()
 
         transformation_matrix_list = [self.get_transformation_matrix(transformation, center) for transformation in transformation_list]
-        transformation_matrix = Transformation.compose_matrix(transformation_matrix_list)
+        transformation_matrix = Transformation3D.compose_matrix(transformation_matrix_list)
 
         self.transform(transformation_matrix)
 
-    def normalize(self, normalization_matrix):
-        self.scn = self.coords.copy()
-        Transformation.transform(self.scn, normalization_matrix)
-        return self.scn
-
-    def clipped(self):
+    def project(self):
         pass

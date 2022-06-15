@@ -1,5 +1,6 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
+from model.graphics import Axis
 from model.graphic_object import GraphicObject
 from model.curve_object import CurveObject
 from model.point_object import PointObject
@@ -32,10 +33,10 @@ class GraphicsController:
         self.view.side_menu.zoomed_in.connect(lambda : self.zoom_button(1))
         self.view.side_menu.zoomed_out.connect(lambda : self.zoom_button(-1))
 
-        self.view.side_menu.up.connect(lambda : self.pan_button(0,-1))
-        self.view.side_menu.down.connect(lambda : self.pan_button(0,1))
-        self.view.side_menu.left.connect(lambda : self.pan_button(-1,0))
-        self.view.side_menu.right.connect(lambda : self.pan_button(1,0))
+        self.view.side_menu.up.connect(lambda : self.pan(Axis.Y,-1))
+        self.view.side_menu.down.connect(lambda : self.pan(Axis.Y,1))
+        self.view.side_menu.left.connect(lambda : self.pan(Axis.X, -1))
+        self.view.side_menu.right.connect(lambda : self.pan(Axis.X,1))
 
 
         self.view.show()
@@ -55,60 +56,8 @@ class GraphicsController:
         self.view.lian_barsk.triggered.connect(self.config_clipping)
         self.view.cohen_sutherland.triggered.connect(self.config_clipping)
 
-        self.view.test_normalization.triggered.connect(self.toggle_normalization_test)
-        self.normalization_test = None
-
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
-
-        self.view.canvas.zoom.connect(self.canvas_scroll)
-        self.view.canvas.pan.connect(self.canvas_pan)
-        self.view.canvas.rotate.connect(self.object_rotate)
-        self.view.canvas.scale.connect(self.object_scale)
-        self.view.canvas.grab.connect(self.object_grab)
-
-
-    def canvas_scroll(self):
-        self.zoom(self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height()))
-
-
-    def canvas_pan(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
-
-        if(x_diff != 0 or y_diff != 0):
-            self.pan(-x_diff, -y_diff)
-
-
-    def object_rotate(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-
-        selected = self.view.side_menu.list.currentRow()
-
-        if(selected != -1):
-            if(x_diff != 0 or y_diff != 0):
-                transformation = Rotation(RotationType.OBJECT_CENTER, y_diff, 0, 0)
-                self.transform_object([transformation])
-
-
-    def object_scale(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-
-        if(x_diff != 0 or y_diff != 0):
-            transformation = Scaling(1-(0.01*y_diff))
-            self.transform_object([transformation])
-
-    def object_grab(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-        
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
-
-        if(x_diff != 0 or y_diff != 0):
-            (x_diff, y_diff) = self.graphic.rotate_view_vector(x_diff,y_diff)
-            transformation = Translation(x_diff,-y_diff)
-            self.transform_object([transformation])
 
 
     def list_selected(self):
@@ -121,11 +70,7 @@ class GraphicsController:
         self.view.side_menu.transform_btn.setEnabled(enabled)
         self.view.side_menu.remove_btn.setEnabled(enabled)
 
-
-    def load_from_file(self):
-
-        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
-
+    def load_file(self, file_name):
         if(file_name[0]!=''):
             f = open(file_name[0], "r")
             obj_data = f.read()
@@ -150,6 +95,12 @@ class GraphicsController:
 
             self.draw()
             self.make_list()
+
+    def load_from_file(self):
+
+        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
+        self.load_file(file_name)
+        
 
         self.log("Load from file: "+file_name[0]+";")
 
@@ -201,10 +152,8 @@ class GraphicsController:
         }
 
         self.graphic.window = {
-            "x_min": (-self.view.canvas.canvas.width()/2),
-            "x_max": (self.view.canvas.canvas.width()/2),
-            "y_min": (-self.view.canvas.canvas.height()/2),
-            "y_max": (self.view.canvas.canvas.height()/2)
+            "width": self.view.canvas.canvas.width(),
+            "height": self.view.canvas.canvas.height()
         }
 
 
@@ -218,12 +167,10 @@ class GraphicsController:
     def string_to_obj(self, string_coords):
         coords = list(eval(string_coords))
 
-        obj_type = ObjType(3)
+        obj_type = ObjType.WIREFRAME
         if(isinstance(coords[0], int) or isinstance(coords[0], float)):
-            obj_type = ObjType(1)
-            coords = [(coords[0], coords[1])]
-        elif(len(coords)<3):
-            obj_type = ObjType(2)
+            obj_type = ObjType.POINT
+            coords = [(coords[0], coords[1], coords[2])]
 
         return (obj_type, coords)
 
@@ -238,17 +185,12 @@ class GraphicsController:
             (name, string_coords, color, filled, bezier, spline) = dialog.get_inputs()
 
             (obj_type, coords) = self.string_to_obj(string_coords)
+            print(coords)
 
-            if(bezier):
-                obj = CurveObject(name, ObjType.BEZIER, coords, color, filled)
-            elif(spline):
-                obj = CurveObject(name, ObjType.SPLINE, coords, color, filled)
-            elif(obj_type == ObjType.POINT):
+            if(obj_type == ObjType.POINT):
                 obj = PointObject(name, coords, color)
-            elif(obj_type == ObjType.LINE):
-                obj = LineObject(name, coords, color)
             elif(obj_type == ObjType.WIREFRAME):
-                obj = WireframeObject(name, coords, color, filled)
+                obj = WireframeObject(name, coords, color)
             
             self.erase()
 
@@ -267,9 +209,9 @@ class GraphicsController:
             name = _object.name
             coords = str(_object.coords)[1:-1]
             color = _object.color
-            filled = _object.filled
-            is_bezier = _object.obj_type == ObjType.BEZIER
-            is_spline = _object.obj_type == ObjType.SPLINE
+            filled = False
+            is_bezier = False
+            is_spline = False
 
             dialog = ObjectDialog(self.view, name, coords, color, filled, is_bezier, is_spline)
             result = dialog.exec()
@@ -280,16 +222,10 @@ class GraphicsController:
                 (new_name, new_string_coords, new_color, new_filled, bezier, spline) = dialog.get_inputs()
                 (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
 
-                if(bezier):
-                    new_object = CurveObject(new_name, ObjType.BEZIER, new_coords, new_color, new_filled)
-                elif(spline):
-                    new_object = CurveObject(new_name, ObjType.SPLINE, new_coords, new_color, new_filled)
-                elif(new_obj_type == ObjType.POINT):
+                if(new_obj_type == ObjType.POINT):
                     new_object = PointObject(new_name, new_coords, new_color)
-                elif(new_obj_type == ObjType.LINE):
-                    new_object = LineObject(new_name, new_coords, new_color)
                 else:
-                    new_object = WireframeObject(new_name, new_coords, new_color, new_filled)
+                    new_object = WireframeObject(new_name, new_coords, new_color)
 
                 self.graphic.objects[selected] = new_object
             
@@ -360,7 +296,7 @@ class GraphicsController:
             else:
                 obj_color = color
 
-            if((self.graphic.enable_clipping) and (not display_object.is_filled) and (len(display_object.coords) > 1)):
+            if((not display_object.is_filled) and (len(display_object.coords) > 1)):
                 for i in range(0, len(display_object.coords)-1, 2):
                     p0 = display_object.coords[i]
                     p1 = display_object.coords[i+1]
@@ -372,13 +308,6 @@ class GraphicsController:
 
     def draw(self):
         self.draw_color(None)
-
-        if(self.normalization_test != None):
-            try:
-                print(self.graphic.display[len(self.graphic.display)-1][0])
-            except:
-                print(None)
-
         color = QColor("#FFCFCF")
         self.draw_viewport_limits(color)
 
@@ -420,55 +349,41 @@ class GraphicsController:
         self.log("Zoom: "+str(step)+";")
 
 
-    def pan_button(self, x, y):
+
+    def pan(self, axis, direction):
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
-        self.pan(x*step, y*step)
 
-
-    def pan(self, x, y):
         self.erase()
-        self.graphic.pan(x, y)
+        
+        self.graphic.pan(axis, step*direction)
+
         self.draw()
-        self.log("Panning: ("+str(x)+","+str(y)+");")
+        self.log("Panning: ("+str(axis.name)+" axis, "+str(step*direction)+");")
 
     def rotate(self, direction):
+
+
         self.erase()
         self.reset_multiplier()
         degrees = float(self.view.side_menu.step.text())
 
-        self.graphic.vup_angle += degrees*direction
+
+        if(self.view.side_menu.x_axis_check.isChecked()):
+            axis = Axis.X
+        elif(self.view.side_menu.y_axis_check.isChecked()):
+            axis = Axis.Y
+        else:
+            axis = Axis.Z
+
+        self.graphic.rotate(axis, degrees*direction)
 
         self.draw()
-        self.log("Rotate: "+str(degrees)+"°;")
+        self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")
 
 
     def log(self,text):
         self.view.log.appendPlainText(text)
-
-
-    def toggle_normalization_test(self):
-        if (self.normalization_test != None):
-            self.erase()
-            del self.graphic.objects[self.normalization_test]
-            self.normalization_test = None
-
-        else:
-            (x,y) = self.graphic.window_center()
-            (name, string_coords, color) = ("Normalization_Test","("+str(x)+","+str(y)+")","#FF0000")
-
-            (obj_type, coords) = self.string_to_obj(string_coords)
-
-            obj = GraphicObject(name, obj_type, coords, color)
-
-
-            self.erase()
-            self.graphic.objects.append(obj)
-
-            self.normalization_test = len(self.graphic.objects) -1
-
-        self.draw()
-        self.make_list()
 
     def config_clipping(self):
         self.erase()

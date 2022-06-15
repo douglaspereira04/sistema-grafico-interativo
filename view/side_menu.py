@@ -50,6 +50,15 @@ class SideMenu(QtWidgets.QWidget):
         self.down_btn = self.set_button("&#8681;", lambda e: self.down.emit(True), button_size)
 
 
+        self.x_axis_label = QtWidgets.QLabel('X:')
+        self.x_axis_check = QtWidgets.QRadioButton()
+        self.y_axis_label = QtWidgets.QLabel('Y:')
+        self.y_axis_check = QtWidgets.QRadioButton()
+        self.z_axis_label = QtWidgets.QLabel('Z:')
+        self.z_axis_check = QtWidgets.QRadioButton()
+        self.z_axis_check.setChecked(True)
+
+
 
         self.navigation_layout = QtWidgets.QGridLayout()
         self.edit_layout = QtWidgets.QGridLayout()
@@ -75,6 +84,13 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.down_btn, 3,2,1,2)
         self.navigation_layout.addWidget(self.zoom_in_label, 3,0,1,2)
         self.navigation_layout.addWidget(self.zoom_out_label, 3,4,1,2)
+        
+        self.navigation_layout.addWidget(self.x_axis_label, 4,0)
+        self.navigation_layout.addWidget(self.x_axis_check, 4,1)
+        self.navigation_layout.addWidget(self.y_axis_label, 4,2)
+        self.navigation_layout.addWidget(self.y_axis_check, 4,3)
+        self.navigation_layout.addWidget(self.z_axis_label, 4,4)
+        self.navigation_layout.addWidget(self.z_axis_check, 4,5)
 
         self.setMaximumWidth(max_width)
 

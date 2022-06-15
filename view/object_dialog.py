@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog, QLineEdit, QPlainTextEdit, QDialogButtonBox
 import numbers
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="A", coords="(-20, -20), (0, -40), (20, 0), (40, 0), (50,-10),(60,-20),(70,10)", color="#FF0000", filled=False, bezier=False, spline=False):
+    def __init__(self, parent=None, name="A", coords="(0,0,0),(0,50,0),(0,0,0),(50,0,0),(0,0,0),(0,0,50),(0,50,0),(0,50,50),(0,50,50),(0,0,50),(0,0,50),(50,0,50),(50,0,50),(50,0,0),(50,0,0),(50,50,0),(50,50,0),(0,50,0),(50,50,0),(50,50,50),(50,50,50),(0,50,50)", color="#FF0000", filled=False, bezier=False, spline=False):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -37,9 +37,6 @@ class ObjectDialog(QDialog):
         layout.addRow("Name: ", self.name)
         layout.addRow("Color: ", self.color)
         layout.addRow("Coordinates: ", self.coordinates)
-        layout.addRow("Filled: ", self.filled)
-        layout.addRow("Bezier Curve: ", self.bezier)
-        layout.addRow("Spline Curve: ", self.spline)
         layout.addWidget(buttonBox)
 
 
@@ -56,7 +53,7 @@ class ObjectDialog(QDialog):
 
         try:
             obj_list = list(eval(self.coordinates.toPlainText()))
-            well_written = all(isinstance(x, numbers.Number) and isinstance(y, numbers.Number) for (x,y) in obj_list)
+            well_written = all(isinstance(x, numbers.Number) and isinstance(y, numbers.Number) and isinstance(z, numbers.Number) for (x,y,z) in obj_list)
 
             if(well_written and len(obj_list)>2):
                 self.enable_filled(True)

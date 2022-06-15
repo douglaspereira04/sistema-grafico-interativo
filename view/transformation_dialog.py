@@ -121,6 +121,7 @@ class TransformationDialog(QDialog):
 
         self.translation_x = QtWidgets.QLineEdit()
         self.translation_y = QtWidgets.QLineEdit()
+        self.translation_z = QtWidgets.QLineEdit()
         self.add_translation_btn = QtWidgets.QPushButton("Add Translation")
 
         self.translation_x.setValidator(QDoubleValidator());
@@ -128,6 +129,7 @@ class TransformationDialog(QDialog):
 
         translation_layout.addRow("x: ", self.translation_x)
         translation_layout.addRow("y: ", self.translation_y)
+        translation_layout.addRow("z: ", self.translation_z)
         translation_layout.addRow(self.add_translation_btn)
 
         self.add_translation_btn.clicked.connect(self.add_translation)
@@ -206,11 +208,12 @@ class TransformationDialog(QDialog):
         try:
             translation_x = float(self.translation_x.text())
             translation_y = float(self.translation_y.text())
+            translation_z = float(self.translation_z.text())
         except ValueError:
             show_error_box("Invalid point value")
             return
 
-        translation = (translation_x,translation_y)
+        translation = (translation_x,translation_y, translation_z)
         self.transformation_list.append((TransformationType.TRANSLATION, translation))
         self.list_transformations()
 

@@ -162,7 +162,7 @@ class Rotation3D(Transformation3D):
 		return str((self.transformation_type, self.rotation_type.name, self.rotation_axis ,self.degrees, self.x, self.y, self.z))
 
 
-class Translation(Transformation3D):
+class Translation3D(Transformation3D):
 	def __init__(self, x, y, z):
 		super().__init__(Transformation3DType.TRANSLATION)
 		self.x = x

@@ -7,7 +7,8 @@ from model.point_object import PointObject
 from model.line_object import LineObject
 from model.wireframe_object import WireframeObject
 from model.clipper import LineClipping
-from model.transformation import TransformationType, RotationType, Rotation, Translation, Scaling, Transformation
+from model.transformation import RotationType, Rotation, Transformation
+from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -271,18 +272,19 @@ class GraphicsController:
                 self.draw()
 
     def view_to_model_transformation(self, view_entry):
-        transformation_type = TransformationType[view_entry[0].name]
+        transformation_type = Transformation3DType[view_entry[0].name]
         transformation = None
 
-        if(transformation_type == TransformationType.ROTATION):
-            (rotation_type, degrees, x, y) = (RotationType[view_entry[1][0]], view_entry[1][1],view_entry[1][2],view_entry[1][3])
+        if(transformation_type == Transformation3DType.ROTATION):
+            rotation_type = RotationType[view_entry[1][0]]
+            (degrees, x, y) = (view_entry[1][1],view_entry[1][2],view_entry[1][3])
             transformation = Rotation(rotation_type, degrees, x, y)
-        elif(transformation_type == TransformationType.TRANSLATION):
-            (x, y) = view_entry[1]
-            transformation = Translation(x, y)
-        elif(transformation_type == TransformationType.SCALING):
+        elif(transformation_type == Transformation3DType.TRANSLATION):
+            (x, y, z) = view_entry[1]
+            transformation = Translation3D(x, y, z)
+        elif(transformation_type == Transformation3DType.SCALING):
             factor = view_entry[1]
-            transformation = Scaling(factor)
+            transformation = Scaling3D(factor)
 
         return transformation
 

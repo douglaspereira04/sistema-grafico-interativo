@@ -36,24 +36,39 @@ class Transformation3D:
 	    return [[x,  0.,  0., 0.],[ 0,  y,  0., 0.],[ 0., 0., z, 0.],[ 0., 0., 0., 1.0]]
 
 
-	def rotation_x_matrix(degrees):
+	def rotation_x_matrix(degrees, center = None):
+		if(center == None):
+			(x,y,z) = (0,0,0)
+		else:
+			(x,y,z) = center
+
 		_sin = (math.sin(math.radians(degrees)))
 		_cos = (math.cos(math.radians(degrees)))
 
-		return [[1.0, 0., 0., 0.], [ 0., _cos,  _sin,  0.],[0., - _sin,  _cos,  0.],[0., 0.,  0.,  1.]]
+		return [[1.0, 0., 0., 0.], [ 0., _cos,  _sin,  0.],[0., - _sin,  _cos,  0.],[0., 0., 0.,  1.]]
 
-	def rotation_y_matrix(degrees):
+	def rotation_y_matrix(degrees, center = None):
+		if(center == None):
+			(x,y,z) = (0,0,0)
+		else:
+			(x,y,z) = center
+
 		_sin = (math.sin(math.radians(degrees)))
 		_cos = (math.cos(math.radians(degrees)))
 
-		return [[_cos, 0., -_sin, 0.],[0., 1.0,  0.,  0.], [ _sin, 0.,  _cos,  0.],[0., 0.,  0.,  1.]]
+		return [[_cos, 0., -_sin, 0.],[0., 1.0,  0.,  0.], [ _sin, 0.,  _cos,  0.],[0., 0., 0.,  1.]]
 
 
-	def rotation_z_matrix(degrees):
+	def rotation_z_matrix(degrees, center = None):
+		if(center == None):
+			(x,y,z) = (0,0,0)
+		else:
+			(x,y,z) = center
+
 		_sin = (math.sin(math.radians(degrees)))
 		_cos = (math.cos(math.radians(degrees)))
 
-		return [[ _cos,  _sin,  0., 0.],[ -_sin,  _cos,  0., 0.],[ 0.,  0.,  1., 0.], [0., 0., 0., 1.0]]
+		return [[ _cos,  _sin,  0., 0.],[ -_sin,  _cos,  0., 0.],[ 0.,  0.,  1., 0.],[0., 0., 0.,  1.]]
 
 	def unit_vector(vector):
 		return vector/np.linalg.norm(vector)
@@ -63,7 +78,14 @@ class Transformation3D:
 		_cos = (math.cos(math.radians(degrees)))
 
 		a = Transformation3D.unit_vector(a)
+		"""
+		R = [
+		[(a[0]**2)+(1-(a[0]**2))*_cos,    a[0]*a[1]*(1-_cos)-a[2]*_sin, a[0]*a[2]*(1-_cos)+a[1]*_sin, 0],
+		[a[0]*a[1]*(1-_cos)+a[2]*_sin, (a[1]**2)+(1-(a[1]**2))*_cos,    a[1]*a[2]*(1-_cos)-a[0]*_sin, 0],
+		[a[0]*a[2]*(1-_cos)-a[1]*_sin, a[1]*a[2]*(1-_cos)+a[0]*_sin, (a[2]**2)+(1-(a[2]**2))*_cos,    0],
+		[0,                0,                0,                1]];
 
+		"""
 
 		aa = np.array((
 		[a[0]*a[0], a[0]*a[1], a[0]*a[2]],
@@ -124,42 +146,42 @@ class Transformation3D:
 
 
 class Rotation3D(Transformation3D):
-	def __init__(self, rotation_type, rotation_axis, degrees, x, y, z):
-		super().__init__(TransformationType.ROTATION)
+	def __init__(self, rotation_type, rotation_axis, axis_vector, degrees, x, y, z):
+		super().__init__(Transformation3DType.ROTATION)
 		self.rotation_type = rotation_type
 		self.rotation_axis = rotation_axis
 		self.degrees = degrees
+		self.center = (x,y,z)
 		self.x = x
 		self.y = y
 		self.z = z
+		self.axis_vector = axis_vector
 
-	def get_matrix(self, x = None, y = None, z = None, axis = None):
+	def get_matrix(self, x = None, y = None, z = None):
 		rotation_matrix = None
 
 		if(self.rotation_axis != RotationAxis.U):
 			rotation_matrix = None
 
-			if(self.rotation_axis == RotationAxis.X):
-				rotation_matrix = Transformation3D.rotation_x_matrix(self.degrees)
-			elif(self.rotation_axis == RotationAxis.Y):
-				rotation_matrix = Transformation3D.rotation_y_matrix(self.degrees)
-			elif(self.rotation_axis == RotationAxis.Z):
-				rotation_matrix = Transformation3D.rotation_z_matrix(self.degrees)
+			if(self.rotation_type == Rotation3DType.GIVEN_POINT):
+				center = self.center
+			elif(self.rotation_type == Rotation3DType.OBJECT_CENTER):
+				center = (x,y,z)
 
-			if(self.rotation_type == RotationType.GIVEN_POINT):
-				rotation_matrix = np.matmul(Transformation3D.translation_matrix(-self.x, -self.y, -self.z), rotation_matrix)
-				rotation_matrix = np.matmul(rotation_matrix,Transformation3D.translation_matrix(self.x, self.y, self.z))
-			elif(self.rotation_type == RotationType.OBJECT_CENTER):
-				rotation_matrix = np.matmul(Transformation3D.translation_matrix(-x, -y, -z), rotation_matrix)
-				rotation_matrix = np.matmul(rotation_matrix,Transformation3D.translation_matrix(x, y, z))
+			if(self.rotation_axis == RotationAxis.X):
+				rotation_matrix = Transformation3D.rotation_x_matrix(self.degrees, center)
+			elif(self.rotation_axis == RotationAxis.Y):
+				rotation_matrix = Transformation3D.rotation_y_matrix(self.degrees, center)
+			elif(self.rotation_axis == RotationAxis.Z):
+				rotation_matrix = Transformation3D.rotation_z_matrix(self.degrees, center)
 
 		else:
-			rotation_matrix = Transformation3D.rotation_given_axis_matrix(self.degrees, axis)
+			rotation_matrix = Transformation3D.rotation_given_axis_matrix(self.degrees, self.axis_vector)
 
 		return rotation_matrix
 
 	def __str__(self):
-		return str((self.transformation_type, self.rotation_type.name, self.rotation_axis ,self.degrees, self.x, self.y, self.z))
+		return str((self.transformation_type, self.rotation_type.name, self.rotation_axis ,self.degrees, self.center))
 
 
 class Translation3D(Transformation3D):

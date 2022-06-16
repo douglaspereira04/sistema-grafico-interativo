@@ -37,7 +37,7 @@ class TransformationDialog(QDialog):
         scaling_widget = QtWidgets.QWidget()
         translation_widget = QtWidgets.QWidget()
 
-        rotation_layout = QtWidgets.QVBoxLayout()
+        rotation_layout = QtWidgets.QFormLayout()
         scaling_layout = QtWidgets.QFormLayout()
         translation_layout = QtWidgets.QFormLayout()
 
@@ -63,36 +63,40 @@ class TransformationDialog(QDialog):
         self.world_center = QtWidgets.QRadioButton('World Center')
         self.given_point = QtWidgets.QRadioButton('Given Point')
 
-        rotation_layout.addWidget(self.object_center)
-        rotation_layout.addWidget(self.world_center)
-        rotation_layout.addWidget(self.given_point)
+        rotation_layout.addRow(self.object_center)
+        rotation_layout.addRow(self.world_center)
+        rotation_layout.addRow(self.given_point)
 
         #rotation options
 
-        rotation_options_layout = QtWidgets.QGridLayout()
-        given_x_label = QtWidgets.QLabel("x: ")
-        given_y_label = QtWidgets.QLabel("y: ")
-        degrees_label = QtWidgets.QLabel("degrees(º): ")
-
         self.given_x = QtWidgets.QLineEdit()
         self.given_y = QtWidgets.QLineEdit()
+        self.given_z = QtWidgets.QLineEdit()
+        self.axis_x = QtWidgets.QLineEdit()
+        self.axis_y = QtWidgets.QLineEdit()
+        self.axis_z = QtWidgets.QLineEdit()
         self.degrees = QtWidgets.QLineEdit()
 
         self.given_x.setValidator(QDoubleValidator());
         self.given_y.setValidator(QDoubleValidator());
         self.degrees.setValidator(QDoubleValidator());
 
-        rotation_options_layout.addWidget(given_x_label,0,0,1,1)
-        rotation_options_layout.addWidget(self.given_x,0,1,1,1)
-        rotation_options_layout.addWidget(given_y_label,0,2,1,1)
-        rotation_options_layout.addWidget(self.given_y,0,3,1,1)
-        rotation_options_layout.addWidget(degrees_label,1,0,1,1)
-        rotation_options_layout.addWidget(self.degrees,1,1,1,1)
+        self.axis = QtWidgets.QComboBox();
+        self.axis.addItem("X")
+        self.axis.addItem("Y")
+        self.axis.addItem("Z")
+        self.axis.addItem("Custom")
+        rotation_layout.addRow("Axis: ",self.axis)
+        rotation_layout.addRow("axis_x: ",self.axis_x)
+        rotation_layout.addRow("axis_y: ",self.axis_y)
+        rotation_layout.addRow("axis_z: ",self.axis_z)
+        rotation_layout.addRow("x: ",self.given_x)
+        rotation_layout.addRow("y: ",self.given_y)
+        rotation_layout.addRow("z: ",self.given_z)
+        rotation_layout.addRow("degrees(º): ", self.degrees)
 
         self.add_rotation_btn = QtWidgets.QPushButton("Add Rotation")
 
-
-        rotation_layout.addLayout(rotation_options_layout)
 
 
         self.given_point.toggled.connect(self.given_point_toggled)
@@ -103,7 +107,7 @@ class TransformationDialog(QDialog):
 
         self.object_center.setChecked(True)
 
-        rotation_layout.addWidget(self.add_rotation_btn)
+        rotation_layout.addRow(self.add_rotation_btn)
         #scaling
 
         self.scale = QtWidgets.QLineEdit()
@@ -179,17 +183,30 @@ class TransformationDialog(QDialog):
             show_error_box("Invalid degrees value")
             return
 
+        axis_name = self.axis.currentText()
+        if(axis_name == "Custom"):
+            axis_name = "U"
+            try:
+                axis_vector = (float(self.axis_x.text()), float(self.axis_y.text()), float(self.axis_z.text()))
+            except ValueError:
+                show_error_box("Invalid axis vector")
+                return
+        else:
+            axis_vector = None
+
+
         if(center == RotationType.GIVEN_POINT):
             try:
                 float_given_x = float(self.given_x.text())
                 float_given_y = float(self.given_y.text())
+                float_given_z = float(self.given_z.text())
             except ValueError:
                 show_error_box("Invalid point value")
                 return
 
-            rotation = (center.name, float_degrees, float_given_x, float_given_y)
+            rotation = (center.name, float_degrees, float_given_x, float_given_y, float_given_z, axis_name, axis_vector)
         else:
-            rotation = (center.name, float_degrees, 0, 0)
+            rotation = (center.name, float_degrees, 0, 0, 0,  axis_name, axis_vector)
 
         self.transformation_list.append((TransformationType.ROTATION, rotation))
         self.list_transformations()

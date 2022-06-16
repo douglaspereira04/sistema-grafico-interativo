@@ -64,7 +64,7 @@ class Transformation:
 	"""
 	def transform_point(point, transformation_matrix):
 		(x,y) = point
-		[x1,y1,z1] = np.matmul([x,y,1],transformation_matrix)
+		[x1,y1,_] = np.matmul([x,y,1],transformation_matrix)
 		return (x1,y1)
 
 

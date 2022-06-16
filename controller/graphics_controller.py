@@ -7,8 +7,8 @@ from model.point_object import PointObject
 from model.line_object import LineObject
 from model.wireframe_object import WireframeObject
 from model.clipper import LineClipping
-from model.transformation import RotationType, Rotation, Transformation
-from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType
+from model.transformation import Transformation
+from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -38,6 +38,8 @@ class GraphicsController:
         self.view.side_menu.down.connect(lambda : self.pan(Axis.Y,1))
         self.view.side_menu.left.connect(lambda : self.pan(Axis.X, -1))
         self.view.side_menu.right.connect(lambda : self.pan(Axis.X,1))
+        self.view.side_menu.forward.connect(lambda : self.pan(Axis.Z, -1))
+        self.view.side_menu.backward.connect(lambda : self.pan(Axis.Z,1))
 
 
         self.view.show()
@@ -189,6 +191,7 @@ class GraphicsController:
             print(coords)
 
             if(obj_type == ObjType.POINT):
+                print(coords)
                 obj = PointObject(name, coords, color)
             elif(obj_type == ObjType.WIREFRAME):
                 obj = WireframeObject(name, coords, color)
@@ -276,9 +279,9 @@ class GraphicsController:
         transformation = None
 
         if(transformation_type == Transformation3DType.ROTATION):
-            rotation_type = RotationType[view_entry[1][0]]
-            (degrees, x, y) = (view_entry[1][1],view_entry[1][2],view_entry[1][3])
-            transformation = Rotation(rotation_type, degrees, x, y)
+            rotation_type = Rotation3DType[view_entry[1][0]]
+            (degrees, x, y, z, axis, axis_vector) = (view_entry[1][1],view_entry[1][2],view_entry[1][3],view_entry[1][4],RotationAxis[view_entry[1][5]], view_entry[1][6])
+            transformation = Rotation3D(rotation_type, axis, axis_vector, degrees, x, y, z)
         elif(transformation_type == Transformation3DType.TRANSLATION):
             (x, y, z) = view_entry[1]
             transformation = Translation3D(x, y, z)

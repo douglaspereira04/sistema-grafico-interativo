@@ -45,6 +45,11 @@ class Graphics:
         self.vpn = (0,0,1)
         self.vup = (0,1,0)
 
+        self.vup_angle = 0
+        self.vpn_angle_x = 0
+        self.vpn_angle_y = 0
+        self.transformed_vup = None
+
 
     def window_width(self):
         return self.window["width"]
@@ -134,6 +139,7 @@ class Graphics:
             axis = self.vup
         else:
             axis = self.vpn
+            print(steps)
 
         translation_matrix = Transformation3D.translation_matrix(axis[0]*steps, axis[1]*steps, axis[2]*steps)
 
@@ -146,38 +152,19 @@ class Graphics:
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
             self.vpn = Transformation3D.transform_point(self.vpn, transformation_matrix)
             self.vup = Transformation3D.transform_point(self.vup, transformation_matrix)
+            self.vpn_angle_x += degrees
 
         elif(axis == Axis.Y):
             axis = self.vup
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
             self.vpn = Transformation3D.transform_point(self.vpn, transformation_matrix)
+            self.vpn_angle_y += degrees
         else:
             axis = self.vpn
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
             self.vup = Transformation3D.transform_point(self.vup, transformation_matrix)
+            self.vup_angle += degrees
 
-    def orthogonal_projection_matrix(self):
-        x_angle = self.vector_angle(self.vpn, (0,0,1), (1,0,0))
-        y_angle = self.vector_angle(self.vpn, (0,0,1), (0,1,0))
-
-        rotation_x = Transformation3D.rotation_x_matrix(x_angle)
-        rotation_y = Transformation3D.rotation_y_matrix(y_angle)
-
-        return np.matmul(rotation_x,rotation_y)
-
-    def vup_angle(self):
-        return self.vector_angle(self.vup, (0,1,0), self.vpn)
-
-    def vector_angle(self, vector0, vector1, normal):
-        (x1,y1,z1) = vector0
-        (x2,y2,z2) = vector1
-        (xn,yn,zn) = normal
-
-        dot = x1*x2 + y1*y2 + z1*z2
-        det = x1*y2*zn + x2*yn*z1 + xn*y1*z2 - z1*y2*xn - z2*yn*x1 - zn*y1*x2
-        angle = math.atan2(det, dot)
-
-        return math.degrees(angle)
 
 
     """
@@ -187,22 +174,52 @@ class Graphics:
         self.objects[object_index].transform_from_list(transformation_list)
         
 
+    def orthogonal_projection_matrix(self):
+        y_angle = self.vector_angle(self.vpn[2], self.vpn[1])
+        x_angle = self.vector_angle(self.vpn[2], self.vpn[0])
+
+        rotation_x = Transformation3D.rotation_x_matrix(-self.vpn_angle_x)
+        rotation_y = Transformation3D.rotation_y_matrix(-self.vpn_angle_y)
+
+
+        (x,y,z) = self.vrp
+        rotation_matrix = np.matmul(rotation_x,rotation_y)
+
+        transformed_vpn = Transformation3D.transform_point(self.vpn, rotation_matrix)
+        self.transformed_vup = Transformation3D.transform_point(self.vup, rotation_matrix)
+
+
+        print("x: "+str(y_angle))
+        print("y: "+str(x_angle))
+        y_angle = self.vector_angle(transformed_vpn[2], transformed_vpn[1])
+        x_angle = self.vector_angle(transformed_vpn[2], transformed_vpn[0])
+
+
+        print("t_x: "+str(y_angle))
+        print("t_y: "+str(x_angle))
+
+        translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
+        return np.matmul(translation_matrix, rotation_matrix)
+
+
+    def vector_angle(self, x, y):
+        return math.degrees(math.atan2(y, x))
+
     """
     Retorna a matriz de normalização para as configurações 
     atuais da window
     """
     def normalization_matrix(self):
-        (x_center, y_center, _) = self.window_center()
-        translation_matrix = Transformation.translation_matrix(-x_center,-y_center)
 
-        rotation_matrix = Transformation.rotation_matrix(-self.vup_angle())
+        vup_angle = self.vector_angle(self.transformed_vup[0],self.transformed_vup[1])
+        rotation_matrix = Transformation.rotation_matrix(-self.vup_angle)
 
         scale_x = 1/(self.window_width()/2)
         scale_y = 1/(self.window_height()/2)
 
         scaling_matrix = Transformation.scaling_matrix(scale_x,scale_y)
 
-        normalization_matrix = np.matmul(np.matmul(translation_matrix,rotation_matrix),scaling_matrix)
+        normalization_matrix = np.matmul(rotation_matrix,scaling_matrix)
         return  normalization_matrix
 
 
@@ -224,8 +241,8 @@ class Graphics:
     def normalize_and_clip(self):
         display = []
 
-        normalization_matrix = self.normalization_matrix()
         projection_matrix = self.orthogonal_projection_matrix()
+        normalization_matrix = self.normalization_matrix()
 
         for obj in self.objects:
 

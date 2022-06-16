@@ -76,7 +76,6 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.line_clipping_group.addAction(self.cohen_sutherland);
         self.line_clipping_group.setExclusive(True)
 
-        clipping_menu.addAction(self.enable_clipping)
         clipping_menu.addAction(self.lian_barsk)
         clipping_menu.addAction(self.cohen_sutherland)
 

@@ -27,7 +27,7 @@ class GraphicObject:
 
         if (transformation.transformation_type == Transformation3DType.ROTATION):
             if(transformation.rotation_type == Rotation3DType.OBJECT_CENTER):
-                return transformation.get_matrix(center[0], center[1])
+                return transformation.get_matrix(center[0], center[1], center[2])
 
 
         if (transformation.transformation_type == Transformation3DType.SCALING):

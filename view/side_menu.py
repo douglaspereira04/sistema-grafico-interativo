@@ -14,6 +14,8 @@ class SideMenu(QtWidgets.QWidget):
     down = pyqtSignal(bool)
     left = pyqtSignal(bool)
     right = pyqtSignal(bool)
+    forward = pyqtSignal(bool)
+    backward = pyqtSignal(bool)
 
     add = pyqtSignal(bool)
     edit = pyqtSignal(bool)
@@ -50,6 +52,10 @@ class SideMenu(QtWidgets.QWidget):
         self.down_btn = self.set_button("&#8681;", lambda e: self.down.emit(True), button_size)
 
 
+        self.forward_label = self.set_button("Forward", lambda e: self.forward.emit(True), text_size)
+        self.backward_label = self.set_button("Backward", lambda e: self.backward.emit(True), text_size)
+
+
         self.x_axis_label = QtWidgets.QLabel('X:')
         self.x_axis_check = QtWidgets.QRadioButton()
         self.y_axis_label = QtWidgets.QLabel('Y:')
@@ -84,13 +90,15 @@ class SideMenu(QtWidgets.QWidget):
         self.navigation_layout.addWidget(self.down_btn, 3,2,1,2)
         self.navigation_layout.addWidget(self.zoom_in_label, 3,0,1,2)
         self.navigation_layout.addWidget(self.zoom_out_label, 3,4,1,2)
+        self.navigation_layout.addWidget(self.forward_label, 4,0,1,3)
+        self.navigation_layout.addWidget(self.backward_label, 4,3,1,3)
         
-        self.navigation_layout.addWidget(self.x_axis_label, 4,0)
-        self.navigation_layout.addWidget(self.x_axis_check, 4,1)
-        self.navigation_layout.addWidget(self.y_axis_label, 4,2)
-        self.navigation_layout.addWidget(self.y_axis_check, 4,3)
-        self.navigation_layout.addWidget(self.z_axis_label, 4,4)
-        self.navigation_layout.addWidget(self.z_axis_check, 4,5)
+        self.navigation_layout.addWidget(self.x_axis_label, 5,0)
+        self.navigation_layout.addWidget(self.x_axis_check, 5,1)
+        self.navigation_layout.addWidget(self.y_axis_label, 5,2)
+        self.navigation_layout.addWidget(self.y_axis_check, 5,3)
+        self.navigation_layout.addWidget(self.z_axis_label, 5,4)
+        self.navigation_layout.addWidget(self.z_axis_check, 5,5)
 
         self.setMaximumWidth(max_width)
 

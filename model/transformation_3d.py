@@ -78,22 +78,15 @@ class Transformation3D:
 		return (vector[0]/norm, vector[1]/norm, vector[2]/norm)
 
 
-	def rotation_given_axis_matrix(rad, a):
+	def rotation_given_axis_matrix(rad, a, center):
 		_sin = math.sin(rad)
 		_cos = math.cos(rad)
 
 		a = Transformation3D.unit_vector(a)
 		if(a == None):
-			print("a")
+			print("erro")
 			return None
-		"""
-		R = [
-		[(a[0]**2)+(1-(a[0]**2))*_cos,    a[0]*a[1]*(1-_cos)-a[2]*_sin, a[0]*a[2]*(1-_cos)+a[1]*_sin, 0],
-		[a[0]*a[1]*(1-_cos)+a[2]*_sin, (a[1]**2)+(1-(a[1]**2))*_cos,    a[1]*a[2]*(1-_cos)-a[0]*_sin, 0],
-		[a[0]*a[2]*(1-_cos)-a[1]*_sin, a[1]*a[2]*(1-_cos)+a[0]*_sin, (a[2]**2)+(1-(a[2]**2))*_cos,    0],
-		[0,                0,                0,                1]];
 
-		"""
 
 		aa = np.array((
 		[a[0]*a[0], a[0]*a[1], a[0]*a[2]],
@@ -117,7 +110,19 @@ class Transformation3D:
 		R = np.hstack((R, [[0],[0],[0]]))
 		R = np.vstack((R, [0,0,0,1]))
 
-		return R
+		rotation_matrix = None
+
+		if(center != None):
+			(x,y,z) = center
+			translation_center= Transformation3D.translation_matrix(-x, -y, -z)
+			translation_back = Transformation3D.translation_matrix(x, y, z)
+			rotation_matrix = np.matmul(translation_center,np.matmul(R,translation_back))
+		else:
+			rotation_matrix = R
+
+
+
+		return rotation_matrix
 
 
 	"""
@@ -174,25 +179,21 @@ class Rotation3D(Transformation3D):
 	def get_matrix(self, x = None, y = None, z = None):
 		rotation_matrix = None
 
-		if(self.rotation_axis != RotationAxis.U):
-			rotation_matrix = None
-
-			if(self.rotation_type == Rotation3DType.GIVEN_POINT):
-				center = self.center
-			elif(self.rotation_type == Rotation3DType.OBJECT_CENTER):
-				center = (x,y,z)
-			else:
-				center = (0,0,0)
-
-			if(self.rotation_axis == RotationAxis.X):
-				rotation_matrix = Transformation3D.rotation_x_matrix(self.rad, center)
-			elif(self.rotation_axis == RotationAxis.Y):
-				rotation_matrix = Transformation3D.rotation_y_matrix(self.rad, center)
-			elif(self.rotation_axis == RotationAxis.Z):
-				rotation_matrix = Transformation3D.rotation_z_matrix(self.rad, center)
-
+		if(self.rotation_type == Rotation3DType.GIVEN_POINT):
+			center = self.center
+		elif(self.rotation_type == Rotation3DType.OBJECT_CENTER):
+			center = (x,y,z)
 		else:
-			rotation_matrix = Transformation3D.rotation_given_axis_matrix(self.rad, self.axis_vector)
+			center = (0,0,0)
+
+		if(self.rotation_axis == RotationAxis.X):
+			rotation_matrix = Transformation3D.rotation_x_matrix(self.rad, center)
+		elif(self.rotation_axis == RotationAxis.Y):
+			rotation_matrix = Transformation3D.rotation_y_matrix(self.rad, center)
+		elif(self.rotation_axis == RotationAxis.Z):
+			rotation_matrix = Transformation3D.rotation_z_matrix(self.rad, center)
+		elif(self.rotation_axis == RotationAxis.U):
+			rotation_matrix = Transformation3D.rotation_given_axis_matrix(self.rad, self.axis_vector, center)
 
 		return rotation_matrix
 

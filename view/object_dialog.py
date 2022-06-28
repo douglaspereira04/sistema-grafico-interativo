@@ -4,7 +4,7 @@ import numbers
 from view.util.dialogs import show_error_box
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="A", coords="(0,0,0),(50,0,0),(50,50,0),(0,50,0)", color="#FF0000", filled=False, _type=None):
+    def __init__(self, parent=None, name="", coords="", color="#000000", filled=False, _type=None):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -67,15 +67,23 @@ class ObjectDialog(QDialog):
             else:
                 show_error_box("Expected: (x,y,z)")
         elif(_type=="2D Bezier"):
-            if(self.well_writen_bezier()):
+            ok = self.well_writen_bezier() 
+            if(ok == 0):
                 super().accept()
-            else:
+            elif(ok == 1):
                 show_error_box("Expected: (x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+            elif(ok == 2):
+                show_error_box("Expected (number of points)%3 == 1")
+
         elif(_type=="2D Spline"):
-            if(self.well_writen_spline()):
+            ok = self.well_writen_spline() 
+            if(ok == 0):
                 super().accept()
-            else:
+            elif(ok == 1):
                 show_error_box("Expected: (x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+            elif(ok == 2):
+                show_error_box("Expected (number of points) > 3")
+
         elif(_type=="Line/Wireframe"):
             if(self.well_writen_wireframe()):
                 super().accept()
@@ -213,11 +221,15 @@ class ObjectDialog(QDialog):
                 is_one_element = len(element_list) == 1
                 is_in_xy_plane = self.xy_plane(element)
                 is_bezier = len(element)%3 == 1
-                return is_one_element and is_in_xy_plane and is_bezier
 
-            return False
+                if(is_one_element and is_in_xy_plane):
+                    if (is_bezier):
+                        return 0
+                    return 2
+
+            return 1
         except Exception as e:
-            return False
+            return 1
 
     def well_writen_spline(self):
         try:
@@ -227,11 +239,15 @@ class ObjectDialog(QDialog):
                 is_one_element = len(element_list) == 1
                 is_in_xy_plane = self.xy_plane(element)
                 is_spline = len(element)>3
-                return is_one_element and is_in_xy_plane and is_spline
+                
+                if( is_one_element and is_in_xy_plane):
+                    if (is_spline):
+                        return 0
+                    return 2
 
-            return False
+            return 1
         except Exception as e:
-            return False
+            return 1
 
     def xy_plane(self,point_list):
         for point in point_list:

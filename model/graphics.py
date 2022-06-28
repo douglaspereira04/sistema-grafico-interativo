@@ -179,13 +179,13 @@ class Graphics:
         
         if(axis == Axis.X):
             axis = np.cross(self.vpn.get_coords(), self.vup.get_coords())
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
         elif(axis == Axis.Y):
             axis = self.vup.get_coords()
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
         else:
             axis = self.vpn.get_coords()
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
             
         self.vup.transform(transformation_matrix)
         self.vpn.transform(transformation_matrix)
@@ -234,6 +234,12 @@ class Graphics:
         return (x1,y1)
 
 
+    def reverse_viewport_transformation(self, x1, y1):
+        x = ((( x1 - self.border )*2)/(self.viewport_width() - (self.border*2))) -1
+        y = ((((y1 - self.border)/(self.viewport_height() - (self.border*2))) - 1)*2) - 1
+        return (x,y)
+
+
 
     """
     Normaliza e clipa pontos e linhas
@@ -252,6 +258,10 @@ class Graphics:
                     display_coords = element.project(projection_normalization_matrix)
                 elif(element.obj_type == ObjType.WIREFRAME):
                     display_coords = element.project(projection_normalization_matrix, self.line_clipping)
+                elif(element.obj_type == ObjType.SPLINE ):
+                    display_coords = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()*0.1/self.viewport_width())
+                elif(element.obj_type == ObjType.BEZIER ):
+                    display_coords = element.project(projection_normalization_matrix, self.line_clipping, int(self.viewport_width()/10))
 
                 if(display_coords != None):
                     display_coords = [self.viewport_transformation(point[0],point[1]) for point in display_coords]

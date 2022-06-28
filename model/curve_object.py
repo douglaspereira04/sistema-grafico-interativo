@@ -2,6 +2,8 @@ from model.graphic_element import GraphicElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
 import numpy as np
+from model.wireframe_3d import Wireframe3D
+from model.point_3d import Point3D
 
 BEZIER_MATRIX = [
             [-1,  3, -3, 1],
@@ -22,34 +24,16 @@ def E(delta):
             [6*(delta**3),  0,            0,     0]
             ]
 
-class CurveObject(GraphicElement):
-    def __init__(self, name=None, obj_type=None, coords=[], color="black", filled=False):
-        super().__init__(name, obj_type, coords, color, filled)
-
-    
-    def center(self):
-        sum_x = 0
-        sum_y = 0
-
-        last_point = None
-
-        _len = len(self.coords)
-        if(self.coords[0] == self.coords[_len-1] and _len > 1):
-            _len-=1
-
-        for i in range(_len):
-            sum_x += self.coords[i][0]
-            sum_y += self.coords[i][1]
-
-        centroid_x = sum_x/_len
-        centroid_y = sum_y/_len
-        return (centroid_x, centroid_y)
+class CurveObject(Wireframe3D):
+    def __init__(self, obj_type=None, coords=[], color="black", filled=False):
+        super().__init__(vertices=coords, edges=None, color=color, filled=filled)
+        self.obj_type = obj_type
 
     def bezier_point(t, control_points):
         t = [t*t*t, t*t, t, 1]
 
-        control_x = [point[0] for point in control_points]
-        control_y = [point[1] for point in control_points]
+        control_x = [p.get_coords()[0] for p in control_points]
+        control_y = [p.get_coords()[1] for p in control_points]
 
         t_b = np.matmul(t, BEZIER_MATRIX)
 
@@ -57,7 +41,7 @@ class CurveObject(GraphicElement):
         y = np.matmul(t_b, control_y)
 
 
-        return (x,y)
+        return Point3D(coords=(x, y, 0))
 
     def blended_points(resolution, control_points):
         curve_points = []
@@ -72,15 +56,14 @@ class CurveObject(GraphicElement):
         return curve_points
 
     def create_forward_difference_matrix(control_points, delta):
-        Gx = np.transpose([[p[0] for p in control_points]])
-        Gy = np.transpose([[p[1] for p in control_points]])
+        Gx = np.transpose([[p.get_coords()[0] for p in control_points]])
+        Gy = np.transpose([[p.get_coords()[1] for p in control_points]])
 
         Mbs = B_SPLINE_MATRIX
         Cx = np.matmul(Mbs, Gx)
         Cy = np.matmul(Mbs, Gy)
 
         E_delta =  E(delta)
-
 
 
         Dx = np.matmul(E_delta, Cx)
@@ -111,7 +94,7 @@ class CurveObject(GraphicElement):
             x = Dx[0][0]
             y = Dy[0][0]
 
-            line_set.append((x, y))
+            line_set.append(Point3D(coords=(x, y, 0)))
         return line_set
 
     def forward_difference_points(delta, control_points):
@@ -123,18 +106,15 @@ class CurveObject(GraphicElement):
             curve_points += CurveObject.forward_difference(delta, curr_control_points)
             i+=1
 
-
         return curve_points
 
 
-    def clipped(self, d):
-        coords = None
-        if(self.obj_type == ObjType.BEZIER):
-            coords = CurveObject.blended_points(d, self.scn)
-        else:
-            coords = CurveObject.forward_difference_points(d, self.scn)
 
-        if(not self.filled):
-            return Clipper.line_set_clipping(coords, LineClipping.COHEN_SUTHERLAND)
+    def project(self, projection_matrix, line_clipping, d):
+        if(self.obj_type == ObjType.BEZIER):
+            vertices = CurveObject.blended_points(d, self.vertices)
         else:
-            return Clipper.sutherland_hodgman_clipping(coords)
+            vertices = CurveObject.forward_difference_points(d, self.vertices)
+
+        edges = [(i,i+1) for i in range(len(vertices)-1)]
+        return super().project(projection_matrix, line_clipping, vertices, edges)

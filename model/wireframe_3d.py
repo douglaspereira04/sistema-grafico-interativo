@@ -50,33 +50,53 @@ class Wireframe3D(GraphicElement):
             vertex.transform(transformation_matrix)
 
 
-    def project(self, projection_matrix, line_clipping):
-        projected_coords = []
-        for edge in self.edges:
-            (v0_index,v1_index) = edge
-            (v0,v1) = (self.vertices[v0_index], self.vertices[v1_index])
-
-            (x,y,z) = v0.get_coords()
-            coord = (x,y,z,1)
-            (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
-            scn_coord_0 = (x/w, y/w)
-
-            (x,y,z) = v1.get_coords()
-            coord = (x,y,z,1)
-            (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
-            scn_coord_1 = (x/w, y/w)
+    def project(self, projection_matrix, line_clipping, vertices = None, edges = None):
+        if(edges == None or vertices == None):
+            return self.project(projection_matrix, line_clipping, self.vertices, self.edges) 
+        else:
+            projected_coords = []
+            projected_vertices = [None] * len(vertices) 
 
 
-            clipped = None
-            if(line_clipping == LineClipping.LIAN_BARSK):
-                clipped = Clipper.lian_barsk_clipping([scn_coord_0, scn_coord_1])
+            if(not self.filled):
+                for edge in edges:
+                    (v0_index,v1_index) = edge
+
+                    if(projected_vertices[v0_index] == None):
+                        v0 = vertices[v0_index]
+                        (x,y,z) = v0.get_coords()
+                        coord = (x,y,z,1)
+                        (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                        projected_vertices[v0_index] = (x/w, y/w)
+
+                    if(projected_vertices[v1_index] == None):
+                        v1 = vertices[v1_index]
+                        (x,y,z) = v1.get_coords()
+                        coord = (x,y,z,1)
+                        (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                        projected_vertices[v1_index] = (x/w, y/w)
+
+
+
+                    clipped = None
+                    if(line_clipping == LineClipping.LIAN_BARSK):
+                        clipped = Clipper.lian_barsk_clipping([projected_vertices[v0_index], projected_vertices[v1_index]])
+                    else:
+                        clipped = Clipper.cohen_sutherland_clipping([projected_vertices[v0_index], projected_vertices[v1_index]])
+
+                    if(clipped != None):
+                        projected_coords += clipped
             else:
-                clipped = Clipper.cohen_sutherland_clipping([scn_coord_0, scn_coord_1])
 
-            if(clipped != None):
-                projected_coords += clipped
+                for i in range(len(vertices)):
+                    (x,y,z) = vertices[i].get_coords()
+                    coord = (x,y,z,1)
+                    (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                    projected_vertices[i] = (x/w, y/w)
+
+                projected_coords = Clipper.sutherland_hodgman_clipping(projected_vertices)
 
 
-        self.clipped_scn = projected_coords
+            self.clipped_scn = projected_coords
 
-        return self.clipped_scn
+            return self.clipped_scn

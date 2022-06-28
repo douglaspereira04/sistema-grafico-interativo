@@ -9,7 +9,7 @@ from model.line_object import LineObject
 from model.wireframe_3d import Wireframe3D
 from model.clipper import LineClipping
 from model.transformation import Transformation
-from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis
+from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -18,6 +18,7 @@ from view.util.dialogs import show_warning_box, show_input_box
 from model.wavefront_obj import WavefrontObj
 import math
 import os
+import numpy as np
 
 
 class GraphicsController:
@@ -62,6 +63,51 @@ class GraphicsController:
 
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
+
+
+
+        self.view.canvas.zoom.connect(self.canvas_scroll)
+        self.view.canvas.pan.connect(self.canvas_pan)
+        self.view.canvas.rotate.connect(self.object_rotate)
+        self.view.canvas.scale.connect(self.object_scale)
+
+
+    def canvas_scroll(self):
+        if(self.view.canvas.wheel_y_angle != 0):
+            step = self.view.canvas.wheel_y_angle*(self.graphic.window_height()/self.graphic.viewport_height());
+            self.zoom(step)
+
+    def canvas_pan(self):
+        
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())/10
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())/10
+        if(x_diff != 0):
+            self.pan(Axis.X,x_diff)
+
+        if(y_diff != 0):
+            self.pan(Axis.Y,y_diff)
+
+
+    def object_rotate(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1 and y_diff != 0):
+            transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.get_coords(), y_diff, 0, 0, 0)
+            transformation_list = list()
+            transformation_list.append(transformation)
+            self.transform_object(transformation_list)
+
+    def object_scale(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1 and y_diff != 0):
+            transformation = Scaling3D(1-(0.01*y_diff))
+            transformation_list = list()
+            transformation_list.append(transformation)
+            self.transform_object(transformation_list)
 
 
     def list_selected(self):
@@ -201,9 +247,21 @@ class GraphicsController:
     def get_object(self, name, _object, color, filled, _type):
         element_list = list()
 
-        for point_list in _object:
-            element = self.get_element(name, point_list, _type, color, filled)
-            element_list.append(element)
+        if(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)" or _type == "Point"):
+            for point_list in _object:
+                element = self.get_element(name, point_list, _type, color, filled)
+                element_list.append(element)
+        else:
+            control_points = list()
+            for point in _object[0]:
+                control_points.append(Point3D(coords=point, color=color))
+                
+            curve_type = None
+            if(_type == "2D Spline"):
+                curve_type = ObjType.SPLINE
+            else:
+                curve_type = ObjType.BEZIER
+            element_list.append(CurveObject(obj_type=curve_type, coords=control_points, color=color, filled=filled))
 
         return GraphicObject(name, element_list)
 
@@ -237,7 +295,7 @@ class GraphicsController:
                 coords += str(element) +";"
             coords = coords[:-1]
             color = _object.elements[0].color
-            filled = False
+            filled = _object.elements[0].filled
 
             _type = None
             if(len(_object.elements) == 1):

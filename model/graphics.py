@@ -1,8 +1,9 @@
 import math
 import numpy as np
 from model.obj_type import ObjType
-from model.graphic_object import GraphicObject
+from model.graphic_element import GraphicElement
 from model.display_object import DisplayObject
+from model.point_3d import Point3D
 from model.transformation_3d import Transformation3D
 from model.transformation import Transformation, RotationType, Rotation, Translation
 from model.clipper import LineClipping
@@ -33,7 +34,8 @@ class Graphics:
         }
         self.window = {
             "width": 0,
-            "height": 0
+            "height": 0,
+            "depth": 20
         }
 
         self.border = 20
@@ -41,14 +43,11 @@ class Graphics:
         self.enable_clipping = True
         self.default_window = None
 
-        self.vrp = (0,0,0)
-        self.vpn = (0,0,1)
-        self.vup = (0,1,0)
+        self.vrp = Point3D((0,0,0))
+        self.vpn = Point3D((0,0,1))
+        self.vup = Point3D((0,1,0))
 
-        self.vup_angle = 0
-        self.vpn_angle_x = 0
-        self.vpn_angle_y = 0
-        self.transformed_vup = None
+        self.cop_d = 100
 
 
     def window_width(self):
@@ -56,6 +55,9 @@ class Graphics:
 
     def window_height(self):
         return self.window["height"]
+
+    def window_depth(self):
+        return self.window["depth"]
 
     def viewport_width(self):
         return self.viewport["x_max"] - self.viewport["x_min"]
@@ -71,7 +73,7 @@ class Graphics:
 
 
     def window_center(self):
-        return self.vrp
+        return self.vrp.get_coords()
 
     def set_window_height(self, height, aspect):
         self.window["width"] = height*aspect
@@ -89,24 +91,53 @@ class Graphics:
     """
     def set_window(self,window):
         aspect = self.window_aspect_ratio()
-        (center,dimension) = window
-        (width,height) = dimension
+        (center,dimension, vpn, vup) = window
+        (width,height, depth) = dimension
+        self.vpn = Point3D(vpn)
+        self.vup = Point3D(vup)
 
+        self.window["depth"] = depth
         self.set_window_width(width,aspect)
 
         if(self.window_height() < height):
             self.set_window_height(height,aspect)
 
         self.default_window = window
+        self.vrp.set_coords(center)
 
     def get_window(self):
-        return (self.window_center(),(self.window_width(),self.window_height()))
+        return (self.window_center(),(self.window_width(),self.window_height(),self.window_depth()), self.vpn.get_coords(), self.vup.get_coords())
 
     def rotate_view_vector(self, x,y):
         rotation = Rotation(RotationType.OBJECT_CENTER, -self.vup_angle(), 0, 0)
         rotation_matrix = rotation.get_matrix()
-        return Transformation.transform_point((x,y), rotation_matrix)
+        return Transformation.transform_3d_point((x,y), rotation_matrix)
 
+
+
+    def get_angles(self):
+        x_angle = 0
+        vpn = self.vpn.get_coords()
+        vup = self.vup.get_coords()
+        unit_vpn = Transformation3D.unit_vector(vpn)
+        if (unit_vpn != None):
+            (x,y,z) = vpn
+            x_angle = math.atan2(y, z)
+            vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_x_matrix(x_angle))
+            vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_x_matrix(x_angle))
+
+        
+        (x,y,z) = vpn
+        y_angle = - math.atan2(x, z)
+        vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_y_matrix(y_angle))
+        vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_y_matrix(y_angle))
+
+        (x,y,z) = vup
+        z_angle = math.atan2(x, y)
+        vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_z_matrix(z_angle))
+        vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_z_matrix(z_angle))
+
+        return (x_angle, y_angle, z_angle)
 
 
     """
@@ -134,37 +165,30 @@ class Graphics:
     def pan(self, axis, steps):
         rotation_matrix = None
         if(axis == Axis.X):
-            axis = np.cross(self.vpn, self.vup)
+            axis = np.cross(self.vpn.get_coords(), self.vup.get_coords())
         elif(axis == Axis.Y):
-            axis = self.vup
+            axis = self.vup.get_coords()
         else:
-            axis = self.vpn
-            print(steps)
+            axis = self.vpn.get_coords()
 
         translation_matrix = Transformation3D.translation_matrix(axis[0]*steps, axis[1]*steps, axis[2]*steps)
 
-        self.vrp = Transformation3D.transform_point(self.vrp, translation_matrix)
+        self.vrp.transform(translation_matrix)
 
-    def rotate(self, axis, degrees):
+    def rotate(self, axis, rad):
         
         if(axis == Axis.X):
-            axis = np.cross(self.vpn, self.vup)
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
-            self.vpn = Transformation3D.transform_point(self.vpn, transformation_matrix)
-            self.vup = Transformation3D.transform_point(self.vup, transformation_matrix)
-            self.vpn_angle_x += degrees
-
+            axis = np.cross(self.vpn.get_coords(), self.vup.get_coords())
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
         elif(axis == Axis.Y):
-            axis = self.vup
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
-            self.vpn = Transformation3D.transform_point(self.vpn, transformation_matrix)
-            self.vpn_angle_y += degrees
+            axis = self.vup.get_coords()
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
         else:
-            axis = self.vpn
-            transformation_matrix = Transformation3D.rotation_given_axis_matrix(degrees, axis)
-            self.vup = Transformation3D.transform_point(self.vup, transformation_matrix)
-            self.vup_angle += degrees
-
+            axis = self.vpn.get_coords()
+            transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis)
+            
+        self.vup.transform(transformation_matrix)
+        self.vpn.transform(transformation_matrix)
 
 
     """
@@ -174,53 +198,29 @@ class Graphics:
         self.objects[object_index].transform_from_list(transformation_list)
         
 
-    def orthogonal_projection_matrix(self):
-        y_angle = self.vector_angle(self.vpn[2], self.vpn[1])
-        x_angle = self.vector_angle(self.vpn[2], self.vpn[0])
+    def projection_normalization_matrix(self):
 
-        rotation_x = Transformation3D.rotation_x_matrix(-self.vpn_angle_x)
-        rotation_y = Transformation3D.rotation_y_matrix(-self.vpn_angle_y)
-
-
-        (x,y,z) = self.vrp
-        rotation_matrix = np.matmul(rotation_x,rotation_y)
-
-        transformed_vpn = Transformation3D.transform_point(self.vpn, rotation_matrix)
-        self.transformed_vup = Transformation3D.transform_point(self.vup, rotation_matrix)
-
-
-        print("x: "+str(y_angle))
-        print("y: "+str(x_angle))
-        y_angle = self.vector_angle(transformed_vpn[2], transformed_vpn[1])
-        x_angle = self.vector_angle(transformed_vpn[2], transformed_vpn[0])
-
-
-        print("t_x: "+str(y_angle))
-        print("t_y: "+str(x_angle))
-
+        (x,y,z) = self.vrp.get_coords()
         translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
-        return np.matmul(translation_matrix, rotation_matrix)
 
+        (x_angle, y_angle, z_angle) = self.get_angles()
+        rotation_x = Transformation3D.rotation_x_matrix(x_angle)
+        rotation_y = Transformation3D.rotation_y_matrix(y_angle)
+        rotation_z = Transformation3D.rotation_z_matrix(z_angle)
 
-    def vector_angle(self, x, y):
-        return math.degrees(math.atan2(y, x))
+        rotation_matrix = np.matmul(rotation_x, np.matmul(rotation_y,rotation_z))
+        
+        d_factor = self.cop_d*(2/self.window_depth())
+        perspective_matrix = np.transpose([
+                [1.,0.,0.,0.], 
+                [0.,1.,0.,0.], 
+                [0.,0.,1.,0],
+                [0.,0.,1.0/d_factor,1.]
+            ])
 
-    """
-    Retorna a matriz de normalização para as configurações 
-    atuais da window
-    """
-    def normalization_matrix(self):
+        scaling_matrix = Transformation3D.scaling_matrix(2/self.window_width(),2/self.window_height(), 2/self.window_depth())
+        return np.matmul(translation_matrix, np.matmul(rotation_matrix, np.matmul(scaling_matrix, perspective_matrix)))
 
-        vup_angle = self.vector_angle(self.transformed_vup[0],self.transformed_vup[1])
-        rotation_matrix = Transformation.rotation_matrix(-self.vup_angle)
-
-        scale_x = 1/(self.window_width()/2)
-        scale_y = 1/(self.window_height()/2)
-
-        scaling_matrix = Transformation.scaling_matrix(scale_x,scale_y)
-
-        normalization_matrix = np.matmul(rotation_matrix,scaling_matrix)
-        return  normalization_matrix
 
 
     """
@@ -241,22 +241,21 @@ class Graphics:
     def normalize_and_clip(self):
         display = []
 
-        projection_matrix = self.orthogonal_projection_matrix()
-        normalization_matrix = self.normalization_matrix()
+        projection_normalization_matrix = self.projection_normalization_matrix()
 
         for obj in self.objects:
+            for element in obj.elements:
 
-            display_coords = None
-                #clipping
+                display_coords = None
 
-            if(obj.obj_type == ObjType.POINT):
-                display_coords = obj.project(projection_matrix, normalization_matrix)
-            elif(obj.obj_type == ObjType.WIREFRAME):
-                display_coords = obj.project(projection_matrix, normalization_matrix, self.line_clipping)
+                if(element.obj_type == ObjType.POINT):
+                    display_coords = element.project(projection_normalization_matrix)
+                elif(element.obj_type == ObjType.WIREFRAME):
+                    display_coords = element.project(projection_normalization_matrix, self.line_clipping)
 
-            if(display_coords != None):
-                display_coords = [self.viewport_transformation(point[0],point[1]) for point in display_coords]
-                display_object = DisplayObject(display_coords, obj.color, obj.filled)
-                display.append(display_object)
+                if(display_coords != None):
+                    display_coords = [self.viewport_transformation(point[0],point[1]) for point in display_coords]
+                    display_object = DisplayObject(display_coords, element.color, element.filled)
+                    display.append(display_object)
 
         self.display = display

@@ -1,11 +1,12 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphics import Axis
+from model.graphic_element import GraphicElement
 from model.graphic_object import GraphicObject
 from model.curve_object import CurveObject
-from model.point_object import PointObject
+from model.point_3d import Point3D
 from model.line_object import LineObject
-from model.wireframe_object import WireframeObject
+from model.wireframe_3d import Wireframe3D
 from model.clipper import LineClipping
 from model.transformation import Transformation
 from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis
@@ -34,12 +35,12 @@ class GraphicsController:
         self.view.side_menu.zoomed_in.connect(lambda : self.zoom_button(1))
         self.view.side_menu.zoomed_out.connect(lambda : self.zoom_button(-1))
 
-        self.view.side_menu.up.connect(lambda : self.pan(Axis.Y,-1))
-        self.view.side_menu.down.connect(lambda : self.pan(Axis.Y,1))
-        self.view.side_menu.left.connect(lambda : self.pan(Axis.X, -1))
-        self.view.side_menu.right.connect(lambda : self.pan(Axis.X,1))
-        self.view.side_menu.forward.connect(lambda : self.pan(Axis.Z, -1))
-        self.view.side_menu.backward.connect(lambda : self.pan(Axis.Z,1))
+        self.view.side_menu.up.connect(lambda : self.pan(Axis.Y,1))
+        self.view.side_menu.down.connect(lambda : self.pan(Axis.Y,-1))
+        self.view.side_menu.left.connect(lambda : self.pan(Axis.X, 1))
+        self.view.side_menu.right.connect(lambda : self.pan(Axis.X,-1))
+        self.view.side_menu.forward.connect(lambda : self.pan(Axis.Z, 1))
+        self.view.side_menu.backward.connect(lambda : self.pan(Axis.Z,-1))
 
 
         self.view.show()
@@ -156,7 +157,8 @@ class GraphicsController:
 
         self.graphic.window = {
             "width": self.view.canvas.canvas.width(),
-            "height": self.view.canvas.canvas.height()
+            "height": self.view.canvas.canvas.height(),
+            "depth": self.graphic.window["depth"]
         }
 
 
@@ -167,35 +169,54 @@ class GraphicsController:
         self.graphic.set_window(window)
         self.draw()
 
-    def string_to_obj(self, string_coords):
-        coords = list(eval(string_coords))
 
-        obj_type = ObjType.WIREFRAME
-        if(isinstance(coords[0], int) or isinstance(coords[0], float)):
-            obj_type = ObjType.POINT
-            coords = [(coords[0], coords[1], coords[2])]
+    def get_element(self, name, _list, _type, color, filled):
 
-        return (obj_type, coords)
+        if(len(_list) == 1):
+            return Point3D(coords=_list[0], color=color)
+        elif(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)"):
+            vertices = list()
+            edges = list()
+            edges.append((0,0))
+            for point in _list:
+                vertex = Point3D(coords=point, color=color)
+
+                if(not (vertex in vertices)):
+                    vertices.append(vertex)
+                v_index = vertices.index(vertex)
+                
+                edge = (edges[-1][1], v_index)
+                edges.append(edge)
+
+            if(filled):
+                edges[0] = (edges[-1][1],edges[1][0])
+            else:
+                del edges[0]
+
+            return Wireframe3D(vertices=vertices, edges=edges, color=color, filled=filled)
+        else:
+            return None
 
 
+    def get_object(self, name, _object, color, filled, _type):
+        element_list = list()
+
+        for point_list in _object:
+            element = self.get_element(name, point_list, _type, color, filled)
+            element_list.append(element)
+
+        return GraphicObject(name, element_list)
 
     def save_object(self):
 
         dialog = ObjectDialog()
 
         if dialog.exec():
+            obj = None
+            (name, _object, color, filled, _type) = dialog.get_inputs()
 
-            (name, string_coords, color, filled, bezier, spline) = dialog.get_inputs()
+            obj = self.get_object(name, _object, color, filled, _type)
 
-            (obj_type, coords) = self.string_to_obj(string_coords)
-            print(coords)
-
-            if(obj_type == ObjType.POINT):
-                print(coords)
-                obj = PointObject(name, coords, color)
-            elif(obj_type == ObjType.WIREFRAME):
-                obj = WireframeObject(name, coords, color)
-            
             self.erase()
 
             self.graphic.objects.append(obj)
@@ -211,27 +232,33 @@ class GraphicsController:
 
             _object = self.graphic.objects[selected]
             name = _object.name
-            coords = str(_object.coords)[1:-1]
-            color = _object.color
+            coords = ""
+            for element in _object.elements:
+                coords += str(element) +";"
+            coords = coords[:-1]
+            color = _object.elements[0].color
             filled = False
-            is_bezier = False
-            is_spline = False
 
-            dialog = ObjectDialog(self.view, name, coords, color, filled, is_bezier, is_spline)
+            _type = None
+            if(len(_object.elements) == 1):
+                if(_object.elements[0].obj_type.name == "POINT"):
+                    _type = "Point"
+                elif(_object.elements[0].obj_type.name == "WIREFRAME"):
+                    _type = "Line/Wireframe"
+            else:
+                _type = "Object (Points/Lines/Wireframes)"
+
+            dialog = ObjectDialog(self.view, name, coords, color, filled, _type)
             result = dialog.exec()
             if (result):
+                obj = None
+                (name, _object, color, filled, _type) = dialog.get_inputs()
+
+                obj = self.get_object(name, _object, color, filled, _type)
+
                 self.erase()
-                
-                new_object = None
-                (new_name, new_string_coords, new_color, new_filled, bezier, spline) = dialog.get_inputs()
-                (new_obj_type, new_coords) = self.string_to_obj(new_string_coords)
 
-                if(new_obj_type == ObjType.POINT):
-                    new_object = PointObject(new_name, new_coords, new_color)
-                else:
-                    new_object = WireframeObject(new_name, new_coords, new_color)
-
-                self.graphic.objects[selected] = new_object
+                self.graphic.objects[selected] = obj
             
                 self.draw()
                 self.make_list()
@@ -334,7 +361,11 @@ class GraphicsController:
     def make_list(self):            
         obj_list = []
         for ob in self.graphic.objects:
-            obj_list.append(ob.obj_type.name + '(' + ob.name + ')')
+            if(len(ob.elements) == 1):
+                obj_list.append(ob.elements[0].obj_type.name + '(' + ob.name + ')')
+            else:
+                obj_list.append('OBJECT (' + ob.name + ')')
+
 
         self.view.side_menu.make_list(obj_list)
 
@@ -381,7 +412,7 @@ class GraphicsController:
         else:
             axis = Axis.Z
 
-        self.graphic.rotate(axis, degrees*direction)
+        self.graphic.rotate(axis, math.radians(degrees)*direction)
 
         self.draw()
         self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")

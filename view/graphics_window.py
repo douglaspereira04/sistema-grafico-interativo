@@ -52,7 +52,6 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu('File')
-        file_menu.setEnabled(False)
         self.load_from_file = QAction('Load from file', self)
         self.save_to_file = QAction('Save to file', self)
 

@@ -1,4 +1,4 @@
-from model.graphic_object import GraphicObject
+from model.graphic_element import GraphicElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
 import numpy as np
@@ -22,7 +22,7 @@ def E(delta):
             [6*(delta**3),  0,            0,     0]
             ]
 
-class CurveObject(GraphicObject):
+class CurveObject(GraphicElement):
     def __init__(self, name=None, obj_type=None, coords=[], color="black", filled=False):
         super().__init__(name, obj_type, coords, color, filled)
 

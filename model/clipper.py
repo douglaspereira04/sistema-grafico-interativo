@@ -11,7 +11,7 @@ class LineClipping(Enum):
     COHEN_SUTHERLAND = 0
     LIAN_BARSK = 1
 
-CLIPPING_REGIONS = [RegionCode.LEFT, RegionCode.RIGHT, RegionCode.TOP, RegionCode.BOTTOM]
+CLIPPING_REGIONS_2D = [RegionCode.LEFT, RegionCode.RIGHT, RegionCode.TOP, RegionCode.BOTTOM]
 
 class Clipper():
     """
@@ -202,7 +202,7 @@ class Clipper():
         clipped = polygon.copy()
         curr_clip = None
 
-        for region in CLIPPING_REGIONS:
+        for region in CLIPPING_REGIONS_2D:
             curr_clip = clipped.copy()
             length = len(curr_clip)
             clipped = []

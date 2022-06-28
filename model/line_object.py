@@ -1,8 +1,8 @@
-from model.graphic_object import GraphicObject
+from model.graphic_element import GraphicElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
 
-class LineObject(GraphicObject):
+class LineObject(GraphicElement):
     def __init__(self, name=None, coords=[], color="black"):
         super().__init__(name, ObjType.LINE, coords, color, False)
 

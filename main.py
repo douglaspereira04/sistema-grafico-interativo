@@ -8,10 +8,10 @@ from model.graphics import Graphics
 from view.graphics_window import GraphicsWindow
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    graphics = Graphics()
-    window = GraphicsWindow()
+        app = QtWidgets.QApplication(sys.argv)
+        graphics = Graphics()
+        window = GraphicsWindow()
 
-    graphicsController = GraphicsController(graphics, window)
+        graphicsController = GraphicsController(graphics, window)
 
-    sys.exit(app.exec_())
+        sys.exit(app.exec_())

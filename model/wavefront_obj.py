@@ -1,8 +1,9 @@
 from model.obj_type import ObjType
+from model.graphic_element import GraphicElement
 from model.graphic_object import GraphicObject
-from model.point_object import PointObject
+from model.point_3d import Point3D
+from model.wireframe_3d import Wireframe3D
 from model.line_object import LineObject
-from model.wireframe_object import WireframeObject
 from model.curve_object import CurveObject
 import re
 
@@ -11,7 +12,9 @@ class WavefrontObj:
         object_list = graphics.objects
 
         window_center = graphics.window_center()
-        window_size = (graphics.window_width(), graphics.window_height())
+        window_size = (graphics.window_width(), graphics.window_height(), graphics.window_depth())
+        vpn = graphics.vpn.get_coords()
+        vup = graphics.vup.get_coords()
 
         string_file = ""
 
@@ -30,63 +33,75 @@ class WavefrontObj:
 
         vertex_to_pos[window_center] = vertex_count
         vertex_to_pos[window_size] = vertex_count+1
-        vertex_count += 2
+        vertex_to_pos[vpn] = vertex_count+2
+        vertex_to_pos[vup] = vertex_count+3
+        vertex_count += 4
 
         for obj in object_list:
             obj_string = None
 
             _type = None
-            if(obj.obj_type == ObjType.POINT):
-                _type = "p"
-            elif(obj.obj_type == ObjType.LINE):
-                _type = "l"
+            if(len(obj.elements)==1):
+                obj_string = "\no "+obj.name
             else:
-                if(obj.filled):
-                    _type = "f"
+                obj_string = "\ng "+obj.name
+
+
+            for element in obj.elements:
+
+                if(not (element.color in color_to_mtlib.keys())):
+                    color_to_mtlib[element.color] = "color_" + str(color_count)
+                    color_count +=1
+
+                obj_string += "\nusemtl " +color_to_mtlib[element.color]
+
+                if(element.obj_type == ObjType.POINT):
+                    _type = "\np"
+                elif(element.obj_type == ObjType.LINE):
+                    _type = "\nl"
                 else:
-                    _type = "l"
+                    if(element.filled):
+                        _type = "\nf"
+                    else:
+                        _type = "\nl"
 
+                obj_string += _type
 
+                obj_coords = None
 
-            obj_string = "o "+obj.name+"\n"+ _type
+                if(element.obj_type == ObjType.BEZIER):
+                    obj_coords = CurveObject.blended_points(int(graphics.viewport_width()/4), element.coords)
+                elif(element.obj_type == ObjType.SPLINE):
+                    obj_coords = CurveObject.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width(), element.coords)
+                else:
+                    obj_coords = element.get_vertices()
 
-            if(not (obj.color in color_to_mtlib.keys())):
-                color_to_mtlib[obj.color] = "color_" + str(color_count)
-                color_count +=1
+                _len = len(obj_coords)
+                for i in range(_len):
+                    if(not (obj_coords[i] in vertex_to_pos.keys())):
+                        vertex_to_pos[obj_coords[i]] = vertex_count
+                        vertex_count += 1
 
-            obj_coords = None
+                    vertex_pos = vertex_to_pos[obj_coords[i]]
 
-            if(obj.obj_type == ObjType.BEZIER):
-                obj_coords = CurveObject.blended_points(int(graphics.viewport_width()/4), obj.coords)
-            elif(obj.obj_type == ObjType.SPLINE):
-                obj_coords = CurveObject.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width(), obj.coords)
-            else:
-                obj_coords = obj.coords
+                    obj_string += " "+ str(vertex_pos)
 
-            _len = len(obj_coords)
-            for i in range(_len):
-                if(not (obj_coords[i] in vertex_to_pos.keys())):
-                    vertex_to_pos[obj_coords[i]] = vertex_count
-                    vertex_count += 1
-
-                vertex_pos = vertex_to_pos[obj_coords[i]]
-
-                obj_string += " "+ str(vertex_pos)
-
-
-            obj_string += "\nusemtl " +color_to_mtlib[obj.color]+"\n"
             wavefront_object_list.append(obj_string)
 
 
         vertices = []
         for vertex in vertex_to_pos.keys():
-            vertices.append("v "+ f"{vertex[0]:.6f}" +" "+ f"{vertex[1]:.6f}" +" "+ f"{0:.6f}" + "\n")
+            if(isinstance(vertex, Point3D)):
+                p = vertex.get_coords()
+            else:
+                p = vertex
+            vertices.append("v "+ f"{p[0]:.6f}" +" "+ f"{p[1]:.6f}" +" "+ f"{p[2]:.6f}" + "\n")
 
 
         mtlib_inf = []
-        mtlib_inf.append("mtlib "+mtlib_name+"\n")
+        mtlib_inf.append("mtllib "+mtlib_name+"\n")
 
-        window_inf = ["o window\nw 1 2\n"]
+        window_inf = ["o window\nw 1 2 3 4\n"]
         obj_file = vertices + mtlib_inf + window_inf +wavefront_object_list
 
         mtlib_file = []
@@ -104,7 +119,7 @@ class WavefrontObj:
     def get_mtlib_list(obj):
         mtlib_list = []
         for line in obj.splitlines():
-            if(line.startswith("mtlib ")):
+            if(line.startswith("mtllib ")):
                 mtlib_list.append(line.split(" ")[1])
         return mtlib_list
 
@@ -112,75 +127,90 @@ class WavefrontObj:
 
         objects = []
 
-        object_to_vertices = dict()
+        element_to_vertices = dict()
+        element_to_object = dict()
         curr_mtl_to_hex = None
-        curr_object = None
+        curr_obj = None
         window_inf = None
         vertices = []
-        name = None
+        curr_name = None
+        curr_color = "#000000"
+        curr_type = None
 
         for line in obj.splitlines():
             line = list(filter(None, re.split(r'\s|\t', line)))
 
             if(len(line)>0):
                 if(line[0] == "v"):
-                    vertex = (float(line[1]),float(line[2]))
+                    vertex = (float(line[1]),float(line[2]),float(line[3]))
                     vertices.append(vertex)
+                    last_vertex = len(vertices)-1
 
-                elif(line[0] == "mtlib"):
+                elif(line[0] == "mtllib"):
                     curr_mtl_to_hex = WavefrontObj.get_mtl_to_hex(mtlib_map,line[1])
 
-                elif(line[0] == "o"):
-                    name = line[1]
+                elif(line[0] == "o" or line[0] == "g"):
+                    if(curr_obj != None):
+                        if(len(curr_obj.elements) == 0):
+                            if(curr_obj in  objects):
+                                objects.remove(curr_obj)
+
+                    curr_name = line[1]
+                    curr_type = line[0]
+                    curr_obj = GraphicObject(name=curr_name)
+                    objects.append(curr_obj)
+
+                elif(line[0] == "usemtl"):
+                    curr_color = curr_mtl_to_hex[line[1]]
 
                 elif(line[0] == "p" or line[0] == "l" or line[0] == "f"):
                     obj_vertices = (last_vertex, [int(vertex) for vertex in line[1:]])
                     length = len(obj_vertices[1])
                     last_vertex = len(vertices)-1
-
                     if(line[0] == "p"):
-                        curr_object = PointObject(name=name)
+                        element = Point3D(color=curr_color)
                     elif(line[0] == "l"):
-                        if(length > 2):
-                            curr_object = WireframeObject(name=name, filled=False)
-                        else:
-                            curr_object = LineObject(name=name)
+                        element = Wireframe3D(color=curr_color, filled=False)
                     elif(line[0] == "f"):
-                        curr_object = WireframeObject(name=name, filled=True)
+                        element = Wireframe3D(color=curr_color, filled=True)
 
-                    object_to_vertices[curr_object] = obj_vertices
+                    element_to_vertices[element] = obj_vertices
+                    curr_obj.elements.append(element)
 
-                elif(line[0] == "usemtl"):
-                    _hex = curr_mtl_to_hex[line[1]]
-                    curr_object.color = _hex
 
                 elif(line[0] == "w"):
+                    objects.remove(curr_obj)
                     last_vertex = len(vertices)-1
-                    window_inf = [int(line[1]),int(line[2]), last_vertex]
+                    window_inf = [int(line[1]),int(line[2]),int(line[3]),int(line[4]), last_vertex]
 
 
 
-        for obj in object_to_vertices.keys():
-            (last_vertex, vertices_indexes) = object_to_vertices[obj]
+        for element in element_to_vertices.keys():
+            (last_vertex, vertices_indexes) = element_to_vertices[element]
             
-            coords = []
             for vertex in vertices_indexes:
                 if(vertex < 0):
-                    coords.append(vertices[1+last_vertex+vertex])
+                    vertex_coords = vertices[1+last_vertex+vertex]
                 elif(vertex>0):
-                    coords.append(vertices[vertex-1])
+                    vertex_coords = vertices[vertex-1]
 
+                if(element.obj_type == ObjType.WIREFRAME):
+                    point = Point3D(coords=vertex_coords)
+                    element.vertices.append(point)
+                elif(element.obj_type == ObjType.POINT):
+                    element.set_coords(vertex_coords)
 
-            obj.coords = coords
-
-            objects.append(obj)
-
+            if(element.obj_type == ObjType.WIREFRAME):
+                for i in range(len(element.vertices)-1):
+                    element.edges.append((i, i+1))
+                if(element.filled == True):
+                    element.edges.append((len(element.vertices)-1, 0))
 
         window = None
         if(window_inf != None):
             window = []
-            last_vertex = window_inf[2]
-            for i in range(2):
+            last_vertex = window_inf[4]
+            for i in range(4):
                 vertex = window_inf[i]
                 if(vertex < 0):
                     window.append(vertices[1+last_vertex+vertex])

@@ -28,9 +28,7 @@ class Point3D(GraphicElement):
         self.points.append(coords)
 
     def project(self, projection_matrix):
-        (x,y,z) = self.get_coords()
-        coord = (x,y,z,1)
-        (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+        (x,y,z,w) = Transformation3D.transform_point(self.get_coords(), projection_matrix)
         scn_coord = (x/w, y/w)
 
         return Clipper.point_clipping([scn_coord])

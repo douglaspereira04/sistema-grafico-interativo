@@ -30,10 +30,10 @@ class Transformation3D:
 	daos parametros
 	"""
 	def translation_matrix(x, y, z):
-		return [[1.0,  0.,  0., 0.],[ 0,  1.0,  0., 0.],[ 0.,  0.,  1., 0.], [x, y, z, 1.0]]
+		return np.array(([1.0,  0.,  0., 0.],[ 0,  1.0,  0., 0.],[ 0.,  0.,  1., 0.], [x, y, z, 1.0]))
 
 	def scaling_matrix(x, y, z):
-	    return [[x,  0.,  0., 0.],[ 0,  y,  0., 0.],[ 0., 0., z, 0.],[ 0., 0., 0., 1.0]]
+	    return np.array(([x,  0.,  0., 0.],[ 0,  y,  0., 0.],[ 0., 0., z, 0.],[ 0., 0., 0., 1.0]))
 
 
 	def rotation_x_matrix(rad, center = None):
@@ -45,7 +45,7 @@ class Transformation3D:
 		_sin = (math.sin(rad))
 		_cos = (math.cos(rad))
 
-		return [[1.0, 0., 0., 0.], [ 0., _cos,  _sin,  0.],[0., - _sin,  _cos,  0.],[0, (y-(_cos*y)+(_sin*z)), (z-(_cos*z)-(_sin*y)),  1.]]
+		return np.array(([1.0, 0., 0., 0.], [ 0., _cos,  _sin,  0.],[0., - _sin,  _cos,  0.],[0, (y-(_cos*y)+(_sin*z)), (z-(_cos*z)-(_sin*y)),  1.]))
 
 	def rotation_y_matrix(rad, center = None):
 		if(center == None):
@@ -56,7 +56,7 @@ class Transformation3D:
 		_sin = (math.sin(rad))
 		_cos = (math.cos(rad))
 
-		return [[_cos, 0., -_sin, 0.],[0., 1.0,  0.,  0.], [ _sin, 0.,  _cos,  0.],[ (x-(_cos*x)-(_sin*z)), 0., (z-(_cos*z)+(_sin*x)),  1.]]
+		return np.array(([_cos, 0., -_sin, 0.],[0., 1.0,  0.,  0.], [ _sin, 0.,  _cos,  0.],[ (x-(_cos*x)-(_sin*z)), 0., (z-(_cos*z)+(_sin*x)),  1.]))
 
 
 	def rotation_z_matrix(rad, center = None):
@@ -68,7 +68,7 @@ class Transformation3D:
 		_sin = (math.sin(rad))
 		_cos = (math.cos(rad))
 
-		return [[ _cos,  _sin,  0., 0.],[ -_sin,  _cos,  0., 0.],[ 0.,  0.,  1., 0.],[(x-(_cos*x)+(_sin*y)), (y-(_cos*y)-(_sin*x)), 0.,  1.]]
+		return np.array(([ _cos,  _sin,  0., 0.],[ -_sin,  _cos,  0., 0.],[ 0.,  0.,  1., 0.],[(x-(_cos*x)+(_sin*y)), (y-(_cos*y)-(_sin*x)), 0.,  1.]))
 
 
 	def unit_vector(vector):
@@ -78,7 +78,7 @@ class Transformation3D:
 		return (vector[0]/norm, vector[1]/norm, vector[2]/norm)
 
 
-	def rotation_given_axis_matrix(rad, a, center):
+	def rotation_given_axis_matrix(rad, a, center=None):
 		_sin = math.sin(rad)
 		_cos = math.cos(rad)
 
@@ -102,9 +102,9 @@ class Transformation3D:
 
 		identity = np.array(([1,0,0],[0,1,0],[0,0,1]))
 
-		m1 = np.multiply(identity,_cos)
-		m2 = np.multiply(aa,(1-_cos))
-		m3 = np.multiply(A,(_sin))
+		m1 = identity * _cos
+		m2 = aa * (1-_cos)
+		m3 = A * (_sin)
 
 		R = m1 + m2 + m3
 		R = np.hstack((R, [[0],[0],[0]]))
@@ -116,7 +116,7 @@ class Transformation3D:
 			(x,y,z) = center
 			translation_center= Transformation3D.translation_matrix(-x, -y, -z)
 			translation_back = Transformation3D.translation_matrix(x, y, z)
-			rotation_matrix = np.matmul(translation_center,np.matmul(R,translation_back))
+			rotation_matrix = translation_center @ R @ translation_back
 		else:
 			rotation_matrix = R
 
@@ -144,7 +144,7 @@ class Transformation3D:
 			transformation_matrix_composition = transformation_matrix_list[0]
 
 			for i in range(len(transformation_matrix_list)-1):
-				transformation_matrix_composition = np.matmul(transformation_matrix_composition,transformation_matrix_list[i+1])
+				transformation_matrix_composition = transformation_matrix_composition @ transformation_matrix_list[i+1]
 
 		return transformation_matrix_composition
 
@@ -153,15 +153,16 @@ class Transformation3D:
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
 	def transform_3d_point(point, transformation_matrix):
-		(x,y,z) = point
-		[x1,y1,z1,_] = np.matmul([x,y,z,1],transformation_matrix)
+		p = np.array(([point[0],point[1],point[2], 1]))
+		[x1,y1,z1,_] = p @ transformation_matrix
 		return (x1,y1,z1)
 
 	"""
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
 	def transform_point(point, transformation_matrix):
-		return np.matmul(point, transformation_matrix)
+		p = np.array(([point[0],point[1],point[2], 1]))
+		return p @ transformation_matrix
 
 
 class Rotation3D(Transformation3D):
@@ -226,8 +227,7 @@ class Scaling3D(Transformation3D):
 
 	def get_matrix(self, x = 0, y = 0, z = 0):
 		if(x != 0 or y!= 0 or z!= 0):
-			parcial = np.matmul(Transformation3D.translation_matrix(-x, -y, -z),Transformation3D.scaling_matrix(self.factor,self.factor,self.factor))
-			return np.matmul(parcial,Transformation3D.translation_matrix(x, y, z))
+			return Transformation3D.translation_matrix(-x, -y, -z) @ Transformation3D.scaling_matrix(self.factor,self.factor,self.factor) @ Transformation3D.translation_matrix(x, y, z)
 		else:
 			return Transformation3D.scaling_matrix(self.factor,self.factor,self.factor)
 

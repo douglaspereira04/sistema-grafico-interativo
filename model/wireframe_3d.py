@@ -64,16 +64,12 @@ class Wireframe3D(GraphicElement):
 
                     if(projected_vertices[v0_index] == None):
                         v0 = vertices[v0_index]
-                        (x,y,z) = v0.get_coords()
-                        coord = (x,y,z,1)
-                        (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                        (x,y,z,w) = Transformation3D.transform_point(v0.get_coords(), projection_matrix)
                         projected_vertices[v0_index] = (x/w, y/w)
 
                     if(projected_vertices[v1_index] == None):
                         v1 = vertices[v1_index]
-                        (x,y,z) = v1.get_coords()
-                        coord = (x,y,z,1)
-                        (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                        (x,y,z,w) = Transformation3D.transform_point(v1.get_coords(), projection_matrix)
                         projected_vertices[v1_index] = (x/w, y/w)
 
 
@@ -89,9 +85,7 @@ class Wireframe3D(GraphicElement):
             else:
 
                 for i in range(len(vertices)):
-                    (x,y,z) = vertices[i].get_coords()
-                    coord = (x,y,z,1)
-                    (x,y,z,w) = Transformation3D.transform_point(coord, projection_matrix)
+                    (x,y,z,w) = Transformation3D.transform_point(vertices[i].get_coords(), projection_matrix)
                     projected_vertices[i] = (x/w, y/w)
 
                 projected_coords = Clipper.sutherland_hodgman_clipping(projected_vertices)

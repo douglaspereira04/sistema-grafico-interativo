@@ -208,18 +208,20 @@ class Graphics:
         rotation_y = Transformation3D.rotation_y_matrix(y_angle)
         rotation_z = Transformation3D.rotation_z_matrix(z_angle)
 
-        rotation_matrix = np.matmul(rotation_x, np.matmul(rotation_y,rotation_z))
+        rotation_matrix = rotation_x @ rotation_y @ rotation_z
+
+        scaling_matrix = Transformation3D.scaling_matrix(2/self.window_width(),2/self.window_height(), 2/self.window_depth())
         
         d_factor = self.cop_d*(2/self.window_depth())
-        perspective_matrix = np.transpose([
+        perspective_matrix = np.array(np.transpose([
                 [1.,0.,0.,0.], 
                 [0.,1.,0.,0.], 
                 [0.,0.,1.,0],
                 [0.,0.,1.0/d_factor,1.]
-            ])
+            ]))
 
-        scaling_matrix = Transformation3D.scaling_matrix(2/self.window_width(),2/self.window_height(), 2/self.window_depth())
-        return np.matmul(translation_matrix, np.matmul(rotation_matrix, np.matmul(scaling_matrix, perspective_matrix)))
+        return translation_matrix @ rotation_matrix @ scaling_matrix @ perspective_matrix
+
 
 
 

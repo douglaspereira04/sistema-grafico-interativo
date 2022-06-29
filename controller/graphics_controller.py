@@ -70,6 +70,7 @@ class GraphicsController:
         self.view.canvas.pan.connect(self.canvas_pan)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
+        self.view.canvas.grab.connect(self.object_grab)
 
 
     def canvas_scroll(self):
@@ -99,6 +100,38 @@ class GraphicsController:
             transformation_list.append(transformation)
             self.transform_object(transformation_list)
 
+    def object_grab(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        x_diff = x_diff*self.graphic.window_width()/self.graphic.viewport_width()
+        y_diff = y_diff*self.graphic.window_height()/self.graphic.viewport_height()
+
+        selected = self.view.side_menu.list.currentRow()
+        if(selected != -1 and (x_diff != 0 or y_diff != 0)):
+
+            translation_vector = (x_diff, -y_diff, 0)
+
+            (x,y,z) = self.graphic.vrp.get_coords()
+            translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
+
+            (x_angle, y_angle, z_angle) = self.graphic.get_angles()
+            rotation_x = Transformation3D.rotation_x_matrix(x_angle)
+            rotation_y = Transformation3D.rotation_y_matrix(y_angle)
+            rotation_z = Transformation3D.rotation_z_matrix(z_angle)
+
+            rotation_matrix = rotation_x @ rotation_y @ rotation_z
+
+            t_projection_matrix = np.transpose(translation_matrix @ rotation_matrix)
+
+            translation_vector = Translation3D.transform_3d_point(translation_vector,t_projection_matrix)
+            (x,y,z) = translation_vector
+
+            transformation = Translation3D(x,y,z)
+            transformation_list = list()
+            transformation_list.append(transformation)
+            self.transform_object(transformation_list)
+
+
     def object_scale(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
 
@@ -108,6 +141,7 @@ class GraphicsController:
             transformation_list = list()
             transformation_list.append(transformation)
             self.transform_object(transformation_list)
+
 
 
     def list_selected(self):
@@ -257,9 +291,9 @@ class GraphicsController:
                 control_points.append(Point3D(coords=point, color=color))
                 
             curve_type = None
-            if(_type == "2D Spline"):
+            if(_type == "Spline"):
                 curve_type = ObjType.SPLINE
-            else:
+            elif(_type == "Bezier"):
                 curve_type = ObjType.BEZIER
             element_list.append(CurveObject(obj_type=curve_type, coords=control_points, color=color, filled=filled))
 

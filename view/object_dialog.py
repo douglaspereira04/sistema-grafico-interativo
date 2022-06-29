@@ -21,8 +21,8 @@ class ObjectDialog(QDialog):
         self._type.addItem("Point")
         self._type.addItem("Line/Wireframe")
         self._type.addItem("Object (Points/Lines/Wireframes)")
-        self._type.addItem("2D Spline")
-        self._type.addItem("2D Bezier")
+        self._type.addItem("Spline")
+        self._type.addItem("Bezier")
 
         if(_type != None):
             if(_type == "Point"):
@@ -31,9 +31,9 @@ class ObjectDialog(QDialog):
                 self._type.setCurrentIndex(1)
             elif(_type == "Object (Points/Lines/Wireframes)"):
                 self._type.setCurrentIndex(2)
-            elif(_type == "2D Spline"):
+            elif(_type == "Spline"):
                 self._type.setCurrentIndex(3)
-            elif(_type == "2D Bezier"):
+            elif(_type == "Bezier"):
                 self._type.setCurrentIndex(4)
 
 
@@ -66,21 +66,21 @@ class ObjectDialog(QDialog):
                 super().accept()
             else:
                 show_error_box("Expected: (x,y,z)")
-        elif(_type=="2D Bezier"):
+        elif(_type=="Bezier"):
             ok = self.well_writen_bezier() 
             if(ok == 0):
                 super().accept()
             elif(ok == 1):
-                show_error_box("Expected: (x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+                show_error_box("Expected: (x0,y0,z0),(x1,y1,z0),(x2,y2,z0),...,(xn,yn,zn)")
             elif(ok == 2):
                 show_error_box("Expected (number of points)%3 == 1")
 
-        elif(_type=="2D Spline"):
+        elif(_type=="Spline"):
             ok = self.well_writen_spline() 
             if(ok == 0):
                 super().accept()
             elif(ok == 1):
-                show_error_box("Expected: (x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+                show_error_box("Expected: (x0,y0,z0),(x1,y1,z0),(x2,y2,z0),...,(xn,yn,zn)")
             elif(ok == 2):
                 show_error_box("Expected (number of points) > 3")
 
@@ -126,9 +126,9 @@ class ObjectDialog(QDialog):
         _type = self._type.currentText()
         if(_type=="Point"):
             self.coordinates.setPlaceholderText("(x,y,z)")
-        elif(_type=="2D Bezier"):
+        elif(_type=="Bezier"):
             self.coordinates.setPlaceholderText("(x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
-        elif(_type=="2D Spline"):
+        elif(_type=="Spline"):
             self.coordinates.setPlaceholderText("(x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
         elif(_type=="Line/Wireframe"):
             self.coordinates.setPlaceholderText("(x0,y0,z0),(x1,y1,z1),...,(xn,yn,zn)")
@@ -219,10 +219,9 @@ class ObjectDialog(QDialog):
                 element_list = self.get_element_list()
                 element = element_list[0]
                 is_one_element = len(element_list) == 1
-                is_in_xy_plane = self.xy_plane(element)
                 is_bezier = len(element)%3 == 1
 
-                if(is_one_element and is_in_xy_plane):
+                if(is_one_element):
                     if (is_bezier):
                         return 0
                     return 2
@@ -237,10 +236,9 @@ class ObjectDialog(QDialog):
                 element_list = self.get_element_list()
                 element = element_list[0]
                 is_one_element = len(element_list) == 1
-                is_in_xy_plane = self.xy_plane(element)
                 is_spline = len(element)>3
                 
-                if( is_one_element and is_in_xy_plane):
+                if( is_one_element):
                     if (is_spline):
                         return 0
                     return 2

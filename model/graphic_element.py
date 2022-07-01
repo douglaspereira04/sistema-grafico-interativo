@@ -1,6 +1,8 @@
 from model.clipper import Clipper
 from model.transformation_3d import Transformation3D, Transformation3DType, Rotation3DType
+from model.display_object import DisplayObject
 import uuid
+import numpy as np
 
 class GraphicElement:
     def __init__(self, obj_type=None, points=None, color="black", filled=False):
@@ -61,6 +63,11 @@ class GraphicElement:
         transformation_matrix = Transformation3D.compose_matrix(transformation_matrix_list)
 
         self.transform(transformation_matrix)
+
+    def get_display_object(self, clipped_coords, viewport_transformation_matrix):
+        display_coords = [tuple(np.matmul((p[0],p[1],1), viewport_transformation_matrix)[:2]) for p in clipped_coords]
+        return DisplayObject(display_coords, self.color, self.filled)
+         
 
     def project(self):
         pass

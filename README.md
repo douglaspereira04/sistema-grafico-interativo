@@ -31,10 +31,12 @@ Na lateral esquerda da tela do programa temos:
 Também na lateral esquerda:
 - O campo "step" define o passo que regula as operações de navegação. Valores negativos farão dos movimentos inversos; 
 - Setas de navegação, para movimentar a visão pelo mundo;
-  - Tabém é possível navegar pressionando Shift, Alt, segurar o Botão Esquerdo do Mouse e arrastar.
+  - Tabém é possível navegar pressionando Shift, Alt e arranstando com o Botão Esquerdo do Mouse.
 - Botões "+" e "-" para aumentar e reduzir o "zoom" de acordo com o passo definido no campo "step";
   - Também é possível aumentar e reduzir o zoom usando o scroll do mouse.
 - Botões de rotação. O ângulo de rotação é definido pelo valor do campo "step", em graus;
+  - É possível fazer rotações no eixo Z pressionando Ctrl e arranstando com o Botão Esquerdo do Mouse.
+  - É possível fazer rotações no eixo X e Y pressionando Shift e arranstando com o Botão Esquerdo do Mouse.
 - Botões de frente e trás;
 - Botões de seleção para escolher o eixo de rotação da tela.
 

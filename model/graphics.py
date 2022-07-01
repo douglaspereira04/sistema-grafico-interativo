@@ -230,44 +230,41 @@ class Graphics:
      - Ajustado para a representação em sistema de coordenadas normalizado
      - Ajustado para clippling
     """
-    def viewport_transformation(self, x, y):
-        x1 = ((x- -1) * (self.viewport_width() - (self.border*2)) / 2) + self.border
-        y1 = ((1 - ((y - -1) / 2)) * (self.viewport_height() - (self.border*2))) + self.border
-        return (x1,y1)
 
+    def viewport_transformation_matrix(self):
+        w = self.viewport_width()
+        h = self.viewport_height()
+        b = self.border
+        c1 = (w - (b*2)) / 2
+        c2 = (h - (b*2)) / 2
 
-    def reverse_viewport_transformation(self, x1, y1):
-        x = ((( x1 - self.border )*2)/(self.viewport_width() - (self.border*2))) -1
-        y = ((((y1 - self.border)/(self.viewport_height() - (self.border*2))) - 1)*2) - 1
-        return (x,y)
-
+        return np.array([[c1,0,0],[0,-c2,0],[c1+b,c2+b,1]])
 
 
     """
     Normaliza e clipa pontos e linhas
     """
     def normalize_and_clip(self):
-        display = []
+        display = list()
 
         projection_normalization_matrix = self.projection_normalization_matrix()
+        viewport_transformation_matrix = self.viewport_transformation_matrix()
 
         for obj in self.objects:
             for element in obj.elements:
 
-                display_coords = None
+                display_objects = None
 
                 if(element.obj_type == ObjType.POINT):
-                    display_coords = element.project(projection_normalization_matrix)
+                    display_objects = element.project(projection_normalization_matrix, viewport_transformation_matrix)
                 elif(element.obj_type == ObjType.WIREFRAME):
-                    display_coords = element.project(projection_normalization_matrix, self.line_clipping)
+                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, viewport_transformation_matrix= viewport_transformation_matrix)
                 elif(element.obj_type == ObjType.SPLINE ):
-                    display_coords = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()*0.1/self.viewport_width())
-                elif(element.obj_type == ObjType.BEZIER ):
-                    display_coords = element.project(projection_normalization_matrix, self.line_clipping, int(self.viewport_width()/10))
+                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()/(10*self.viewport_width()),viewport_transformation_matrix)
+                elif(element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.BEZIER_SURFACE):
+                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()/(10*self.viewport_width()),viewport_transformation_matrix)
 
-                if(display_coords != None):
-                    display_coords = [self.viewport_transformation(point[0],point[1]) for point in display_coords]
-                    display_object = DisplayObject(display_coords, element.color, element.filled)
-                    display.append(display_object)
+                if(display_objects != None):
+                    display += display_objects
 
         self.display = display

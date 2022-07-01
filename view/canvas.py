@@ -9,6 +9,9 @@ class Canvas(QtWidgets.QLabel):
 
     pan = pyqtSignal(int)
 
+    rotate_xy_window = pyqtSignal(int)
+    rotate_z_window = pyqtSignal(int)
+
     grab = pyqtSignal(int)
     rotate = pyqtSignal(int)
     scale = pyqtSignal(int)
@@ -81,8 +84,6 @@ class Canvas(QtWidgets.QLabel):
             self.last_mouse_pos = self.current_mouse_pos
             self.current_mouse_pos = event.localPos()
 
-            if modifiers == (Qt.AltModifier | Qt.ShiftModifier):
-                self.pan.emit(1)
 
             if(self.grab_enabled):
                 self.grab.emit(1)
@@ -91,14 +92,27 @@ class Canvas(QtWidgets.QLabel):
             elif(self.scale_enabled):
                 self.scale.emit(1)
 
+            elif modifiers == (Qt.ControlModifier):
+                self.rotate_z_window.emit(1)
+
+            elif modifiers == (Qt.AltModifier | Qt.ShiftModifier):
+                self.pan.emit(1)
+
+            elif modifiers == (Qt.ShiftModifier):
+                self.rotate_xy_window.emit(1)
+
+
         super().mouseMoveEvent(event)
 
 
 
     def wheelEvent(self, event):
         angle = event.angleDelta()
+
+        modifiers = QApplication.keyboardModifiers()
         self.zoom.emit(angle.y())
         self.wheel_y_angle = angle.y()
+
         super().wheelEvent(event)
 
     def keyPressEvent(self, event):

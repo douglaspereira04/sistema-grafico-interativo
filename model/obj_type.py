@@ -6,3 +6,4 @@ class ObjType(Enum):
     WIREFRAME = 3
     BEZIER = 4
     SPLINE = 5
+    BEZIER_SURFACE = 6

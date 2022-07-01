@@ -30,29 +30,28 @@ class CurveObject(Wireframe3D):
         self.obj_type = obj_type
 
     def bezier_point(t, control_points):
-        t = np.array((t*t*t, t*t, t, 1))
+        T = np.array((t*t*t, t*t, t, 1))
 
-        control_x = np.array([p.get_coords()[0] for p in control_points])
-        control_y = np.array([p.get_coords()[1] for p in control_points])
-        control_z = np.array([p.get_coords()[2] for p in control_points])
+        Gx = np.array([p.get_coords()[0] for p in control_points])
+        Gy = np.array([p.get_coords()[1] for p in control_points])
+        Gz = np.array([p.get_coords()[2] for p in control_points])
 
-        t_b = t @ BEZIER_MATRIX
 
-        x =  t_b @ control_x
-        y = t_b @ control_y
-        z = t_b @ control_z
+        x =  T @ BEZIER_MATRIX @ Gx
+        y = T @ BEZIER_MATRIX @ Gy
+        z = T @ BEZIER_MATRIX @ Gz
 
 
         return Point3D(coords=(x, y, z))
 
-    def blended_points(resolution, control_points):
+    def blended_points(d, control_points):
         curve_points = []
-        width = resolution
+        n = int(1/d)
         length = len(control_points)
         for i in range(0, length-1, 3):
             curr_control_points = control_points[i:i+4]
-            for j in range(width):
-                curve_points.append(CurveObject.bezier_point(j/width, curr_control_points))
+            for j in range(n):
+                curve_points.append(CurveObject.bezier_point(j/n, curr_control_points))
 
 
         return curve_points
@@ -63,17 +62,12 @@ class CurveObject(Wireframe3D):
         Gz = np.array(np.transpose([[p.get_coords()[2] for p in control_points]]))
 
         Mbs = B_SPLINE_MATRIX
-        Cx = Mbs @ Gx
-        Cy = Mbs @ Gy
-        Cz = Mbs @ Gz
-
         E_delta =  E(delta)
 
-
-        Dx = E_delta @ Cx
-        Dy = E_delta @ Cy
-        Dz = E_delta @ Cz
-        print(Dx)
+        Dx = E_delta @ Mbs @ Gx
+        Dy = E_delta @ Mbs @ Gy
+        Dz = E_delta @ Mbs @ Gz
+        
         return (Dx, Dy, Dz)
 
     def update_forward_difference(Dx, Dy, Dz):
@@ -89,10 +83,8 @@ class CurveObject(Wireframe3D):
         Dz[1][0] += Dz[2][0]
         Dz[2][0] += Dz[3][0]
 
-    def forward_difference(delta, control_points):
+    def forward_difference(delta, Dx, Dy, Dz):
         line_set = []
-
-        (Dx, Dy, Dz) = CurveObject.create_forward_difference_matrix(control_points,delta)
 
         n = int(1/delta)
 
@@ -112,18 +104,19 @@ class CurveObject(Wireframe3D):
         i = 0
         while i+3 < length:
             curr_control_points = control_points[i:i+4]
-            curve_points += CurveObject.forward_difference(delta, curr_control_points)
+            (Dx, Dy, Dz) = CurveObject.create_forward_difference_matrix(curr_control_points,delta)
+            curve_points += CurveObject.forward_difference(delta, Dx, Dy, Dz)
             i+=1
 
         return curve_points
 
 
 
-    def project(self, projection_matrix, line_clipping, d):
+    def project(self, projection_matrix, line_clipping, d, viewport_transformation_matrix):
         if(self.obj_type == ObjType.BEZIER):
             vertices = CurveObject.blended_points(d, self.vertices)
         else:
             vertices = CurveObject.forward_difference_points(d, self.vertices)
 
         edges = [(i,i+1) for i in range(len(vertices)-1)]
-        return super().project(projection_matrix, line_clipping, vertices, edges)
+        return super().project(projection_matrix, line_clipping, vertices, edges, viewport_transformation_matrix)

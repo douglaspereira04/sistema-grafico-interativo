@@ -4,7 +4,7 @@ import numbers
 from view.util.dialogs import show_error_box
 
 class ObjectDialog(QDialog):
-    def __init__(self, parent=None, name="", coords="", color="#000000", filled=False, _type=None):
+    def __init__(self, parent=None, name="", coords="(0,0,0),(10,0,0),(20,40,20),(30,120,-80);(0,0,10),(10,0,10),(20,40,30),(30,120,-70);(0,0,20),(10,0,20),(20,40,40),(30,120,-60);(0,0,30),(10,0,30),(20,40,50),(30,120,-50)", color="#000000", filled=False, _type=None):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -23,6 +23,7 @@ class ObjectDialog(QDialog):
         self._type.addItem("Object (Points/Lines/Wireframes)")
         self._type.addItem("Spline")
         self._type.addItem("Bezier")
+        self._type.addItem("Bezier Bicubic Surface")
 
         if(_type != None):
             if(_type == "Point"):
@@ -35,6 +36,9 @@ class ObjectDialog(QDialog):
                 self._type.setCurrentIndex(3)
             elif(_type == "Bezier"):
                 self._type.setCurrentIndex(4)
+            elif(_type == "Bezier Bicubic Surface"):
+                self._type.setCurrentIndex(5)
+        self._type.setCurrentIndex(5)
 
 
         self.name.setPlaceholderText("Name")
@@ -83,6 +87,15 @@ class ObjectDialog(QDialog):
                 show_error_box("Expected: (x0,y0,z0),(x1,y1,z0),(x2,y2,z0),...,(xn,yn,zn)")
             elif(ok == 2):
                 show_error_box("Expected (number of points) > 3")
+
+        elif(_type=="Bezier Bicubic Surface"):
+            ok = self.well_writen_bezier_surface() 
+            if(ok == 0):
+                super().accept()
+            elif(ok == 1):
+                show_error_box("Expected: (x0,y0,z0),(x1,y1,z0),(x2,y2,z0),...,(xn,yn,zn)")
+            elif(ok == 2):
+                show_error_box("Expected (number of lines)%3 == 1 and (number of columns)%3 == 1 ")
 
         elif(_type=="Line/Wireframe"):
             if(self.well_writen_wireframe()):
@@ -225,6 +238,24 @@ class ObjectDialog(QDialog):
                     if (is_bezier):
                         return 0
                     return 2
+
+            return 1
+        except Exception as e:
+            return 1
+
+    def well_writen_bezier_surface(self):
+        try:
+            if(self.well_writen_object()):
+                element_list = self.get_element_list()
+                is_bezier = len(element_list)%3 == 1
+                if(not is_bezier):
+                    return 2
+                for element in element_list:
+                    is_bezier = len(element)%3 == 1
+                    if(not is_bezier):
+                        return 2
+
+                return 0
 
             return 1
         except Exception as e:

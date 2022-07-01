@@ -50,9 +50,9 @@ class Wireframe3D(GraphicElement):
             vertex.transform(transformation_matrix)
 
 
-    def project(self, projection_matrix, line_clipping, vertices = None, edges = None):
+    def project(self, projection_matrix, line_clipping, vertices = None, edges = None, viewport_transformation_matrix = None):
         if(edges == None or vertices == None):
-            return self.project(projection_matrix, line_clipping, self.vertices, self.edges) 
+            return self.project(projection_matrix, line_clipping, self.vertices, self.edges, viewport_transformation_matrix) 
         else:
             projected_coords = []
             projected_vertices = [None] * len(vertices) 
@@ -92,5 +92,6 @@ class Wireframe3D(GraphicElement):
 
 
             self.clipped_scn = projected_coords
-
-            return self.clipped_scn
+            if(projected_coords != None):
+                return [self.get_display_object(projected_coords, viewport_transformation_matrix)]
+            return None

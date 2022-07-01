@@ -46,8 +46,15 @@ class WavefrontObj:
             else:
                 obj_string = "\ng "+obj.name
 
-
-            for element in obj.elements:
+            elements = obj.elements.copy()
+            i = 0
+            d = graphics.window_width()/(10*graphics.viewport_width())
+            while(i < len(elements)):
+                element = elements[i]
+                if(element.obj_type == ObjType.BEZIER_SURFACE):
+                    elements += element.wireframe_list(d)
+                    i+=1
+                    continue
 
                 if(not (element.color in color_to_mtlib.keys())):
                     color_to_mtlib[element.color] = "color_" + str(color_count)
@@ -70,21 +77,23 @@ class WavefrontObj:
                 obj_coords = None
 
                 if(element.obj_type == ObjType.BEZIER):
-                    obj_coords = CurveObject.blended_points(int(graphics.viewport_width()/4), element.coords)
+                    obj_coords = CurveObject.blended_points(d, element.coords)
                 elif(element.obj_type == ObjType.SPLINE):
-                    obj_coords = CurveObject.forward_difference_points(graphics.window_width()*0.1/graphics.viewport_width(), element.coords)
+                    obj_coords = CurveObject.forward_difference_points(d, element.coords)
                 else:
                     obj_coords = element.get_vertices()
 
                 _len = len(obj_coords)
-                for i in range(_len):
-                    if(not (obj_coords[i] in vertex_to_pos.keys())):
-                        vertex_to_pos[obj_coords[i]] = vertex_count
+                for j in range(_len):
+                    if(not (obj_coords[j] in vertex_to_pos.keys())):
+                        vertex_to_pos[obj_coords[j]] = vertex_count
                         vertex_count += 1
 
-                    vertex_pos = vertex_to_pos[obj_coords[i]]
+                    vertex_pos = vertex_to_pos[obj_coords[j]]
 
                     obj_string += " "+ str(vertex_pos)
+
+                i+=1
 
             wavefront_object_list.append(obj_string)
 

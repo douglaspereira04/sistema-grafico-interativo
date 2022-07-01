@@ -7,6 +7,7 @@ from model.curve_object import CurveObject
 from model.point_3d import Point3D
 from model.line_object import LineObject
 from model.wireframe_3d import Wireframe3D
+from model.bicubic_surface import BicubicSurface
 from model.clipper import LineClipping
 from model.transformation import Transformation
 from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
@@ -31,8 +32,8 @@ class GraphicsController:
         self.view.side_menu.remove.connect(self.remove_object)
         self.view.side_menu.transform.connect(self.transform_object)
 
-        self.view.side_menu.rotated_right.connect(lambda : self.rotate(1))
-        self.view.side_menu.rotated_left.connect(lambda : self.rotate(-1))
+        self.view.side_menu.rotated_right.connect(lambda : self.rotate_button(1))
+        self.view.side_menu.rotated_left.connect(lambda : self.rotate_button(-1))
         self.view.side_menu.zoomed_in.connect(lambda : self.zoom_button(1))
         self.view.side_menu.zoomed_out.connect(lambda : self.zoom_button(-1))
 
@@ -68,9 +69,14 @@ class GraphicsController:
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
         self.view.canvas.pan.connect(self.canvas_pan)
+        self.view.canvas.rotate_xy_window.connect(self.canvas_rotate_xy)
+        self.view.canvas.rotate_z_window.connect(self.canvas_rotate_z)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
         self.view.canvas.grab.connect(self.object_grab)
+
+
+
 
 
     def canvas_scroll(self):
@@ -88,6 +94,21 @@ class GraphicsController:
 
         if(y_diff != 0):
             self.pan(Axis.Y,y_diff)
+
+
+    def canvas_rotate_xy(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+        if(x_diff != 0):
+            self.rotate(x_diff,Axis.Y,-1)
+        if(y_diff != 0):
+            self.rotate(y_diff,Axis.X,1)
+
+    def canvas_rotate_z(self):
+        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
+
+        if(y_diff != 0 or x_diff != 0):
+            self.rotate(y_diff+x_diff,Axis.Z,1)
+
 
 
     def object_rotate(self):
@@ -274,28 +295,37 @@ class GraphicsController:
                 del edges[0]
 
             return Wireframe3D(vertices=vertices, edges=edges, color=color, filled=filled)
+        elif(_type == "Spline" or _type == "Bezier"):
+            control_points = list()
+            for point in _list:
+                control_points.append(Point3D(coords=point, color=color))
+
+            curve_type = None
+            if(_type == "Spline"):
+                curve_type = ObjType.SPLINE
+            elif(_type == "Bezier"):
+                curve_type = ObjType.BEZIER
+            return CurveObject(obj_type=curve_type, coords=control_points, color=color, filled=filled)
         else:
             return None
 
 
     def get_object(self, name, _object, color, filled, _type):
         element_list = list()
+        
+        if(_type == "Bezier Bicubic Surface"):
+            shape = np.shape(_object)
+            coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
 
-        if(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)" or _type == "Point"):
+            points = [Point3D((p[0],p[1],p[2])) for p in coords]
+
+            element = BicubicSurface(obj_type=ObjType.BEZIER_SURFACE, coords=points, shape=shape, color=color, filled=filled)
+            element_list.append(element)
+            
+        else:
             for point_list in _object:
                 element = self.get_element(name, point_list, _type, color, filled)
                 element_list.append(element)
-        else:
-            control_points = list()
-            for point in _object[0]:
-                control_points.append(Point3D(coords=point, color=color))
-                
-            curve_type = None
-            if(_type == "Spline"):
-                curve_type = ObjType.SPLINE
-            elif(_type == "Bezier"):
-                curve_type = ObjType.BEZIER
-            element_list.append(CurveObject(obj_type=curve_type, coords=control_points, color=color, filled=filled))
 
         return GraphicObject(name, element_list)
 
@@ -489,13 +519,20 @@ class GraphicsController:
         self.draw()
         self.log("Panning: ("+str(axis.name)+" axis, "+str(step*direction)+");")
 
-    def rotate(self, direction):
+
+    def rotate(self, step, axis, direction):
 
 
         self.erase()
-        self.reset_multiplier()
-        degrees = float(self.view.side_menu.step.text())
+        degrees = step
 
+        self.graphic.rotate(axis, math.radians(degrees)*direction)
+
+        self.draw()
+        self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")
+
+
+    def rotate_button(self, direction):
 
         if(self.view.side_menu.x_axis_check.isChecked()):
             axis = Axis.X
@@ -504,10 +541,8 @@ class GraphicsController:
         else:
             axis = Axis.Z
 
-        self.graphic.rotate(axis, math.radians(degrees)*direction)
-
-        self.draw()
-        self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")
+        degrees = float(self.view.side_menu.step.text())
+        self.rotate(degrees, axis, direction)
 
 
     def log(self,text):

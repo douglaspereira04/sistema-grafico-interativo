@@ -23,7 +23,7 @@ class ObjectDialog(QDialog):
         self._type.addItem("Object (Points/Lines/Wireframes)")
         self._type.addItem("Spline")
         self._type.addItem("Bezier")
-        self._type.addItem("Bezier Bicubic Surface")
+        self._type.addItem("Bezier Surface")
 
         if(_type != None):
             if(_type == "Point"):
@@ -36,9 +36,8 @@ class ObjectDialog(QDialog):
                 self._type.setCurrentIndex(3)
             elif(_type == "Bezier"):
                 self._type.setCurrentIndex(4)
-            elif(_type == "Bezier Bicubic Surface"):
+            elif(_type == "Bezier Surface"):
                 self._type.setCurrentIndex(5)
-        self._type.setCurrentIndex(5)
 
 
         self.name.setPlaceholderText("Name")
@@ -88,12 +87,12 @@ class ObjectDialog(QDialog):
             elif(ok == 2):
                 show_error_box("Expected (number of points) > 3")
 
-        elif(_type=="Bezier Bicubic Surface"):
+        elif(_type=="Bezier Surface"):
             ok = self.well_writen_bezier_surface() 
             if(ok == 0):
                 super().accept()
             elif(ok == 1):
-                show_error_box("Expected: (x0,y0,z0),(x1,y1,z0),(x2,y2,z0),...,(xn,yn,zn)")
+                show_error_box("Expected: (x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
             elif(ok == 2):
                 show_error_box("Expected (number of lines)%3 == 1 and (number of columns)%3 == 1 ")
 
@@ -146,6 +145,8 @@ class ObjectDialog(QDialog):
         elif(_type=="Line/Wireframe"):
             self.coordinates.setPlaceholderText("(x0,y0,z0),(x1,y1,z1),...,(xn,yn,zn)")
         elif(_type=="Object (Points/Lines/Wireframes)"):
+            self.coordinates.setPlaceholderText("(x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
+        elif(_type=="Bezier Surface"):
             self.coordinates.setPlaceholderText("(x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
 
 

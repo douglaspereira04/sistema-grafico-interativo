@@ -313,7 +313,7 @@ class GraphicsController:
     def get_object(self, name, _object, color, filled, _type):
         element_list = list()
         
-        if(_type == "Bezier Bicubic Surface"):
+        if(_type == "Bezier Surface"):
             shape = np.shape(_object)
             coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
 
@@ -363,10 +363,29 @@ class GraphicsController:
 
             _type = None
             if(len(_object.elements) == 1):
-                if(_object.elements[0].obj_type.name == "POINT"):
+                if(_object.elements[0].obj_type == ObjType.POINT):
                     _type = "Point"
-                elif(_object.elements[0].obj_type.name == "WIREFRAME"):
+                elif(_object.elements[0].obj_type == ObjType.WIREFRAME):
                     _type = "Line/Wireframe"
+                elif(_object.elements[0].obj_type == ObjType.BEZIER_SURFACE):
+                    _type = "Bezier Surface"
+
+                    coords = ""
+                    line_size = _object.elements[0].shape[1]
+                    i = 0
+                    for vertex in _object.elements[0].vertices:
+                        if(i == line_size):
+                            i = 0
+                            coords = coords[:-1]
+                            coords += ";"
+                        coords += str(vertex)+","
+                        i+=1
+                    coords = coords[:-1]
+
+                elif(_object.elements[0].obj_type == ObjType.BEZIER):
+                    _type = "Bezier"
+                elif(_object.elements[0].obj_type == ObjType.SPLINE):
+                    _type = "Spline"
             else:
                 _type = "Object (Points/Lines/Wireframes)"
 

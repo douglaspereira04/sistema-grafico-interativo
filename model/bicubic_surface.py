@@ -61,7 +61,7 @@ class BicubicSurface(Wireframe3D):
     
     def wireframe_list(self, d):
         wireframes = list()
-        control_matrix = np.reshape(self.vertices, (self.shape[0], self.shape[1], 3))
+        control_matrix = np.reshape(self.vertices, (self.shape[0], self.shape[1]))
         points_matrix = BicubicSurface.patch_points(d,control_matrix)
         (rows, cols) = np.shape(points_matrix)
         edges = [(0,1),(1,2),(2,3),(3,0)]

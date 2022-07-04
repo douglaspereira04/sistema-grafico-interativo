@@ -26,15 +26,15 @@ def E(delta):
 
 class CurveObject(Wireframe3D):
     def __init__(self, obj_type=None, coords=[], color="black", filled=False):
-        super().__init__(vertices=coords, edges=None, color=color, filled=filled)
+        super().__init__(vertices=coords, color=color, filled=filled)
         self.obj_type = obj_type
 
     def bezier_point(t, control_points):
         T = np.array((t*t*t, t*t, t, 1))
 
-        Gx = np.array([p.get_coords()[0] for p in control_points])
-        Gy = np.array([p.get_coords()[1] for p in control_points])
-        Gz = np.array([p.get_coords()[2] for p in control_points])
+        Gx = np.array([p[0] for p in control_points])
+        Gy = np.array([p[1] for p in control_points])
+        Gz = np.array([p[2] for p in control_points])
 
 
         x =  T @ BEZIER_MATRIX @ Gx
@@ -42,7 +42,7 @@ class CurveObject(Wireframe3D):
         z = T @ BEZIER_MATRIX @ Gz
 
 
-        return Point3D(coords=(x, y, z))
+        return np.array([x,y,z,1])
 
     def blended_points(d, control_points):
         curve_points = []
@@ -57,9 +57,9 @@ class CurveObject(Wireframe3D):
         return curve_points
 
     def create_forward_difference_matrix(control_points, delta):
-        Gx = np.array(np.transpose([[p.get_coords()[0] for p in control_points]]))
-        Gy = np.array(np.transpose([[p.get_coords()[1] for p in control_points]]))
-        Gz = np.array(np.transpose([[p.get_coords()[2] for p in control_points]]))
+        Gx = np.array(np.transpose([[p[0] for p in control_points]]))
+        Gy = np.array(np.transpose([[p[1] for p in control_points]]))
+        Gz = np.array(np.transpose([[p[2] for p in control_points]]))
 
         Mbs = B_SPLINE_MATRIX
         E_delta =  E(delta)
@@ -68,7 +68,7 @@ class CurveObject(Wireframe3D):
         Dy = E_delta @ Mbs @ Gy
         Dz = E_delta @ Mbs @ Gz
         
-        return (Dx, Dy, Dz)
+        return [Dx, Dy, Dz]
 
     def update_forward_difference(Dx, Dy, Dz):
         Dx[0][0] += Dx[1][0]
@@ -84,19 +84,16 @@ class CurveObject(Wireframe3D):
         Dz[2][0] += Dz[3][0]
 
     def forward_difference(delta, Dx, Dy, Dz):
-        line_set = []
+        points = []
 
         n = int(1/delta)
 
         for i in range(1,n):
 
             CurveObject.update_forward_difference(Dx, Dy, Dz)
-            x = Dx[0][0]
-            y = Dy[0][0]
-            z = Dz[0][0]
+            points.append(np.array([Dx[0][0],Dy[0][0],Dz[0][0],1]))
 
-            line_set.append(Point3D(coords=(x, y, z)))
-        return line_set
+        return points
 
     def forward_difference_points(delta, control_points):
         curve_points = []
@@ -104,7 +101,7 @@ class CurveObject(Wireframe3D):
         i = 0
         while i+3 < length:
             curr_control_points = control_points[i:i+4]
-            (Dx, Dy, Dz) = CurveObject.create_forward_difference_matrix(curr_control_points,delta)
+            [Dx, Dy, Dz] = CurveObject.create_forward_difference_matrix(curr_control_points,delta)
             curve_points += CurveObject.forward_difference(delta, Dx, Dy, Dz)
             i+=1
 
@@ -112,11 +109,10 @@ class CurveObject(Wireframe3D):
 
 
 
-    def project(self, projection_matrix, line_clipping, d, viewport_transformation_matrix):
+    def project(self, vertices = None, projection_matrix = None, line_clipping = None, d = None, viewport_transformation_matrix = None):
         if(self.obj_type == ObjType.BEZIER):
             vertices = CurveObject.blended_points(d, self.vertices)
         else:
             vertices = CurveObject.forward_difference_points(d, self.vertices)
 
-        edges = [(i,i+1) for i in range(len(vertices)-1)]
-        return super().project(projection_matrix, line_clipping, vertices, edges, viewport_transformation_matrix)
+        super().project(vertices, projection_matrix, line_clipping, d, viewport_transformation_matrix)

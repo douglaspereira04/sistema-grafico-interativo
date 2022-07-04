@@ -6,15 +6,16 @@ from model.wireframe_3d import Wireframe3D
 from model.line_object import LineObject
 from model.curve_object import CurveObject
 import re
+import numpy as np
 
 class WavefrontObj:
     def parse(graphics, mtlib_name):
         object_list = graphics.objects
 
-        window_center = graphics.window_center()
-        window_size = (graphics.window_width(), graphics.window_height(), graphics.window_depth())
-        vpn = graphics.vpn.get_coords()
-        vup = graphics.vup.get_coords()
+        window_center = tuple(graphics.window_center())
+        window_size = tuple((graphics.window_width(), graphics.window_height(), graphics.window_depth()))
+        vpn = tuple(graphics.vpn.coords)
+        vup = tuple(graphics.vup.coords)
 
         string_file = ""
 
@@ -77,19 +78,19 @@ class WavefrontObj:
                 obj_coords = None
 
                 if(element.obj_type == ObjType.BEZIER):
-                    obj_coords = CurveObject.blended_points(d, element.coords)
+                    obj_coords = CurveObject.blended_points(d, element.vertices)
                 elif(element.obj_type == ObjType.SPLINE):
-                    obj_coords = CurveObject.forward_difference_points(d, element.coords)
+                    obj_coords = CurveObject.forward_difference_points(d, element.vertices)
                 else:
-                    obj_coords = element.get_vertices()
+                    obj_coords = element.vertices
 
                 _len = len(obj_coords)
                 for j in range(_len):
-                    if(not (obj_coords[j] in vertex_to_pos.keys())):
-                        vertex_to_pos[obj_coords[j]] = vertex_count
+                    if(not (tuple(obj_coords[j]) in vertex_to_pos.keys())):
+                        vertex_to_pos[tuple(obj_coords[j])] = vertex_count
                         vertex_count += 1
 
-                    vertex_pos = vertex_to_pos[obj_coords[j]]
+                    vertex_pos = vertex_to_pos[tuple(obj_coords[j])]
 
                     obj_string += " "+ str(vertex_pos)
 
@@ -198,22 +199,17 @@ class WavefrontObj:
             (last_vertex, vertices_indexes) = element_to_vertices[element]
             
             for vertex in vertices_indexes:
+                v = None
                 if(vertex < 0):
-                    vertex_coords = vertices[1+last_vertex+vertex]
+                    v = vertices[1+last_vertex+vertex]
                 elif(vertex>0):
-                    vertex_coords = vertices[vertex-1]
+                    v = vertices[vertex-1]
 
                 if(element.obj_type == ObjType.WIREFRAME):
-                    point = Point3D(coords=vertex_coords)
+                    point = np.array([v[0],v[1],v[2],1])
                     element.vertices.append(point)
                 elif(element.obj_type == ObjType.POINT):
-                    element.set_coords(vertex_coords)
-
-            if(element.obj_type == ObjType.WIREFRAME):
-                for i in range(len(element.vertices)-1):
-                    element.edges.append((i, i+1))
-                if(element.filled == True):
-                    element.edges.append((len(element.vertices)-1, 0))
+                    element.set_coords(v)
 
         window = None
         if(window_inf != None):

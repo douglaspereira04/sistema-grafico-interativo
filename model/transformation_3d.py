@@ -72,10 +72,10 @@ class Transformation3D:
 
 
 	def unit_vector(vector):
-		norm = np.linalg.norm(vector)
+		norm = np.linalg.norm(vector[:3])
 		if (norm == 0):
 			return None
-		return (vector[0]/norm, vector[1]/norm, vector[2]/norm)
+		return [vector[0]/norm, vector[1]/norm, vector[2]/norm,1]
 
 
 	def rotation_given_axis_matrix(rad, a, center=None):
@@ -161,8 +161,7 @@ class Transformation3D:
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
 	def transform_point(point, transformation_matrix):
-		p = np.array(([point[0],point[1],point[2], 1]))
-		return p @ transformation_matrix
+		return point @ transformation_matrix
 
 
 class Rotation3D(Transformation3D):

@@ -19,13 +19,13 @@ class Clipper():
     Retorna None se o ponto não faz parte 
     da àrea da window
     """
-    def point_clipping( point):
+    def point_clipping(point):
         """
         Point deve ser uma lista 
         com uma única tupla com as coordenadas
         do ponto
         """
-        (x,y) = point[0]
+        (x,y,_) = point
 
         if(x < 1 and x > -1 and y < 1 and y > -1):
             return point
@@ -49,11 +49,6 @@ class Clipper():
 
         initial_rc = Clipper.region_code(initial)
         final_rc = Clipper.region_code(final)
-
-
-        (x0,y0) = initial
-        (x1,y1) = final
-
 
         while ((initial_rc & final_rc) == 0b0000):
             """

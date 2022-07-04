@@ -8,6 +8,8 @@ from model.transformation_3d import Transformation3D
 from model.transformation import Transformation, RotationType, Rotation, Translation
 from model.clipper import LineClipping
 from enum import Enum
+from PyQt5 import QtGui
+from PyQt5.QtCore import QPoint
 
 class Axis(Enum):
     X = 1
@@ -43,9 +45,9 @@ class Graphics:
         self.enable_clipping = True
         self.default_window = None
 
-        self.vrp = Point3D((0,0,0))
-        self.vpn = Point3D((0,0,1))
-        self.vup = Point3D((0,1,0))
+        self.vrp = Point3D(np.array([0,0,0,1]))
+        self.vpn = Point3D(np.array([0,0,1,1]))
+        self.vup = Point3D(np.array([0,1,0,1]))
 
         self.cop_d = 100
 
@@ -73,7 +75,7 @@ class Graphics:
 
 
     def window_center(self):
-        return self.vrp.get_coords()
+        return self.vrp.coords
 
     def set_window_height(self, height, aspect):
         self.window["width"] = height*aspect
@@ -108,34 +110,28 @@ class Graphics:
     def get_window(self):
         return (self.window_center(),(self.window_width(),self.window_height(),self.window_depth()), self.vpn.get_coords(), self.vup.get_coords())
 
-    def rotate_view_vector(self, x,y):
-        rotation = Rotation(RotationType.OBJECT_CENTER, -self.vup_angle(), 0, 0)
-        rotation_matrix = rotation.get_matrix()
-        return Transformation.transform_3d_point((x,y), rotation_matrix)
-
-
 
     def get_angles(self):
         x_angle = 0
-        vpn = self.vpn.get_coords()
-        vup = self.vup.get_coords()
+        vpn = self.vpn.coords
+        vup = self.vup.coords
         unit_vpn = Transformation3D.unit_vector(vpn)
         if (unit_vpn != None):
-            (x,y,z) = vpn
+            (x,y,z,_) = vpn
             x_angle = math.atan2(y, z)
-            vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_x_matrix(x_angle))
-            vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_x_matrix(x_angle))
+            vpn = Transformation3D.transform_point(vpn, Transformation3D.rotation_x_matrix(x_angle))
+            vup = Transformation3D.transform_point(vup, Transformation3D.rotation_x_matrix(x_angle))
 
         
-        (x,y,z) = vpn
+        (x,y,z,_) = vpn
         y_angle = - math.atan2(x, z)
-        vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_y_matrix(y_angle))
-        vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_y_matrix(y_angle))
+        vpn = Transformation3D.transform_point(vpn, Transformation3D.rotation_y_matrix(y_angle))
+        vup = Transformation3D.transform_point(vup, Transformation3D.rotation_y_matrix(y_angle))
 
-        (x,y,z) = vup
+        (x,y,z,_) = vup
         z_angle = math.atan2(x, y)
-        vpn = Transformation3D.transform_3d_point(vpn, Transformation3D.rotation_z_matrix(z_angle))
-        vup = Transformation3D.transform_3d_point(vup, Transformation3D.rotation_z_matrix(z_angle))
+        vpn = Transformation3D.transform_point(vpn, Transformation3D.rotation_z_matrix(z_angle))
+        vup = Transformation3D.transform_point(vup, Transformation3D.rotation_z_matrix(z_angle))
 
         return (x_angle, y_angle, z_angle)
 
@@ -165,11 +161,11 @@ class Graphics:
     def pan(self, axis, steps):
         rotation_matrix = None
         if(axis == Axis.X):
-            axis = np.cross(self.vpn.get_coords(), self.vup.get_coords())
+            axis = np.cross(self.vpn.coords[:3], self.vup.coords[:3])
         elif(axis == Axis.Y):
-            axis = self.vup.get_coords()
+            axis = self.vup.coords
         else:
-            axis = self.vpn.get_coords()
+            axis = self.vpn.coords
 
         translation_matrix = Transformation3D.translation_matrix(axis[0]*steps, axis[1]*steps, axis[2]*steps)
 
@@ -178,13 +174,13 @@ class Graphics:
     def rotate(self, axis, rad):
         
         if(axis == Axis.X):
-            axis = np.cross(self.vpn.get_coords(), self.vup.get_coords())
+            axis = np.cross(self.vpn.coords[:3], self.vup.coords[:3])
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
         elif(axis == Axis.Y):
-            axis = self.vup.get_coords()
+            axis = self.vup.coords
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
         else:
-            axis = self.vpn.get_coords()
+            axis = self.vpn.coords
             transformation_matrix = Transformation3D.rotation_given_axis_matrix(rad, axis, None)
             
         self.vup.transform(transformation_matrix)
@@ -200,7 +196,7 @@ class Graphics:
 
     def projection_normalization_matrix(self):
 
-        (x,y,z) = self.vrp.get_coords()
+        (x,y,z,_) = self.vrp.coords
         translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
 
         (x_angle, y_angle, z_angle) = self.get_angles()
@@ -244,27 +240,55 @@ class Graphics:
     """
     Normaliza e clipa pontos e linhas
     """
-    def normalize_and_clip(self):
+    def normalize_and_clip(self, painter, color):
         display = list()
 
-        projection_normalization_matrix = self.projection_normalization_matrix()
-        viewport_transformation_matrix = self.viewport_transformation_matrix()
+        if(color != None):
+            painter.setPen(color)
+            painter.setBrush(QtGui.QBrush(color))
+            for obj in self.objects:
+                for element in obj.elements:
+                    self.draw_projected_element(element, color, painter)
 
-        for obj in self.objects:
-            for element in obj.elements:
+        else:
+            projection_normalization_matrix = self.projection_normalization_matrix()
+            viewport_transformation_matrix = self.viewport_transformation_matrix()
+            d = self.window_width()/(10*self.viewport_width())
+            
+            for obj in self.objects:
+                for element in obj.elements:
+                    element.project(None, projection_normalization_matrix, self.line_clipping, d,viewport_transformation_matrix)
+                    color = QtGui.QColor(element.color)
+                    self.draw_projected_element(element, color, painter)
 
-                display_objects = None
+    def draw_projected_element(self,element, color, painter):
+        projected = element.projected
+        painter.setPen(color)
+        painter.setBrush(QtGui.QBrush(color))
 
-                if(element.obj_type == ObjType.POINT):
-                    display_objects = element.project(projection_normalization_matrix, viewport_transformation_matrix)
-                elif(element.obj_type == ObjType.WIREFRAME):
-                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, viewport_transformation_matrix= viewport_transformation_matrix)
-                elif(element.obj_type == ObjType.SPLINE ):
-                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()/(10*self.viewport_width()),viewport_transformation_matrix)
-                elif(element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.BEZIER_SURFACE):
-                    display_objects = element.project(projection_normalization_matrix, self.line_clipping, self.window_width()/(10*self.viewport_width()),viewport_transformation_matrix)
+        if(element.obj_type == ObjType.POINT):
+            if(not (projected is None)):
+                painter.drawPoint(projected[0], projected[1])
 
-                if(display_objects != None):
-                    display += display_objects
+        elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
+            if(len(projected) > 0):
+                for line in element.projected:
+                    painter.drawLine(line[0][0],line[0][1],line[1][0],line[1][1])
 
-        self.display = display
+        elif((element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE or element.obj_type == ObjType.WIREFRAME) and element.filled):
+            if(not (projected is None)):
+                vertices = [QPoint(p[0], p[1]) for p in element.projected]
+                polygon = QtGui.QPolygon(vertices)
+                painter.drawPolygon(polygon)
+
+        elif(element.obj_type == ObjType.BEZIER_SURFACE):
+            if(element.filled):
+                for square in element.projected:
+                    vertices = [QPoint(p[0], p[1]) for p in square]
+                    polygon = QtGui.QPolygon(vertices)
+                    painter.drawPolygon(polygon)
+            else:
+                for square in element.projected:
+                    for i in range(1,len(square)):
+                        painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
+                    painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])

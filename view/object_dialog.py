@@ -4,6 +4,9 @@ import numbers
 from view.util.dialogs import show_error_box
 
 class ObjectDialog(QDialog):
+    """
+    (0,0,0),(10,0,0),(20,40,20),(30,120,-80);(0,0,10),(10,0,10),(20,40,30),(30,120,-70);(0,0,20),(10,0,20),(20,40,40),(30,120,-60);(0,0,30),(10,0,30),(20,40,50),(30,120,-50)
+    """
     def __init__(self, parent=None, name="", coords="(0,0,0),(10,0,0),(20,40,20),(30,120,-80);(0,0,10),(10,0,10),(20,40,30),(30,120,-70);(0,0,20),(10,0,20),(20,40,40),(30,120,-60);(0,0,30),(10,0,30),(20,40,50),(30,120,-50)", color="#000000", filled=False, _type=None):
         super().__init__(parent)
 
@@ -24,6 +27,7 @@ class ObjectDialog(QDialog):
         self._type.addItem("Spline")
         self._type.addItem("Bezier")
         self._type.addItem("Bezier Surface")
+        self._type.setCurrentIndex(5)
 
         if(_type != None):
             if(_type == "Point"):

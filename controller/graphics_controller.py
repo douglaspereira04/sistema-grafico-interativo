@@ -116,7 +116,7 @@ class GraphicsController:
 
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1 and y_diff != 0):
-            transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.get_coords(), y_diff, 0, 0, 0)
+            transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.coords[:3], y_diff, 0, 0, 0)
             transformation_list = list()
             transformation_list.append(transformation)
             self.transform_object(transformation_list)
@@ -132,7 +132,7 @@ class GraphicsController:
 
             translation_vector = (x_diff, -y_diff, 0)
 
-            (x,y,z) = self.graphic.vrp.get_coords()
+            (x,y,z,_) = self.graphic.vrp.coords
             translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
 
             (x_angle, y_angle, z_angle) = self.graphic.get_angles()
@@ -275,30 +275,18 @@ class GraphicsController:
 
         if(len(_list) == 1):
             return Point3D(coords=_list[0], color=color)
+
         elif(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)"):
             vertices = list()
-            edges = list()
-            edges.append((0,0))
             for point in _list:
-                vertex = Point3D(coords=point, color=color)
+                vertex = np.array([point[0],point[1],point[2],1])
+                vertices.append(vertex)
 
-                if(not (vertex in vertices)):
-                    vertices.append(vertex)
-                v_index = vertices.index(vertex)
-                
-                edge = (edges[-1][1], v_index)
-                edges.append(edge)
-
-            if(filled):
-                edges[0] = (edges[-1][1],edges[1][0])
-            else:
-                del edges[0]
-
-            return Wireframe3D(vertices=vertices, edges=edges, color=color, filled=filled)
+            return Wireframe3D(vertices=vertices, color=color, filled=filled)
         elif(_type == "Spline" or _type == "Bezier"):
             control_points = list()
             for point in _list:
-                control_points.append(Point3D(coords=point, color=color))
+                control_points.append(np.array([point[0],point[1],point[2],1]))
 
             curve_type = None
             if(_type == "Spline"):
@@ -317,7 +305,7 @@ class GraphicsController:
             shape = np.shape(_object)
             coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
 
-            points = [Point3D((p[0],p[1],p[2])) for p in coords]
+            points = [np.array([p[0],p[1],p[2],1]) for p in coords]
 
             element = BicubicSurface(obj_type=ObjType.BEZIER_SURFACE, coords=points, shape=shape, color=color, filled=filled)
             element_list.append(element)
@@ -369,19 +357,6 @@ class GraphicsController:
                     _type = "Line/Wireframe"
                 elif(_object.elements[0].obj_type == ObjType.BEZIER_SURFACE):
                     _type = "Bezier Surface"
-
-                    coords = ""
-                    line_size = _object.elements[0].shape[1]
-                    i = 0
-                    for vertex in _object.elements[0].vertices:
-                        if(i == line_size):
-                            i = 0
-                            coords = coords[:-1]
-                            coords += ";"
-                        coords += str(vertex)+","
-                        i+=1
-                    coords = coords[:-1]
-
                 elif(_object.elements[0].obj_type == ObjType.BEZIER):
                     _type = "Bezier"
                 elif(_object.elements[0].obj_type == ObjType.SPLINE):
@@ -460,22 +435,7 @@ class GraphicsController:
         return transformation
 
     def draw_color(self, color):
-        self.graphic.normalize_and_clip()
-
-        obj_list = []
-        for display_object in self.graphic.display:
-            if(color == None):
-                obj_color = QColor(display_object.color)
-            else:
-                obj_color = color
-
-            if((not display_object.is_filled) and (len(display_object.coords) > 1)):
-                for i in range(0, len(display_object.coords)-1, 2):
-                    p0 = display_object.coords[i]
-                    p1 = display_object.coords[i+1]
-                    self.view.canvas.draw([p0,p1], obj_color, False)
-            else:
-                self.view.canvas.draw(display_object.coords, obj_color, display_object.is_filled)
+        self.graphic.normalize_and_clip(self.view.canvas.get_painter(), color)
 
         self.view.canvas.update()
 

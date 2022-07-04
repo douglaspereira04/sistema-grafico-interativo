@@ -47,6 +47,9 @@ class Canvas(QtWidgets.QLabel):
             self.setPixmap(self.canvas)
             self.resize.emit(event)
 
+    def get_painter(self):
+        return QtGui.QPainter(self.pixmap())
+
     def draw(self, coordinates, color, filled=False, line_set=False):
         painter = QtGui.QPainter(self.pixmap())
         painter.setPen(color)

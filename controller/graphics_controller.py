@@ -5,11 +5,9 @@ from model.graphic_element import GraphicElement
 from model.graphic_object import GraphicObject
 from model.curve_object import CurveObject
 from model.point_3d import Point3D
-from model.line_object import LineObject
 from model.wireframe_3d import Wireframe3D
 from model.bicubic_surface import BicubicSurface
 from model.clipper import LineClipping
-from model.transformation import Transformation
 from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
@@ -20,6 +18,8 @@ from model.wavefront_obj import WavefrontObj
 import math
 import os
 import numpy as np
+from PyQt5 import QtGui
+from PyQt5.QtCore import QPoint
 
 
 class GraphicsController:
@@ -278,15 +278,15 @@ class GraphicsController:
 
         elif(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)"):
             vertices = list()
-            for point in _list:
-                vertex = np.array([point[0],point[1],point[2],1])
+            for p in _list:
+                vertex = np.array([float(p[0]),float(p[1]),float(p[2]),1.0])
                 vertices.append(vertex)
 
             return Wireframe3D(vertices=vertices, color=color, filled=filled)
         elif(_type == "Spline" or _type == "Bezier"):
             control_points = list()
-            for point in _list:
-                control_points.append(np.array([point[0],point[1],point[2],1]))
+            for p in _list:
+                control_points.append(np.array([float(p[0]),float(p[1]),float(p[2]),1.0]))
 
             curve_type = None
             if(_type == "Spline"):
@@ -305,7 +305,7 @@ class GraphicsController:
             shape = np.shape(_object)
             coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
 
-            points = [np.array([p[0],p[1],p[2],1]) for p in coords]
+            points = [np.array([float(p[0]),float(p[1]),float(p[2]),1.0]) for p in coords]
 
             element = BicubicSurface(obj_type=ObjType.BEZIER_SURFACE, coords=points, shape=shape, color=color, filled=filled)
             element_list.append(element)
@@ -434,10 +434,71 @@ class GraphicsController:
 
         return transformation
 
+
+
+    """
+    Desenha os objetos dado um painter.
+    """
     def draw_color(self, color):
-        self.graphic.normalize_and_clip(self.view.canvas.get_painter(), color)
+        objects = self.graphic.objects
+        line_clipping = self.graphic.line_clipping
+
+        display = list()
+        painter = self.view.canvas.get_painter()
+        if(not (color is None)):
+            painter.setPen(color)
+            painter.setBrush(QtGui.QBrush(color))
+            for obj in objects:
+                for element in obj.elements:
+                    self.draw_projected_element(element, color, painter)
+
+        else:
+            projection_normalization_matrix = self.graphic.projection_normalization_matrix()
+            viewport_transformation_matrix = self.graphic.viewport_transformation_matrix()
+            d = 1/10
+            
+            for obj in objects:
+                for element in obj.elements:
+                    element.project(None, projection_normalization_matrix, line_clipping, d,viewport_transformation_matrix)
+                    color = QtGui.QColor(element.color)
+                    self.draw_projected_element(element, color, painter)
 
         self.view.canvas.update()
+
+    """
+    Desenha com painter um dado elemento gráfico, com a cor color
+    """
+    def draw_projected_element(self,element, color, painter):
+        projected = element.projected
+        painter.setPen(color)
+        painter.setBrush(QtGui.QBrush(color))
+
+        if(element.obj_type == ObjType.POINT):
+            if(not (projected is None)):
+                painter.drawPoint(projected[0], projected[1])
+
+        elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
+            if(len(projected) > 0):
+                for line in element.projected:
+                    painter.drawLine(line[0][0],line[0][1],line[1][0],line[1][1])
+
+        elif((element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE or element.obj_type == ObjType.WIREFRAME) and element.filled):
+            if(not (projected is None)):
+                vertices = [QPoint(p[0], p[1]) for p in element.projected]
+                polygon = QtGui.QPolygon(vertices)
+                painter.drawPolygon(polygon)
+
+        elif(element.obj_type == ObjType.BEZIER_SURFACE):
+            if(element.filled):
+                for square in element.projected:
+                    vertices = [QPoint(p[0], p[1]) for p in square]
+                    polygon = QtGui.QPolygon(vertices)
+                    painter.drawPolygon(polygon)
+            else:
+                for square in element.projected:
+                    for i in range(1,len(square)):
+                        painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
+                    painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])
 
     def draw(self):
         self.draw_color(None)
@@ -512,6 +573,7 @@ class GraphicsController:
 
 
     def rotate_button(self, direction):
+        self.reset_multiplier()
 
         if(self.view.side_menu.x_axis_check.isChecked()):
             axis = Axis.X

@@ -1,7 +1,6 @@
 from model.graphic_element import GraphicElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
-from model.transformation import Transformation
 from model.transformation_3d import Transformation3D
 import numpy as np
 

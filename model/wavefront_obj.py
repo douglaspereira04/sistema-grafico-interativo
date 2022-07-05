@@ -3,7 +3,6 @@ from model.graphic_element import GraphicElement
 from model.graphic_object import GraphicObject
 from model.point_3d import Point3D
 from model.wireframe_3d import Wireframe3D
-from model.line_object import LineObject
 from model.curve_object import CurveObject
 import re
 import numpy as np
@@ -49,7 +48,7 @@ class WavefrontObj:
 
             elements = obj.elements.copy()
             i = 0
-            d = graphics.window_width()/(10*graphics.viewport_width())
+            d = 1/10
             while(i < len(elements)):
                 element = elements[i]
                 if(element.obj_type == ObjType.BEZIER_SURFACE):
@@ -77,7 +76,9 @@ class WavefrontObj:
 
                 obj_coords = None
 
-                if(element.obj_type == ObjType.BEZIER):
+                if(element.obj_type == ObjType.POINT):
+                    obj_coords = [element.coords]
+                elif(element.obj_type == ObjType.BEZIER):
                     obj_coords = CurveObject.blended_points(d, element.vertices)
                 elif(element.obj_type == ObjType.SPLINE):
                     obj_coords = CurveObject.forward_difference_points(d, element.vertices)
@@ -101,10 +102,7 @@ class WavefrontObj:
 
         vertices = []
         for vertex in vertex_to_pos.keys():
-            if(isinstance(vertex, Point3D)):
-                p = vertex.get_coords()
-            else:
-                p = vertex
+            p = vertex
             vertices.append("v "+ f"{p[0]:.6f}" +" "+ f"{p[1]:.6f}" +" "+ f"{p[2]:.6f}" + "\n")
 
 

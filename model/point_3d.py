@@ -2,7 +2,6 @@ from model.graphic_element import GraphicElement
 from model.obj_type import ObjType
 from model.clipper import Clipper
 from model.transformation_3d import Transformation3D
-from model.transformation import Transformation
 import numpy as np
 
 class Point3D(GraphicElement):

@@ -7,3 +7,4 @@ class ObjType(Enum):
     BEZIER = 4
     SPLINE = 5
     BEZIER_SURFACE = 6
+    SPLINE_SURFACE = 7

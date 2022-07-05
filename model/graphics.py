@@ -5,11 +5,8 @@ from model.graphic_element import GraphicElement
 from model.display_object import DisplayObject
 from model.point_3d import Point3D
 from model.transformation_3d import Transformation3D
-from model.transformation import Transformation, RotationType, Rotation, Translation
 from model.clipper import LineClipping
 from enum import Enum
-from PyQt5 import QtGui
-from PyQt5.QtCore import QPoint
 
 class Axis(Enum):
     X = 1
@@ -45,9 +42,9 @@ class Graphics:
         self.enable_clipping = True
         self.default_window = None
 
-        self.vrp = Point3D(np.array([0,0,0,1]))
-        self.vpn = Point3D(np.array([0,0,1,1]))
-        self.vup = Point3D(np.array([0,1,0,1]))
+        self.vrp = Point3D(np.array([0.,0.,0.,1.]))
+        self.vpn = Point3D(np.array([0.,0.,1.,1.]))
+        self.vup = Point3D(np.array([0.,1.,0.,1.]))
 
         self.cop_d = 100
 
@@ -108,7 +105,7 @@ class Graphics:
         self.vrp.set_coords(center)
 
     def get_window(self):
-        return (self.window_center(),(self.window_width(),self.window_height(),self.window_depth()), self.vpn.get_coords(), self.vup.get_coords())
+        return (self.window_center(),(self.window_width(),self.window_height(),self.window_depth()), self.vpn.coords, self.vup.coords)
 
 
     def get_angles(self):
@@ -236,59 +233,3 @@ class Graphics:
 
         return np.array([[c1,0,0],[0,-c2,0],[c1+b,c2+b,1]])
 
-
-    """
-    Normaliza e clipa pontos e linhas
-    """
-    def normalize_and_clip(self, painter, color):
-        display = list()
-
-        if(color != None):
-            painter.setPen(color)
-            painter.setBrush(QtGui.QBrush(color))
-            for obj in self.objects:
-                for element in obj.elements:
-                    self.draw_projected_element(element, color, painter)
-
-        else:
-            projection_normalization_matrix = self.projection_normalization_matrix()
-            viewport_transformation_matrix = self.viewport_transformation_matrix()
-            d = self.window_width()/(10*self.viewport_width())
-            
-            for obj in self.objects:
-                for element in obj.elements:
-                    element.project(None, projection_normalization_matrix, self.line_clipping, d,viewport_transformation_matrix)
-                    color = QtGui.QColor(element.color)
-                    self.draw_projected_element(element, color, painter)
-
-    def draw_projected_element(self,element, color, painter):
-        projected = element.projected
-        painter.setPen(color)
-        painter.setBrush(QtGui.QBrush(color))
-
-        if(element.obj_type == ObjType.POINT):
-            if(not (projected is None)):
-                painter.drawPoint(projected[0], projected[1])
-
-        elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
-            if(len(projected) > 0):
-                for line in element.projected:
-                    painter.drawLine(line[0][0],line[0][1],line[1][0],line[1][1])
-
-        elif((element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE or element.obj_type == ObjType.WIREFRAME) and element.filled):
-            if(not (projected is None)):
-                vertices = [QPoint(p[0], p[1]) for p in element.projected]
-                polygon = QtGui.QPolygon(vertices)
-                painter.drawPolygon(polygon)
-
-        elif(element.obj_type == ObjType.BEZIER_SURFACE):
-            if(element.filled):
-                for square in element.projected:
-                    vertices = [QPoint(p[0], p[1]) for p in square]
-                    polygon = QtGui.QPolygon(vertices)
-                    painter.drawPolygon(polygon)
-            else:
-                for square in element.projected:
-                    for i in range(1,len(square)):
-                        painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
-                    painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])

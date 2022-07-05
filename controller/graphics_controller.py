@@ -301,13 +301,19 @@ class GraphicsController:
     def get_object(self, name, _object, color, filled, _type):
         element_list = list()
         
-        if(_type == "Bezier Surface"):
+        if(_type == "Bezier Surface" or _type == "Spline Surface"):
+
+            if(_type == "Bezier Surface"):
+                obj_type=ObjType.BEZIER_SURFACE
+            else:
+                obj_type=ObjType.SPLINE_SURFACE
+
             shape = np.shape(_object)
             coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
 
             points = [np.array([float(p[0]),float(p[1]),float(p[2]),1.0]) for p in coords]
 
-            element = BicubicSurface(obj_type=ObjType.BEZIER_SURFACE, coords=points, shape=shape, color=color, filled=filled)
+            element = BicubicSurface(obj_type=obj_type, coords=points, shape=shape, color=color, filled=filled)
             element_list.append(element)
             
         else:
@@ -357,6 +363,8 @@ class GraphicsController:
                     _type = "Line/Wireframe"
                 elif(_object.elements[0].obj_type == ObjType.BEZIER_SURFACE):
                     _type = "Bezier Surface"
+                elif(_object.elements[0].obj_type == ObjType.SPLINE_SURFACE):
+                    _type = "Spline Surface"
                 elif(_object.elements[0].obj_type == ObjType.BEZIER):
                     _type = "Bezier"
                 elif(_object.elements[0].obj_type == ObjType.SPLINE):
@@ -488,7 +496,7 @@ class GraphicsController:
                 polygon = QtGui.QPolygon(vertices)
                 painter.drawPolygon(polygon)
 
-        elif(element.obj_type == ObjType.BEZIER_SURFACE):
+        elif((element.obj_type == ObjType.BEZIER_SURFACE) or (element.obj_type == ObjType.SPLINE_SURFACE)):
             if(element.filled):
                 for square in element.projected:
                     vertices = [QPoint(p[0], p[1]) for p in square]

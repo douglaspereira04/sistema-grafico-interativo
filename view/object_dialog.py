@@ -27,7 +27,8 @@ class ObjectDialog(QDialog):
         self._type.addItem("Spline")
         self._type.addItem("Bezier")
         self._type.addItem("Bezier Surface")
-        self._type.setCurrentIndex(5)
+        self._type.addItem("Spline Surface")
+        self._type.setCurrentIndex(6)
 
         if(_type != None):
             if(_type == "Point"):
@@ -42,6 +43,8 @@ class ObjectDialog(QDialog):
                 self._type.setCurrentIndex(4)
             elif(_type == "Bezier Surface"):
                 self._type.setCurrentIndex(5)
+            elif(_type == "Spline Surface"):
+                self._type.setCurrentIndex(6)
 
 
         self.name.setPlaceholderText("Name")
@@ -100,6 +103,15 @@ class ObjectDialog(QDialog):
             elif(ok == 2):
                 show_error_box("Expected (number of lines)%3 == 1 and (number of columns)%3 == 1 ")
 
+        elif(_type=="Spline Surface"):
+            ok = self.well_writen_spline_surface() 
+            if(ok == 0):
+                super().accept()
+            elif(ok == 1):
+                show_error_box("Expected: (x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
+            elif(ok == 2):
+                show_error_box("Expected (number of lines)>3 and (number of columns)>3")
+
         elif(_type=="Line/Wireframe"):
             if(self.well_writen_wireframe()):
                 super().accept()
@@ -152,6 +164,8 @@ class ObjectDialog(QDialog):
             self.coordinates.setPlaceholderText("(x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
         elif(_type=="Bezier Surface"):
             self.coordinates.setPlaceholderText("(x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
+        elif(_type=="Spline Surface"):
+            self.coordinates.setPlaceholderText("(x00,y01,z02),...;(x10,y11,z12),...;...(xij,yij,zij)")
 
 
 
@@ -159,39 +173,6 @@ class ObjectDialog(QDialog):
         if(self.filled.isChecked() and (not enabled)):
             self.filled.setChecked(False)
         self.filled.setEnabled(enabled)
-        
-
-    def enable_bezier(self, enabled):
-        self.bezier.setEnabled(enabled)
-        if(self.bezier.isChecked() and (not enabled)):
-            self.bezier.setChecked(False)
-
-    def enable_spline(self, enabled):
-        self.spline.setEnabled(enabled)
-        if(self.spline.isChecked() and (not enabled)):
-            self.spline.setChecked(False)
-
-    def coplanar_points(self,point_list):
-        (x1,y1,z1) = point_list[0]
-        (x2,y2,z2) = point_list[1]
-        (x3,y3,z3) = point_list[2]
-        a1 = x2 - x1
-        b1 = y2 - y1
-        c1 = z2 - z1
-        a2 = x3 - x1
-        b2 = y3 - y1
-        c2 = z3 - z1
-        a = b1 * c2 - b2 * c1
-        b = a2 * c1 - a1 * c2
-        c = a1 * b2 - b1 * a2
-        d = (- a * x1 - b * y1 - c * z1)
-
-        for i in range(3,len(point_list)):
-            (x,y,z) = point_list[i]
-            if(not (a * x + b * y + c * z + d) == 0):
-                return False
-
-        return True
      
 
     def well_writen_point(self):
@@ -266,6 +247,24 @@ class ObjectDialog(QDialog):
         except Exception as e:
             return 1
 
+    def well_writen_spline_surface(self):
+        try:
+            if(self.well_writen_object()):
+                element_list = self.get_element_list()
+                is_spline = len(element_list) > 3
+                if(not is_spline):
+                    return 2
+                for element in element_list:
+                    is_spline = len(element) > 3
+                    if(not is_spline):
+                        return 2
+
+                return 0
+
+            return 1
+        except Exception as e:
+            return 1
+
     def well_writen_spline(self):
         try:
             if(self.well_writen_object()):
@@ -282,12 +281,6 @@ class ObjectDialog(QDialog):
             return 1
         except Exception as e:
             return 1
-
-    def xy_plane(self,point_list):
-        for point in point_list:
-            if(point[2] != 0):
-                return False
-        return True
 
     def can_fill(self):
         try:

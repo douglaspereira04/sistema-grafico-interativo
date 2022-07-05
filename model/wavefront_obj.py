@@ -51,7 +51,7 @@ class WavefrontObj:
             d = 1/10
             while(i < len(elements)):
                 element = elements[i]
-                if(element.obj_type == ObjType.BEZIER_SURFACE):
+                if((element.obj_type == ObjType.BEZIER_SURFACE) or (element.obj_type == ObjType.SPLINE_SURFACE)):
                     elements += element.wireframe_list(d)
                     i+=1
                     continue

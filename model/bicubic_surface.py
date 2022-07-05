@@ -14,6 +14,28 @@ BEZIER_MATRIX = np.array((
             [ 1,  0,  0, 0]))
 
 
+B_SPLINE_MATRIX = np.array((
+            [-1/6,  1/2, -1/2, 1/6],
+            [ 1/2, -1,    1/2, 0],
+            [-1/2,  0,    1/2, 0],
+            [ 1/6,  2/3,  1/6, 0]))
+
+
+B_SPLINE_MATRIX_T = np.transpose(np.array((
+            [-1/6,  1/2, -1/2, 1/6],
+            [ 1/2, -1,    1/2, 0],
+            [-1/2,  0,    1/2, 0],
+            [ 1/6,  2/3,  1/6, 0])))
+
+
+def E(delta):
+    return np.array(([0,             0,            0,     1],
+            [ delta**3,     delta**2,     delta, 0],
+            [ 6*(delta**3), 2*(delta**2), 0,     0],
+            [6*(delta**3),  0,            0,     0]
+            ))
+
+
 class BicubicSurface(Wireframe3D):
     def __init__(self, obj_type=None, coords=[], shape=(0,0,0), color="black", filled=False):
         super().__init__(vertices=coords, color=color, filled=filled)
@@ -36,7 +58,82 @@ class BicubicSurface(Wireframe3D):
         return string[:-1]
 
 
-    def patch_points(delta, control_matrix):
+    def create_forward_difference_matrix(s, t, Gx, Gy, Gz, delta_s, delta_t):
+
+        Cx = B_SPLINE_MATRIX @ Gx @ B_SPLINE_MATRIX_T
+        Cy = B_SPLINE_MATRIX @ Gy @ B_SPLINE_MATRIX_T
+        Cz = B_SPLINE_MATRIX @ Gz @ B_SPLINE_MATRIX_T
+
+        Mbs = B_SPLINE_MATRIX
+        E_delta_s =  E(delta_s)
+        E_delta_t_T =  E(delta_t).T
+
+        DDx = E_delta_s @ Cx @ E_delta_t_T
+        DDy = E_delta_s @ Cy @ E_delta_t_T
+        DDz = E_delta_s @ Cz @ E_delta_t_T
+        
+        return [DDx, DDy, DDz]
+
+    def update_forward_difference_matrixes(DDx, DDy, DDz):
+        DDx[0] += DDx[1]
+        DDx[1] += DDx[2]
+        DDx[2] += DDx[3]
+
+        DDy[0] += DDy[1]
+        DDy[1] += DDy[2]
+        DDy[2] += DDy[3]
+
+        DDz[0] += DDz[1]
+        DDz[1] += DDz[2]
+        DDz[2] += DDz[3]
+
+
+    def update_forward_difference(Dx, Dy, Dz):
+        Dx[0][0] += Dx[0][1]
+        Dx[0][1] += Dx[0][2]
+        Dx[0][2] += Dx[0][3]
+
+        Dy[0][0] += Dy[0][1]
+        Dy[0][1] += Dy[0][2]
+        Dy[0][2] += Dy[0][3]
+
+        Dz[0][0] += Dz[0][1]
+        Dz[0][1] += Dz[0][2]
+        Dz[0][2] += Dz[0][3]
+
+    def forward_difference_points(delta_s, delta_t, control_matrix):
+
+
+        n_s = int(1/delta_s)
+        n_t = int(1/delta_t)
+
+        Gx = control_matrix[:,:, 0]
+        Gy = control_matrix[:,:, 1]
+        Gz = control_matrix[:,:, 2]
+        
+        (DDx,DDy,DDz) = BicubicSurface.create_forward_difference_matrix(delta_s,delta_t,Gx,Gy,Gz,delta_s,delta_t)
+
+        p = np.array([[None]*int(n_t)]*int(n_s))
+
+        for i in range(0,n_s):
+            curve = list()
+        
+            curr_DDx = DDx.copy()
+            curr_DDy = DDy.copy()
+            curr_DDz = DDz.copy()
+
+            for j in range(0,n_t):
+                p[i][j] = np.array([curr_DDx[0][0],curr_DDy[0][0],curr_DDz[0][0],1.0])
+                BicubicSurface.update_forward_difference(curr_DDx, curr_DDy, curr_DDz)
+            
+            BicubicSurface.update_forward_difference_matrixes(DDx, DDy, DDz)
+            
+        return p
+
+
+
+
+    def bezier_patch_points(delta, control_matrix):
         curves = list()
 
         n = int(1/delta)
@@ -78,14 +175,18 @@ class BicubicSurface(Wireframe3D):
         wireframes = list()
         control_matrix = np.reshape(self.vertices, (self.shape[0], self.shape[1], 4))
 
+        points_matrix = None
         if(self.obj_type == ObjType.BEZIER_SURFACE):
-            points_matrix = BicubicSurface.patch_points(d,control_matrix)
-            (rows, cols) = np.shape(points_matrix)
-            for i in range(rows-1):
-                for j in range(cols-1):
-                    square = Wireframe3D([points_matrix[i][j],points_matrix[i][j+1],points_matrix[i+1][j+1],points_matrix[i+1][j]], self.color, self.filled)
-                    wireframes.append(square)
-            return wireframes
+            points_matrix = BicubicSurface.bezier_patch_points(d,control_matrix)
+        if(self.obj_type == ObjType.SPLINE_SURFACE):
+            points_matrix = BicubicSurface.forward_difference_points(d,d,control_matrix)
+            
+        (rows, cols) = np.shape(points_matrix)
+        for i in range(rows-1):
+            for j in range(cols-1):
+                square = Wireframe3D([points_matrix[i][j],points_matrix[i][j+1],points_matrix[i+1][j+1],points_matrix[i+1][j]], self.color, self.filled)
+                wireframes.append(square)
+        return wireframes
 
         return None
 
@@ -94,23 +195,27 @@ class BicubicSurface(Wireframe3D):
         control_matrix = np.reshape(self.vertices, (self.shape[0], self.shape[1], 4))
         self.projected = list()
 
+        points_matrix = None
+
         if(self.obj_type == ObjType.BEZIER_SURFACE):
-            points_matrix = BicubicSurface.patch_points(d,control_matrix)
+            points_matrix = BicubicSurface.bezier_patch_points(d,control_matrix)
+        if(self.obj_type == ObjType.SPLINE_SURFACE):
+            points_matrix = BicubicSurface.forward_difference_points(d,d,control_matrix)
 
-            (rows, cols) = np.shape(points_matrix)
-            for i in range(rows-1):
-                for j in range(cols-1):
-                    square = [points_matrix[i][j],points_matrix[i][j+1],points_matrix[i+1][j+1],points_matrix[i+1][j]]
-                    projected_vertices = [None] * 4
+        (rows, cols) = np.shape(points_matrix)
+        for i in range(rows-1):
+            for j in range(cols-1):
+                square = [points_matrix[i][j],points_matrix[i][j+1],points_matrix[i+1][j+1],points_matrix[i+1][j]]
+                projected_vertices = [None] * 4
 
-                    for k in range(4):
-                        [x,y,z,w] = Transformation3D.transform_point(square[k], projection_matrix)
-                        projected_vertices[k] = [x/w, y/w]
+                for k in range(4):
+                    [x,y,z,w] = Transformation3D.transform_point(square[k], projection_matrix)
+                    projected_vertices[k] = [x/w, y/w]
 
-                    projected = Clipper.sutherland_hodgman_clipping(projected_vertices)
-                    if(not(projected is None)):
-                        for k in range(len(projected)):
-                            v = np.array([projected[k][0], projected[k][1],1])
-                            projected[k] =  v @ viewport_transformation_matrix
-                        
-                        self.projected.append(projected)
+                projected = Clipper.sutherland_hodgman_clipping(projected_vertices)
+                if(not(projected is None)):
+                    for k in range(len(projected)):
+                        v = np.array([projected[k][0], projected[k][1],1])
+                        projected[k] =  v @ viewport_transformation_matrix
+                    
+                    self.projected.append(projected)

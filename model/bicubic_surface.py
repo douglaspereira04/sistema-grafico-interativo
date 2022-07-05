@@ -13,6 +13,12 @@ BEZIER_MATRIX = np.array((
             [-3,  3,  0, 0],
             [ 1,  0,  0, 0]))
 
+BEZIER_MATRIX_T = np.array((
+            [-1,  3, -3, 1],
+            [ 3, -6,  3, 0],
+            [-3,  3,  0, 0],
+            [ 1,  0,  0, 0]))
+
 
 B_SPLINE_MATRIX = np.array((
             [-1/6,  1/2, -1/2, 1/6],
@@ -101,19 +107,9 @@ class BicubicSurface(Wireframe3D):
         Dz[0][1] += Dz[0][2]
         Dz[0][2] += Dz[0][3]
 
-    def forward_difference_points(delta_s, delta_t, control_matrix):
+    def forward_difference_surface(DDx, DDy,DDz,n_s,n_t):
 
-
-        n_s = int(1/delta_s)
-        n_t = int(1/delta_t)
-
-        Gx = control_matrix[:,:, 0]
-        Gy = control_matrix[:,:, 1]
-        Gz = control_matrix[:,:, 2]
-        
-        (DDx,DDy,DDz) = BicubicSurface.create_forward_difference_matrix(delta_s,delta_t,Gx,Gy,Gz,delta_s,delta_t)
-
-        p = np.array([[None]*int(n_t)]*int(n_s))
+        p = np.array([[None]*n_t]*n_s)
 
         for i in range(0,n_s):
             curve = list()
@@ -123,34 +119,64 @@ class BicubicSurface(Wireframe3D):
             curr_DDz = DDz.copy()
 
             for j in range(0,n_t):
-                p[i][j] = np.array([curr_DDx[0][0],curr_DDy[0][0],curr_DDz[0][0],1.0])
+                p[i][j] = np.array([round(curr_DDx[0][0],1),round(curr_DDy[0][0],1),round(curr_DDz[0][0],1),1.0])
                 BicubicSurface.update_forward_difference(curr_DDx, curr_DDy, curr_DDz)
             
             BicubicSurface.update_forward_difference_matrixes(DDx, DDy, DDz)
             
         return p
 
+    def spline_surface_points(delta_s, delta_t, control_points):
+
+        n_t = int(1/delta_t)
+        n_s = int(1/delta_s)
+
+        num_rows, num_cols, _ = np.shape(control_points)
+
+        patch_points = None
+        points = np.empty(((num_rows-3)*n_s, (num_cols-3)*n_t), dtype=object)
+
+        for row in range(num_rows-3):
+            for col in range(num_cols-3):
+
+                Gx = control_points[row:row+4,col:col+4,0]
+                Gy = control_points[row:row+4,col:col+4,1]
+                Gz = control_points[row:row+4,col:col+4,2]
+
+                
+                (DDx,DDy,DDz) = BicubicSurface.create_forward_difference_matrix(delta_s,delta_t,Gx,Gy,Gz,delta_s,delta_t)
+                patch_points = BicubicSurface.forward_difference_surface(DDx, DDy,DDz,n_s,n_t)
+
+
+                for i in range(n_s):
+                    for j in range(n_t):
+                        points[(row*n_s)+i][(col*n_t)+j] = patch_points[i][j]
+
+
+        return points
 
 
 
-    def bezier_patch_points(delta, control_matrix):
+
+    def bezier_surface_points(delta_s, delta_t, control_matrix):
         curves = list()
 
-        n = int(1/delta)
+        n_s = int(1/delta_s)
+        n_t = int(1/delta_t)
 
         T = list()
-        for j in range(n+1):
-            t = j*delta
+        for j in range(n_t+1):
+            t = j*delta_t
             T.append(np.array((t*t*t, t*t, t, 1)))
 
         S = list()
-        for i in range(n+1):
-            s = i*delta
+        for i in range(n_s+1):
+            s = i*delta_s
             S.append(np.array((s*s*s, s*s, s, 1)))
 
 
         num_rows, num_cols, _ = np.shape(control_matrix)
-        p = np.array([[None]*int(num_cols/3)*(n+1)]*int(num_rows/3)*(n+1))
+        p = np.array([[None]*int(num_cols/3)*(n_t+1)]*int(num_rows/3)*(n_s+1))
 
         for row in range(0, num_rows-2, 3):
             for col in range(0, num_cols-2, 3):
@@ -159,14 +185,14 @@ class BicubicSurface(Wireframe3D):
                 Gy = control_matrix[row:row+4,col:col+4, 1]
                 Gz = control_matrix[row:row+4,col:col+4, 2]
 
-                for i in range(n+1):
-                    for j in range(n+1):
-                        x_si_tj = S[i] @ BEZIER_MATRIX @ Gx @ BEZIER_MATRIX.T @ T[j] 
-                        y_si_tj = S[i] @ BEZIER_MATRIX @ Gy @ BEZIER_MATRIX.T @ T[j] 
-                        z_si_tj = S[i] @ BEZIER_MATRIX @ Gz @ BEZIER_MATRIX.T @ T[j]
+                for i in range(n_s+1):
+                    for j in range(n_t+1):
+                        x_si_tj = S[i] @ BEZIER_MATRIX @ Gx @ BEZIER_MATRIX_T @ T[j] 
+                        y_si_tj = S[i] @ BEZIER_MATRIX @ Gy @ BEZIER_MATRIX_T @ T[j] 
+                        z_si_tj = S[i] @ BEZIER_MATRIX @ Gz @ BEZIER_MATRIX_T @ T[j]
                         point = np.array([x_si_tj, y_si_tj, z_si_tj,1])
 
-                        p[((int(row/3))*(n+1))+i][((int(col/3))*(n+1))+j] = point
+                        p[((int(row/3))*(n_s+1))+i][((int(col/3))*(n_t+1))+j] = point
 
         return p
 
@@ -177,10 +203,10 @@ class BicubicSurface(Wireframe3D):
 
         points_matrix = None
         if(self.obj_type == ObjType.BEZIER_SURFACE):
-            points_matrix = BicubicSurface.bezier_patch_points(d,control_matrix)
+            points_matrix = BicubicSurface.bezier_surface_points(d,d,control_matrix)
         if(self.obj_type == ObjType.SPLINE_SURFACE):
-            points_matrix = BicubicSurface.forward_difference_points(d,d,control_matrix)
-            
+            points_matrix = BicubicSurface.spline_surface_points(d,d,control_matrix)
+
         (rows, cols) = np.shape(points_matrix)
         for i in range(rows-1):
             for j in range(cols-1):
@@ -198,9 +224,9 @@ class BicubicSurface(Wireframe3D):
         points_matrix = None
 
         if(self.obj_type == ObjType.BEZIER_SURFACE):
-            points_matrix = BicubicSurface.bezier_patch_points(d,control_matrix)
+            points_matrix = BicubicSurface.bezier_surface_points(d,d,control_matrix)
         if(self.obj_type == ObjType.SPLINE_SURFACE):
-            points_matrix = BicubicSurface.forward_difference_points(d,d,control_matrix)
+            points_matrix = BicubicSurface.spline_surface_points(d,d,control_matrix)
 
         (rows, cols) = np.shape(points_matrix)
         for i in range(rows-1):

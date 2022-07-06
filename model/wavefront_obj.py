@@ -163,13 +163,20 @@ class WavefrontObj:
                             if(curr_obj in  objects):
                                 objects.remove(curr_obj)
 
-                    curr_name = line[1]
+                    curr_name = ""
+                    if(len(line)>1):
+                        curr_name = line[1]
                     curr_type = line[0]
                     curr_obj = GraphicObject(name=curr_name)
                     objects.append(curr_obj)
 
                 elif(line[0] == "usemtl"):
-                    curr_color = curr_mtl_to_hex[line[1]]
+                    if(len(line) == 1):
+                        curr_color = "#F0F0F0"
+                    else:
+                        material = line[1].split(".")[0]
+                        curr_color = curr_mtl_to_hex[material]
+
 
                 elif(line[0] == "p" or line[0] == "l" or line[0] == "f"):
                     obj_vertices = (last_vertex, [int(vertex.split("/")[0]) for vertex in line[1:]])
@@ -229,14 +236,6 @@ class WavefrontObj:
             objects.append(ungrouped)
 
         return (objects, window)
-
-    def load(obj,mtlib_map, name):
-
-        (objects, window) = WavefrontObj.compose(obj,mtlib_map)
-        single_object = GraphicObject(name = name)
-        for obj in objects:
-            single_object.elements += obj.elements
-        return ([single_object], window)
 
 
     def get_mtl_to_hex(mtlib_map, mtlib_name):

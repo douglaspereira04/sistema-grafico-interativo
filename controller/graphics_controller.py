@@ -58,6 +58,7 @@ class GraphicsController:
 
         self.view.load_from_file.triggered.connect(self.load_from_file)
         self.view.save_to_file.triggered.connect(self.save_to_file)
+        self.view.import_as_object.triggered.connect(self.import_as_object)
         self.view.enable_clipping.triggered.connect(self.config_clipping)
         self.view.lian_barsk.triggered.connect(self.config_clipping)
         self.view.cohen_sutherland.triggered.connect(self.config_clipping)
@@ -195,7 +196,15 @@ class GraphicsController:
                 f.close()
                 mtlib_map[mtlib_name] = mtlib_data
             
-            (objects, window_inf) = WavefrontObj.compose(obj_data,mtlib_map)
+            return WavefrontObj.compose(obj_data,mtlib_map)
+        return None
+
+    def load_from_file(self):
+
+        file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
+        obj_data = self.load_file(file_name)
+        if(not(obj_data is None)):
+            (objects, window_inf) = obj_data
             self.erase()
 
             self.graphic.objects = objects
@@ -206,13 +215,30 @@ class GraphicsController:
             self.draw()
             self.make_list()
 
-    def load_from_file(self):
+            self.log("Load from file: "+file_name[0]+";")
+
+    def import_as_object(self):
 
         file_name = QFileDialog.getOpenFileName(self.view, 'Open file', '',"Obj files (*.obj)")
-        self.load_file(file_name)
+        obj_data = self.load_file(file_name)
         
+        if(not(obj_data is None)):
 
-        self.log("Load from file: "+file_name[0]+";")
+            (objects, window_inf) = obj_data
+            name = os.path.splitext(os.path.basename(file_name[0]))[0]
+            single_object = GraphicObject(name = name)
+            for obj in objects:
+                single_object.elements += obj.elements
+
+            self.erase()
+
+            self.graphic.objects.append(single_object)
+
+            self.draw()
+            self.make_list()
+
+            self.log("Import from file: "+file_name[0]+";")
+
 
 
 

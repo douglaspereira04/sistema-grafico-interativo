@@ -57,3 +57,6 @@ Arquivos .obj podem ser salvos ou carregados pelo programa através do menu "Fil
 Os arquivos aceitam entradas de vértices (v), cores (usemtl), objetos(o), que são ou pontos(p), ou linhas ou wireframes(l) ou poligonos fechados(f).<br>
 As cores são carregados dos arquivos definidos em mtlib
 Os arquivos mtlib devem estar no mesmo diretório do arquivo .obj carregado.<br>
+<br>
+Alguns arquivos de exemplo estão na pasta "sample_files".
+Alguns arquivos foram obtidos de https://people.sc.fsu.edu/~jburkardt/data/obj/obj.html e https://groups.csail.mit.edu/graphics/classes/6.837/F03/models/.

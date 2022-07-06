@@ -54,9 +54,11 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         file_menu = menu_bar.addMenu('File')
         self.load_from_file = QAction('Load from file', self)
         self.save_to_file = QAction('Save to file', self)
+        self.import_as_object = QAction('Import as Object', self)
 
         file_menu.addAction(self.load_from_file)
         file_menu.addAction(self.save_to_file)
+        file_menu.addAction(self.import_as_object)
 
         clipping_menu = menu_bar.addMenu('Clipping')
         self.enable_clipping = QAction('Clip', self)

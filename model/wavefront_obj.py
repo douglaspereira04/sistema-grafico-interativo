@@ -134,7 +134,7 @@ class WavefrontObj:
     def compose(obj,mtlib_map):
 
         objects = []
-
+        ungrouped = GraphicObject(name="ungrouped")
         element_to_vertices = dict()
         element_to_object = dict()
         curr_mtl_to_hex = None
@@ -172,7 +172,7 @@ class WavefrontObj:
                     curr_color = curr_mtl_to_hex[line[1]]
 
                 elif(line[0] == "p" or line[0] == "l" or line[0] == "f"):
-                    obj_vertices = (last_vertex, [int(vertex) for vertex in line[1:]])
+                    obj_vertices = (last_vertex, [int(vertex.split("/")[0]) for vertex in line[1:]])
                     length = len(obj_vertices[1])
                     last_vertex = len(vertices)-1
                     if(line[0] == "p"):
@@ -183,7 +183,11 @@ class WavefrontObj:
                         element = Wireframe3D(color=curr_color, filled=True)
 
                     element_to_vertices[element] = obj_vertices
-                    curr_obj.elements.append(element)
+                    
+                    if(curr_obj is None):
+                        ungrouped.elements.append(element)
+                    else:
+                        curr_obj.elements.append(element)
 
 
                 elif(line[0] == "w"):
@@ -210,7 +214,7 @@ class WavefrontObj:
                     element.set_coords(v)
 
         window = None
-        if(window_inf != None):
+        if(not(window_inf is None)):
             window = []
             last_vertex = window_inf[4]
             for i in range(4):
@@ -219,8 +223,50 @@ class WavefrontObj:
                     window.append(vertices[1+last_vertex+vertex])
                 elif(vertex>0):
                     window.append(vertices[vertex-1])
+            tuple(window)
 
-        return (objects, tuple(window))
+        if(len(ungrouped.elements)>0):
+            objects.append(ungrouped)
+
+        return (objects, window)
+
+    def load(obj,mtlib_map, name):
+
+        (objects, window) = WavefrontObj.compose(obj,mtlib_map)
+        single_object = GraphicObject(name = name)
+        for obj in objects:
+            single_object.elements += obj.elements
+        return ([single_object], window)
+
+
+    def get_mtl_to_hex(mtlib_map, mtlib_name):
+        mtl_to_hex = dict()
+
+        mtlib = mtlib_map[mtlib_name]
+
+        lines = mtlib.splitlines()
+
+        i = 0
+        while i < len(lines):
+            line = list(filter(None, re.split(r'\s|\t', lines[i])))
+
+            mtl = None
+            
+            if(len(line)>0):
+                if(line[0] == "newmtl"):
+                    mtl = line[1]
+
+                    while line[0] != "Kd":
+                        i+=1
+                        line = list(filter(None, re.split(r'\s|\t', lines[i])))
+
+                    (r,g,b) = (float(line[1])*255,float(line[2])*255,float(line[3])*255)
+                    _hex = WavefrontObj.rgb_to_hex(r,g,b)
+                    mtl_to_hex[mtl] = _hex
+
+
+            i+=1
+        return mtl_to_hex
 
     def get_mtl_to_hex(mtlib_map, mtlib_name):
         mtl_to_hex = dict()

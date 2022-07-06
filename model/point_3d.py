@@ -5,7 +5,7 @@ from model.transformation_3d import Transformation3D
 import numpy as np
 
 class Point3D(GraphicElement):
-    def __init__(self, coords=(0,0,0), color="black"):
+    def __init__(self, coords=(0.,0.,0.), color="black"):
         self.coords = np.array([coords[0],coords[1],coords[2], 1])
         super().__init__(obj_type=ObjType.POINT, color=color)
         self.projected = None
@@ -31,6 +31,10 @@ class Point3D(GraphicElement):
         self.coords[2] = coords[2]
 
 
+    def get_vertices(self):
+        return [self.coords]
+
+
     """
     Retorna ponto projetado e clippado
     """
@@ -39,7 +43,7 @@ class Point3D(GraphicElement):
         coords = np.array([x/w, y/w, 1])
         coords = Clipper.point_clipping(coords)
         if(not(coords is None)):
-            self.projected = coords @ viewport_transformation_matrix
+            self.projected =  Transformation3D.transform_point(coords, viewport_transformation_matrix)
 
 
     """

@@ -38,7 +38,7 @@ class Transformation3D:
 
 	def rotation_x_matrix(rad, center = None):
 		if(center == None):
-			(x,y,z) = (0,0,0)
+			(x,y,z) = (0.,0.,0.)
 		else:
 			(x,y,z) = center
 
@@ -49,7 +49,7 @@ class Transformation3D:
 
 	def rotation_y_matrix(rad, center = None):
 		if(center == None):
-			(x,y,z) = (0,0,0)
+			(x,y,z) = (0.,0.,0.)
 		else:
 			(x,y,z) = center
 
@@ -61,7 +61,7 @@ class Transformation3D:
 
 	def rotation_z_matrix(rad, center = None):
 		if(center == None):
-			(x,y,z) = (0,0,0)
+			(x,y,z) = (0.,0.,0.)
 		else:
 			(x,y,z) = center
 
@@ -95,20 +95,20 @@ class Transformation3D:
 		))
 
 		A =  np.array((
-		[0,     -a[2], a[1] ],
-		[a[2],  0,     -a[0]],
-		[-a[1], a[0],  0    ]
+		[0.,     -a[2], a[1] ],
+		[a[2],  0.,     -a[0]],
+		[-a[1], a[0],  0.    ]
 		))
 
-		identity = np.array(([1,0,0],[0,1,0],[0,0,1]))
+		identity = np.array(([1.,0.,0.],[0.,1.,0.],[0.,0.,1.]))
 
 		m1 = identity * _cos
 		m2 = aa * (1-_cos)
 		m3 = A * (_sin)
 
 		R = m1 + m2 + m3
-		R = np.hstack((R, [[0],[0],[0]]))
-		R = np.vstack((R, [0,0,0,1]))
+		R = np.hstack((R, [[0.],[0.],[0.]]))
+		R = np.vstack((R, [0.,0.,0.,1.]))
 
 		rotation_matrix = None
 
@@ -161,7 +161,7 @@ class Transformation3D:
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
 	def transform_point(point, transformation_matrix):
-		return point @ transformation_matrix
+		return point.dot(transformation_matrix)
 
 
 class Rotation3D(Transformation3D):
@@ -184,7 +184,7 @@ class Rotation3D(Transformation3D):
 		elif(self.rotation_type == Rotation3DType.OBJECT_CENTER):
 			center = (x,y,z)
 		else:
-			center = (0,0,0)
+			center = (0.,0.,0.)
 
 		if(self.rotation_axis == RotationAxis.X):
 			rotation_matrix = Transformation3D.rotation_x_matrix(self.rad, center)
@@ -224,8 +224,8 @@ class Scaling3D(Transformation3D):
 		super().__init__(Transformation3DType.SCALING)
 		self.factor = factor
 
-	def get_matrix(self, x = 0, y = 0, z = 0):
-		if(x != 0 or y!= 0 or z!= 0):
+	def get_matrix(self, x = 0., y = 0., z = 0.):
+		if(x != 0. or y!= 0. or z!= 0.):
 			return Transformation3D.translation_matrix(-x, -y, -z) @ Transformation3D.scaling_matrix(self.factor,self.factor,self.factor) @ Transformation3D.translation_matrix(x, y, z)
 		else:
 			return Transformation3D.scaling_matrix(self.factor,self.factor,self.factor)

@@ -26,18 +26,18 @@ class Graphics:
         tamanho da window igual o tamanho da viewport
         """
         self.viewport = {
-            "x_max": 0, 
-            "x_min": 0,
-            "y_max": 0, 
-            "y_min": 0
+            "x_max": 0., 
+            "x_min": 0.,
+            "y_max": 0., 
+            "y_min": 0.
         }
         self.window = {
-            "width": 0,
-            "height": 0,
-            "depth": 20
+            "width": 0.,
+            "height": 0.,
+            "depth": 20.0
         }
 
-        self.border = 20
+        self.border = 20.0
         self.line_clipping = LineClipping.LIAN_BARSK
         self.enable_clipping = True
         self.default_window = None
@@ -46,7 +46,7 @@ class Graphics:
         self.vpn = Point3D(np.array([0.,0.,1.,1.]))
         self.vup = Point3D(np.array([0.,1.,0.,1.]))
 
-        self.cop_d = 100
+        self.cop_d = 100.0
 
 
     def window_width(self):
@@ -231,5 +231,5 @@ class Graphics:
         c1 = (w - (b*2)) / 2
         c2 = (h - (b*2)) / 2
 
-        return np.array([[c1,0,0],[0,-c2,0],[c1+b,c2+b,1]])
+        return np.array([[c1,0.,0.],[0.,-c2,0.],[c1+b,c2+b,1.]])
 

@@ -114,12 +114,17 @@ class GraphicsController:
     def object_rotate(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
 
+        transformation_list = list()
         selected = self.view.side_menu.list.currentRow()
-        if(selected != -1 and y_diff != 0):
-            transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.coords[:3], y_diff, 0, 0, 0)
-            transformation_list = list()
-            transformation_list.append(transformation)
-            self.transform_object(transformation_list)
+        if(selected != -1):
+            if(y_diff != 0):
+                transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.coords[:3], y_diff, 0, 0, 0)
+                transformation_list.append(transformation)
+            if(x_diff != 0):
+                transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vup.coords[:3], x_diff, 0, 0, 0)
+                transformation_list.append(transformation)
+        
+        self.transform_object(transformation_list)
 
     def object_grab(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()

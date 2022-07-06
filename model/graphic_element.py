@@ -10,6 +10,7 @@ class GraphicElement:
         self.color = color
         self.filled = filled
         self.id = uuid.uuid1()
+        self.group = None
 
     def __hash__(self):
         return hash(self.id)
@@ -38,7 +39,7 @@ class GraphicElement:
     """
     def get_transformation_matrix(self, transformation):
 
-        center = self.center()
+        center = self.group.group_center
 
         if (transformation.transformation_type == Transformation3DType.ROTATION):
             if(transformation.rotation_type == Rotation3DType.OBJECT_CENTER):

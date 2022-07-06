@@ -119,7 +119,7 @@ class BicubicSurface(Wireframe3D):
             curr_DDz = DDz.copy()
 
             for j in range(0,n_t):
-                p[i][j] = np.array([round(curr_DDx[0][0],1),round(curr_DDy[0][0],1),round(curr_DDz[0][0],1),1.0])
+                p[i][j] = np.array([curr_DDx[0][0],curr_DDy[0][0],curr_DDz[0][0],1.0])
                 BicubicSurface.update_forward_difference(curr_DDx, curr_DDy, curr_DDz)
             
             BicubicSurface.update_forward_difference_matrixes(DDx, DDy, DDz)
@@ -241,7 +241,7 @@ class BicubicSurface(Wireframe3D):
                 projected = Clipper.sutherland_hodgman_clipping(projected_vertices)
                 if(not(projected is None)):
                     for k in range(len(projected)):
-                        v = np.array([projected[k][0], projected[k][1],1])
-                        projected[k] =  v @ viewport_transformation_matrix
+                        v = np.array([projected[k][0], projected[k][1],1.])
+                        projected[k] =  Transformation3D.transform_point(v, viewport_transformation_matrix)
                     
                     self.projected.append(projected)

@@ -57,14 +57,14 @@ class Wireframe3D(GraphicElement):
 
             if(not self.filled):
 
-                [x,y,z,w] = Transformation3D.transform_point(vertices[0], projection_matrix)
-                p0 = np.array([x/w, y/w])
 
                 if(line_clipping == LineClipping.LIAN_BARSK):
                     clipper = Clipper.lian_barsk_clipping
                 else:
                     clipper = Clipper.cohen_sutherland_clipping
 
+                [x,y,z,w] = Transformation3D.transform_point(vertices[0], projection_matrix)
+                p0 = np.array([x/w, y/w])
                 for i in range(len(vertices)-1):
 
                     [x,y,z,w] = Transformation3D.transform_point(vertices[i+1], projection_matrix)
@@ -76,8 +76,8 @@ class Wireframe3D(GraphicElement):
                         [v0, v1] = clipped
                         v0 = np.array([v0[0], v0[1],1])
                         v1 = np.array([v1[0], v1[1],1])
-                        v0 =  v0 @ viewport_transformation_matrix
-                        v1 =  v1 @ viewport_transformation_matrix
+                        v0 =  Transformation3D.transform_point(v0, viewport_transformation_matrix)
+                        v1 =  Transformation3D.transform_point(v1, viewport_transformation_matrix)
                         projected_coords.append([v0, v1])
 
                     p0 = p1
@@ -91,7 +91,7 @@ class Wireframe3D(GraphicElement):
                 projected_coords = Clipper.sutherland_hodgman_clipping(projected_vertices)
                 if(not (projected_coords is None)):
                     for i in range(len(projected_coords)):
-                        v = np.array([projected_coords[i][0], projected_coords[i][1],1])
-                        projected_coords[i] =  v @ viewport_transformation_matrix
+                        v = np.array([projected_coords[i][0], projected_coords[i][1],1.0])
+                        projected_coords[i] =  Transformation3D.transform_point(v, viewport_transformation_matrix)
 
             self.projected =  projected_coords

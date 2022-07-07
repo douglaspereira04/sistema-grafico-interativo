@@ -218,6 +218,7 @@ class GraphicsController:
             self.draw()
             self.make_list()
 
+            self.update_graphics_info()
             self.log("Load from file: "+file_name[0]+";")
 
     def import_as_object(self):
@@ -601,6 +602,8 @@ class GraphicsController:
         self.erase()
         self.graphic.zoom(step)
         self.draw()
+
+        self.update_graphics_info()
         self.log("Zoom: "+str(step)+";")
 
 
@@ -615,6 +618,8 @@ class GraphicsController:
         self.graphic.pan(axis, step*direction)
 
         self.draw()
+
+        self.update_graphics_info()
         self.log("Panning: ("+str(axis.name)+" axis, "+str(step*direction)+");")
 
 
@@ -627,6 +632,8 @@ class GraphicsController:
         self.graphic.rotate(axis, math.radians(degrees)*direction)
 
         self.draw()
+
+        self.update_graphics_info()
         self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")
 
 
@@ -672,3 +679,14 @@ class GraphicsController:
             self.graphic.perspective = False
 
         self.draw()
+
+    def update_graphics_info(self):
+        v_w = self.graphic.viewport_width()
+        v_h = self.graphic.viewport_height()
+        w_w = self.graphic.window_width()
+        w_h = self.graphic.window_height()
+        cop_d = self.graphic.window_depth()/2
+
+        self.view.viewport_info.setText(str(round(v_w,2))+" x "+ str(round(v_h,2)))
+        self.view.window_info.setText(str(round(w_w,2))+" x "+ str(round(w_h,2)))
+        self.view.cop_d_input.setText(str(round(cop_d,2)))

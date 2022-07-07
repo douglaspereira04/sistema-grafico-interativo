@@ -127,8 +127,6 @@ class Graphics:
 
         (x,y,z,_) = vup
         z_angle = math.atan2(x, y)
-        vpn = Transformation3D.transform_point(vpn, Transformation3D.rotation_z_matrix(z_angle))
-        vup = Transformation3D.transform_point(vup, Transformation3D.rotation_z_matrix(z_angle))
 
         return (x_angle, y_angle, z_angle)
 
@@ -210,7 +208,7 @@ class Graphics:
                 [1.,0.,0.,0.], 
                 [0.,1.,0.,0.], 
                 [0.,0.,1.,0],
-                [0.,0.,1.0/d_factor,1.]
+                [0.,0.,1.0/d_factor,0.]
             ]))
 
         return translation_matrix @ rotation_matrix @ scaling_matrix @ perspective_matrix

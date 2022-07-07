@@ -54,7 +54,6 @@ class Wireframe3D(GraphicElement):
         else:
             projected_coords = []
 
-
             if(not self.filled):
 
 
@@ -64,7 +63,7 @@ class Wireframe3D(GraphicElement):
                     clipper = Clipper.cohen_sutherland_clipping
 
                 [x,y,z,w] = Transformation3D.transform_point(vertices[0], projection_matrix)
-                p0 = np.array([x/w, y/w])
+                p0 = [x/w, y/w]
                 for i in range(len(vertices)-1):
 
                     [x,y,z,w] = Transformation3D.transform_point(vertices[i+1], projection_matrix)

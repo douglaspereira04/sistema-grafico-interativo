@@ -37,12 +37,12 @@ class GraphicsController:
         self.view.side_menu.zoomed_in.connect(lambda : self.zoom_button(1))
         self.view.side_menu.zoomed_out.connect(lambda : self.zoom_button(-1))
 
-        self.view.side_menu.up.connect(lambda : self.pan(Axis.Y,1))
-        self.view.side_menu.down.connect(lambda : self.pan(Axis.Y,-1))
-        self.view.side_menu.left.connect(lambda : self.pan(Axis.X, 1))
-        self.view.side_menu.right.connect(lambda : self.pan(Axis.X,-1))
-        self.view.side_menu.forward.connect(lambda : self.pan(Axis.Z, 1))
-        self.view.side_menu.backward.connect(lambda : self.pan(Axis.Z,-1))
+        self.view.side_menu.up.connect(lambda : self.pan_button(Axis.Y,1))
+        self.view.side_menu.down.connect(lambda : self.pan_button(Axis.Y,-1))
+        self.view.side_menu.left.connect(lambda : self.pan_button(Axis.X, 1))
+        self.view.side_menu.right.connect(lambda : self.pan_button(Axis.X,-1))
+        self.view.side_menu.forward.connect(lambda : self.pan_button(Axis.Z, 1))
+        self.view.side_menu.backward.connect(lambda : self.pan_button(Axis.Z,-1))
 
 
         self.view.show()
@@ -88,13 +88,13 @@ class GraphicsController:
     def canvas_pan(self):
         
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()    
-        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())/10
-        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())/10
+        x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
+        y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
         if(x_diff != 0):
-            self.pan(Axis.X,x_diff)
+            self.pan(Axis.X,x_diff,1)
 
         if(y_diff != 0):
-            self.pan(Axis.Y,y_diff)
+            self.pan(Axis.Y,y_diff,1)
 
 
     def canvas_rotate_xy(self):
@@ -478,12 +478,11 @@ class GraphicsController:
     """
     Desenha os objetos dado um painter.
     """
-    def draw_color(self, color):
+    def draw_objects(self, color, painter):
         objects = self.graphic.objects
         line_clipping = self.graphic.line_clipping
 
         display = list()
-        painter = self.view.canvas.get_painter()
         if(not (color is None)):
             painter.setPen(color)
             painter.setBrush(QtGui.QBrush(color))
@@ -539,15 +538,23 @@ class GraphicsController:
                         painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
                     painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])
 
-    def draw(self):
-        self.draw_color(None)
+    def draw(self,color = None, painter = None):
+        try:
+            if (painter is None):
+                painter = self.view.canvas.get_painter()
+            self.draw_objects(color, painter)
+        except TypeError as e:
+            self.graphic.pan(Axis.Z,0.001)
+            self.draw(color, painter)
+            return
+
+        painter.end()
         color = QColor("#FFCFCF")
         self.draw_viewport_limits(color)
 
 
     def erase(self):
-        self.draw_color(self.bg_color)
-        self.draw_viewport_limits(self.bg_color)
+        self.draw(self.bg_color, None)
 
     def draw_viewport_limits(self, color):
         width = self.graphic.viewport_width()
@@ -586,11 +593,12 @@ class GraphicsController:
         self.log("Zoom: "+str(step)+";")
 
 
-
-    def pan(self, axis, direction):
+    def pan_button(self, axis, direction):
         self.reset_multiplier()
         step = float(self.view.side_menu.step.text())
+        self.pan(axis, direction, step)
 
+    def pan(self, axis, direction, step):
         self.erase()
         
         self.graphic.pan(axis, step*direction)

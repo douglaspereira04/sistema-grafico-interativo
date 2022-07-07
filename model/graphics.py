@@ -48,6 +48,8 @@ class Graphics:
 
         self.cop_d = 100.0
 
+        self.perspective = True
+
 
     def window_width(self):
         return self.window["width"]
@@ -203,15 +205,20 @@ class Graphics:
 
         scaling_matrix = Transformation3D.scaling_matrix(2/self.window_width(),2/self.window_height(), 2/self.window_depth())
         
-        d_factor = self.cop_d*(2/self.window_depth())
-        perspective_matrix = np.array(np.transpose([
+
+        if(self.perspective):
+            d_factor = self.cop_d*(2/self.window_depth())
+            perspective_matrix = np.array(np.transpose([
                 [1.,0.,0.,0.], 
                 [0.,1.,0.,0.], 
                 [0.,0.,1.,0],
                 [0.,0.,1.0/d_factor,0.]
             ]))
 
-        return translation_matrix @ rotation_matrix @ scaling_matrix @ perspective_matrix
+            return translation_matrix @ rotation_matrix @ scaling_matrix @ perspective_matrix
+        else:
+            return translation_matrix @ rotation_matrix @ scaling_matrix
+
 
 
 

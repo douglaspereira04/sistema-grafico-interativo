@@ -63,6 +63,9 @@ class GraphicsController:
         self.view.lian_barsk.triggered.connect(self.config_clipping)
         self.view.cohen_sutherland.triggered.connect(self.config_clipping)
 
+        self.view.perspective.triggered.connect(self.config_projection)
+        self.view.orthogonal.triggered.connect(self.config_projection)
+
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
 
@@ -648,5 +651,16 @@ class GraphicsController:
             self.graphic.line_clipping = LineClipping.LIAN_BARSK
         else:
             self.graphic.line_clipping = LineClipping.COHEN_SUTHERLAND
+
+        self.draw()
+
+
+    def config_projection(self):
+        self.erase()
+
+        if(self.view.perspective.isChecked()):
+            self.graphic.perspective = True
+        else:
+            self.graphic.perspective = False
 
         self.draw()

@@ -42,11 +42,9 @@ class Graphics:
         self.enable_clipping = True
         self.default_window = None
 
-        self.vrp = Point3D(np.array([0.,0.,0.,1.]))
+        self.cop = Point3D(np.array([0.,0.,0.,1.]))
         self.vpn = Point3D(np.array([0.,0.,1.,1.]))
         self.vup = Point3D(np.array([0.,1.,0.,1.]))
-
-        self.cop_d = 100.0
 
         self.perspective = True
 
@@ -74,7 +72,7 @@ class Graphics:
 
 
     def window_center(self):
-        return self.vrp.coords
+        return self.cop.coords
 
     def set_window_height(self, height, aspect):
         self.window["width"] = height*aspect
@@ -84,6 +82,9 @@ class Graphics:
         self.window["width"] = width
         self.window["height"] = width/aspect
 
+
+    def set_window_depth(self, depth):
+        self.window["depth"] = depth
 
     def reset_window(self):
         self.set_window(self.default_window)
@@ -104,7 +105,7 @@ class Graphics:
             self.set_window_height(height,aspect)
 
         self.default_window = window
-        self.vrp.set_coords(center)
+        self.cop.set_coords(center)
 
     def get_window(self):
         return (self.window_center(),(self.window_width(),self.window_height(),self.window_depth()), self.vpn.coords, self.vup.coords)
@@ -166,7 +167,7 @@ class Graphics:
 
         translation_matrix = Transformation3D.translation_matrix(axis[0]*steps, axis[1]*steps, axis[2]*steps)
 
-        self.vrp.transform(translation_matrix)
+        self.cop.transform(translation_matrix)
 
     def rotate(self, axis, rad):
         
@@ -193,7 +194,7 @@ class Graphics:
 
     def projection_normalization_matrix(self):
 
-        (x,y,z,_) = self.vrp.coords
+        (x,y,z,_) = self.cop.coords
         translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
 
         (x_angle, y_angle, z_angle) = self.get_angles()

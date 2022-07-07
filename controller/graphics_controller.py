@@ -79,7 +79,7 @@ class GraphicsController:
         self.view.canvas.scale.connect(self.object_scale)
         self.view.canvas.grab.connect(self.object_grab)
 
-
+        self.view.dop_input.editingFinished.connect(self.update_window_depth)
 
 
 
@@ -141,7 +141,7 @@ class GraphicsController:
 
             translation_vector = (x_diff, -y_diff, 0)
 
-            (x,y,z,_) = self.graphic.vrp.coords
+            (x,y,z,_) = self.graphic.cop.coords
             translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
 
             (x_angle, y_angle, z_angle) = self.graphic.get_angles()
@@ -304,6 +304,7 @@ class GraphicsController:
         self.reset_window_viewport_state()
         self.graphic.set_window(window)
         self.draw()
+        self.update_graphics_info()
 
 
     def get_element(self, name, _list, _type, color, filled):
@@ -680,13 +681,24 @@ class GraphicsController:
 
         self.draw()
 
+    def update_window_depth(self):
+        text = self.view.dop_input.text()
+        if(len(text)>0):
+            self.erase()
+            val = 2*float(eval(text))
+            self.graphic.set_window_depth(val)
+            self.draw()
+
+
     def update_graphics_info(self):
         v_w = self.graphic.viewport_width()
         v_h = self.graphic.viewport_height()
         w_w = self.graphic.window_width()
         w_h = self.graphic.window_height()
-        cop_d = self.graphic.window_depth()/2
+        dop = self.graphic.window_depth()/2
+        cop = self.graphic.cop.coords
 
         self.view.viewport_info.setText(str(round(v_w,2))+" x "+ str(round(v_h,2)))
         self.view.window_info.setText(str(round(w_w,2))+" x "+ str(round(w_h,2)))
-        self.view.cop_d_input.setText(str(round(cop_d,2)))
+        self.view.dop_input.setText(str(round(dop,2)))
+        self.view.cop_info.setText("("+str(round(cop[0],2))+","+str(round(cop[1],2))+","+str(round(cop[2],2))+")")

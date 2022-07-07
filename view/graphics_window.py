@@ -37,14 +37,17 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.canvas_layout.addWidget(self.log)
 
         self.viewport_label = QtWidgets.QLabel('Viewport:')
-        self.viewport_info = QtWidgets.QLabel("200 x 300")
+        self.viewport_info = QtWidgets.QLabel("0 x 0")
 
         self.window_label = QtWidgets.QLabel('Window:')
-        self.window_info = QtWidgets.QLabel("200 x 300")
+        self.window_info = QtWidgets.QLabel("0 x 0")
 
-        self.cop_d_label = QtWidgets.QLabel("COP Distance:")
-        self.cop_d_input = QtWidgets.QLineEdit()
-        self.cop_d_input.setValidator(QDoubleValidator());
+        self.cop_label = QtWidgets.QLabel('COP:')
+        self.cop_info = QtWidgets.QLabel("(0,0,0)")
+
+        self.dop_label = QtWidgets.QLabel("DOP:")
+        self.dop_input = QtWidgets.QLineEdit()
+        self.dop_input.setValidator(QDoubleValidator());
 
         self.canvas_control_layout.setAlignment(QtCore.Qt.AlignLeft)
         self.canvas_control_layout.addWidget(self.viewport_label)
@@ -53,8 +56,11 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.canvas_control_layout.addWidget(self.window_label)
         self.canvas_control_layout.addWidget(self.window_info)
         self.canvas_control_layout.addWidget(QtWidgets.QLabel(' | '))
-        self.canvas_control_layout.addWidget(self.cop_d_label)
-        self.canvas_control_layout.addWidget(self.cop_d_input)
+        self.canvas_control_layout.addWidget(self.cop_label)
+        self.canvas_control_layout.addWidget(self.cop_info)
+        self.canvas_control_layout.addWidget(QtWidgets.QLabel(' | '))
+        self.canvas_control_layout.addWidget(self.dop_label)
+        self.canvas_control_layout.addWidget(self.dop_input)
 
 
         self.log.setFixedHeight(60)

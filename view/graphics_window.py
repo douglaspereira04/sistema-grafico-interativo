@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QPlainTextEdit, QAction,QActionGroup, QComboBox, QLi
 from PyQt5.QtGui import QIntValidator, QFont
 from view.canvas import Canvas
 from view.side_menu import SideMenu
+from PyQt5.QtGui import QDoubleValidator
 
 class GraphicsWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -35,13 +36,25 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.canvas_layout.addWidget(self.canvas)
         self.canvas_layout.addWidget(self.log)
 
-        self.viewport_label = QtWidgets.QLabel('Viewport')
+        self.viewport_label = QtWidgets.QLabel('Viewport:')
+        self.viewport_info = QtWidgets.QLabel("200 x 300")
 
-        font = self.viewport_label.font()
-        size = font.pointSize()
-        self.viewport_label.setMaximumHeight(size+10)
+        self.window_label = QtWidgets.QLabel('Window:')
+        self.window_info = QtWidgets.QLabel("200 x 300")
+
+        self.cop_d_label = QtWidgets.QLabel("COP Distance:")
+        self.cop_d_input = QtWidgets.QLineEdit()
+        self.cop_d_input.setValidator(QDoubleValidator());
+
         self.canvas_control_layout.setAlignment(QtCore.Qt.AlignLeft)
         self.canvas_control_layout.addWidget(self.viewport_label)
+        self.canvas_control_layout.addWidget(self.viewport_info)
+        self.canvas_control_layout.addWidget(QtWidgets.QLabel(' | '))
+        self.canvas_control_layout.addWidget(self.window_label)
+        self.canvas_control_layout.addWidget(self.window_info)
+        self.canvas_control_layout.addWidget(QtWidgets.QLabel(' | '))
+        self.canvas_control_layout.addWidget(self.cop_d_label)
+        self.canvas_control_layout.addWidget(self.cop_d_input)
 
 
         self.log.setFixedHeight(60)
@@ -92,7 +105,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.projection_group.addAction(self.perspective);
         self.projection_group.addAction(self.orthogonal);
         self.projection_group.setExclusive(True)
-        
+
         projection_menu.addAction(self.perspective)
         projection_menu.addAction(self.orthogonal)
 

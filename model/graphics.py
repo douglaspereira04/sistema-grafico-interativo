@@ -207,7 +207,7 @@ class Graphics:
         
 
         if(self.perspective):
-            d_factor = self.cop_d*(2/self.window_depth())
+            d_factor = self.window_depth()/2
             perspective_matrix = np.array(np.transpose([
                 [1.,0.,0.,0.], 
                 [0.,1.,0.,0.], 

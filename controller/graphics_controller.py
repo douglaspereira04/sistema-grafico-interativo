@@ -552,7 +552,8 @@ class GraphicsController:
             return
 
         painter.end()
-        color = QColor("#FFCFCF")
+        if(color is None):
+            color = QColor("#FFCFCF")
         self.draw_viewport_limits(color)
 
 

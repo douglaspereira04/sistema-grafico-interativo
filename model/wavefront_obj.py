@@ -1,9 +1,9 @@
 from model.obj_type import ObjType
-from model.graphic_element import GraphicElement
-from model.graphic_object import GraphicObject
-from model.point_3d import Point3D
-from model.wireframe_3d import Wireframe3D
-from model.curve_object import CurveObject
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
+from model.graphics_3d.graphic_3d_object import Graphic3DObject
+from model.graphics_3d.point_3d import Point3D
+from model.graphics_3d.wireframe_3d import Wireframe3D
+from model.graphics_3d.curve_3d import Curve3D
 import re
 import numpy as np
 
@@ -76,14 +76,12 @@ class WavefrontObj:
 
                 obj_coords = None
 
-                if(element.obj_type == ObjType.POINT):
-                    obj_coords = [element.coords]
-                elif(element.obj_type == ObjType.BEZIER):
-                    obj_coords = CurveObject.blended_points(d, element.vertices)
+                if(element.obj_type == ObjType.BEZIER):
+                    obj_coords = Curve3D.blended_points(d, element.vertices)
                 elif(element.obj_type == ObjType.SPLINE):
-                    obj_coords = CurveObject.forward_difference_points(d, element.vertices)
+                    obj_coords = Curve3D.forward_difference_points(d, element.vertices)
                 else:
-                    obj_coords = element.vertices
+                    obj_coords = element.get_vertices()
 
                 _len = len(obj_coords)
                 for j in range(_len):
@@ -134,7 +132,7 @@ class WavefrontObj:
     def compose(obj,mtlib_map):
 
         objects = []
-        ungrouped = GraphicObject(name="ungrouped")
+        ungrouped = Graphic3DObject(name="ungrouped")
         element_to_vertices = dict()
         element_to_object = dict()
         curr_mtl_to_hex = None
@@ -167,7 +165,7 @@ class WavefrontObj:
                     if(len(line)>1):
                         curr_name = line[1]
                     curr_type = line[0]
-                    curr_obj = GraphicObject(name=curr_name)
+                    curr_obj = Graphic3DObject(name=curr_name)
                     objects.append(curr_obj)
 
                 elif(line[0] == "usemtl"):

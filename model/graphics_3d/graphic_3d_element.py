@@ -1,16 +1,16 @@
 from model.clipper import Clipper
-from model.transformation_3d import Transformation3D, Transformation3DType, Rotation3DType
-from model.display_object import DisplayObject
+from model.graphics_3d.transformation_3d import Transformation3D, Transformation3DType, Rotation3DType
 import uuid
 import numpy as np
 
-class GraphicElement:
+class Graphic3DElement:
     def __init__(self, obj_type=None, color="black", filled=False):
         self.obj_type = obj_type
         self.color = color
         self.filled = filled
         self.id = uuid.uuid1()
         self.group = None
+        self.projected = None
 
     def __hash__(self):
         return hash(self.id)

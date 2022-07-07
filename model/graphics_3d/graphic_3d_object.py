@@ -1,4 +1,4 @@
-class GraphicObject:
+class Graphic3DObject:
     def __init__(self, name, elements=None):
         self.elements = list()
         if(elements != None):
@@ -15,13 +15,13 @@ class GraphicObject:
 
         for element in self.elements:
             element.group = self
-            for vertex in element.vertices:
+            for vertex in element.get_vertices():
                 (x,y,z, _) = vertex
                 sum_x += x
                 sum_y += y
                 sum_z += z
 
-            _len += len(element.vertices)
+            _len += len(element.get_vertices())
 
 
         centroid_x = sum_x/_len

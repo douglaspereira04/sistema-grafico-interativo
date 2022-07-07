@@ -126,15 +126,6 @@ class Transformation3D:
 
 
 	"""
-	Transforma todos os pontos dado uma matriz de transformação
-	"""
-	def transform(coords, transformation_matrix):
-		if(len(transformation_matrix)>0):
-			for i in range(len(coords)):
-				coords[i] = Transformation3D.transform_3d_point(coords[i], transformation_matrix)
-
-
-	"""
 	Dada uma lista de matrizes de transformação
 	retorna a matriz resultante
 	"""
@@ -152,16 +143,16 @@ class Transformation3D:
 	"""
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
-	def transform_3d_point(point, transformation_matrix):
-		p = np.array(([point[0],point[1],point[2], 1]))
-		[x1,y1,z1,_] = p @ transformation_matrix
-		return (x1,y1,z1)
+	def transform_point(point, transformation_matrix):
+		return point.dot(transformation_matrix)
+
 
 	"""
 	Retorna o ponto transformado dado um ponto e uma matriz de transformação
 	"""
-	def transform_point(point, transformation_matrix):
-		return point.dot(transformation_matrix)
+	def project_point(point, projection_matrix):
+		[x,y,z,w] =  point.dot(projection_matrix)
+		return [x/w,y/w]
 
 
 class Rotation3D(Transformation3D):
@@ -217,7 +208,7 @@ class Translation3D(Transformation3D):
 		return Transformation3D.translation_matrix(x, y, z)
 
 	def __str__(self):
-		return str((self.transformation_type, self.x, self.y))
+		return str((self.transformation_type, self.x, self.y, self.z))
 
 class Scaling3D(Transformation3D):
 	def __init__(self, factor):

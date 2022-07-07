@@ -1,16 +1,15 @@
-from model.graphic_element import GraphicElement
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
-from model.transformation_3d import Transformation3D
+from model.graphics_3d.transformation_3d import Transformation3D
 import numpy as np
 
-class Wireframe3D(GraphicElement):
+class Wireframe3D(Graphic3DElement):
     def __init__(self, vertices=None, color="black", filled=False):
         self.vertices = list()
         if(vertices != None):
             self.vertices += vertices
         super().__init__(obj_type=ObjType.WIREFRAME, color=color, filled=filled)
-        self.projected = None
 
 
     def __str__(self):

@@ -1,14 +1,13 @@
-from model.graphic_element import GraphicElement
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.obj_type import ObjType
 from model.clipper import Clipper
-from model.transformation_3d import Transformation3D
+from model.graphics_3d.transformation_3d import Transformation3D
 import numpy as np
 
-class Point3D(GraphicElement):
+class Point3D(Graphic3DElement):
     def __init__(self, coords=(0.,0.,0.), color="black"):
         self.coords = np.array([coords[0],coords[1],coords[2], 1])
         super().__init__(obj_type=ObjType.POINT, color=color)
-        self.projected = None
 
     def __str__(self):
         return str(tuple(self.coords[:-1]))
@@ -43,7 +42,7 @@ class Point3D(GraphicElement):
         coords = np.array([x/w, y/w, 1])
         coords = Clipper.point_clipping(coords)
         if(not(coords is None)):
-            self.projected =  Transformation3D.transform_point(coords, viewport_transformation_matrix)
+            self.projected =  [Transformation3D.transform_point(coords, viewport_transformation_matrix)]
 
 
     """

@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 
 from controller.graphics_controller import GraphicsController
-from model.graphics import Graphics
+from model.graphics_3d.graphics_3d import Graphics
 from view.graphics_window import GraphicsWindow
 
 if __name__ == "__main__":

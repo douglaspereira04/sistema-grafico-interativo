@@ -1,14 +1,14 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
-from model.graphics import Axis
-from model.graphic_element import GraphicElement
-from model.graphic_object import GraphicObject
-from model.curve_object import CurveObject
-from model.point_3d import Point3D
-from model.wireframe_3d import Wireframe3D
-from model.bicubic_surface import BicubicSurface
+from model.graphics_3d.graphics_3d import Axis
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
+from model.graphics_3d.graphic_3d_object import Graphic3DObject
+from model.graphics_3d.curve_3d import Curve3D
+from model.graphics_3d.point_3d import Point3D
+from model.graphics_3d.wireframe_3d import Wireframe3D
+from model.graphics_3d.bicubic_surface import BicubicSurface
 from model.clipper import LineClipping
-from model.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
+from model.graphics_3d.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -139,7 +139,7 @@ class GraphicsController:
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1 and (x_diff != 0 or y_diff != 0)):
 
-            translation_vector = (x_diff, -y_diff, 0)
+            translation_vector = np.array([x_diff, -y_diff, 0., 1.])
 
             (x,y,z,_) = self.graphic.cop.coords
             translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
@@ -153,8 +153,8 @@ class GraphicsController:
 
             t_projection_matrix = np.transpose(translation_matrix @ rotation_matrix)
 
-            translation_vector = Translation3D.transform_3d_point(translation_vector,t_projection_matrix)
-            (x,y,z) = translation_vector
+            translation_vector = Translation3D.transform_point(translation_vector,t_projection_matrix)
+            (x,y,z,_) = translation_vector
 
             transformation = Translation3D(x,y,z)
             transformation_list = list()
@@ -230,7 +230,7 @@ class GraphicsController:
 
             (objects, window_inf) = obj_data
             name = os.path.splitext(os.path.basename(file_name[0]))[0]
-            single_object = GraphicObject(name = name)
+            single_object = Graphic3DObject(name = name)
             for obj in objects:
                 single_object.elements += obj.elements
 
@@ -329,7 +329,7 @@ class GraphicsController:
                 curve_type = ObjType.SPLINE
             elif(_type == "Bezier"):
                 curve_type = ObjType.BEZIER
-            return CurveObject(obj_type=curve_type, coords=control_points, color=color, filled=filled)
+            return Curve3D(obj_type=curve_type, coords=control_points, color=color, filled=filled)
         else:
             return None
 
@@ -357,7 +357,7 @@ class GraphicsController:
                 element = self.get_element(name, point_list, _type, color, filled)
                 element_list.append(element)
 
-        return GraphicObject(name, element_list)
+        return Graphic3DObject(name, element_list)
 
     def save_object(self):
 
@@ -518,7 +518,7 @@ class GraphicsController:
 
         if(element.obj_type == ObjType.POINT):
             if(not (projected is None)):
-                painter.drawPoint(projected[0], projected[1])
+                painter.drawPoint(projected[0][0], projected[0][1])
 
         elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
             if(len(projected) > 0):

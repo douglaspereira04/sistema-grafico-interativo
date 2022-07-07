@@ -1,11 +1,11 @@
-from model.graphic_element import GraphicElement
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
 import numpy as np
-from model.wireframe_3d import Wireframe3D
-from model.curve_object import CurveObject
-from model.point_3d import Point3D
-from model.transformation_3d import Transformation3D
+from model.graphics_3d.wireframe_3d import Wireframe3D
+from model.graphics_3d.curve_3d import Curve3D
+from model.graphics_3d.point_3d import Point3D
+from model.graphics_3d.transformation_3d import Transformation3D
 
 BEZIER_MATRIX = np.array((
             [-1,  3, -3, 1],

@@ -1,9 +1,9 @@
-from model.graphic_element import GraphicElement
+from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.clipper import Clipper, LineClipping
 from model.obj_type import ObjType
 import numpy as np
-from model.wireframe_3d import Wireframe3D
-from model.point_3d import Point3D
+from model.graphics_3d.wireframe_3d import Wireframe3D
+from model.graphics_3d.point_3d import Point3D
 
 BEZIER_MATRIX = np.array((
             [-1,  3, -3, 1],
@@ -24,7 +24,7 @@ def E(delta):
             [6*(delta**3),  0,            0,     0]
             ))
 
-class CurveObject(Wireframe3D):
+class Curve3D(Wireframe3D):
     def __init__(self, obj_type=None, coords=[], color="black", filled=False):
         super().__init__(vertices=coords, color=color, filled=filled)
         self.obj_type = obj_type
@@ -51,7 +51,7 @@ class CurveObject(Wireframe3D):
         for i in range(0, length-1, 3):
             curr_control_points = control_points[i:i+4]
             for j in range(n):
-                curve_points.append(CurveObject.bezier_point(j/n, curr_control_points))
+                curve_points.append(Curve3D.bezier_point(j/n, curr_control_points))
 
 
         return curve_points
@@ -90,7 +90,7 @@ class CurveObject(Wireframe3D):
 
         for i in range(1,n):
 
-            CurveObject.update_forward_difference(Dx, Dy, Dz)
+            Curve3D.update_forward_difference(Dx, Dy, Dz)
             points.append(np.array([Dx[0][0],Dy[0][0],Dz[0][0],1]))
 
         return points
@@ -101,8 +101,8 @@ class CurveObject(Wireframe3D):
         i = 0
         while i+3 < length:
             curr_control_points = control_points[i:i+4]
-            [Dx, Dy, Dz] = CurveObject.create_forward_difference_matrix(curr_control_points,delta)
-            curve_points += CurveObject.forward_difference(delta, Dx, Dy, Dz)
+            [Dx, Dy, Dz] = Curve3D.create_forward_difference_matrix(curr_control_points,delta)
+            curve_points += Curve3D.forward_difference(delta, Dx, Dy, Dz)
             i+=1
 
         return curve_points
@@ -111,8 +111,8 @@ class CurveObject(Wireframe3D):
 
     def project(self, vertices = None, projection_matrix = None, line_clipping = None, d = None, viewport_transformation_matrix = None):
         if(self.obj_type == ObjType.BEZIER):
-            vertices = CurveObject.blended_points(d, self.vertices)
+            vertices = Curve3D.blended_points(d, self.vertices)
         else:
-            vertices = CurveObject.forward_difference_points(d, self.vertices)
+            vertices = Curve3D.forward_difference_points(d, self.vertices)
 
         super().project(vertices, projection_matrix, line_clipping, d, viewport_transformation_matrix)

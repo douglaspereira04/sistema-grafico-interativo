@@ -80,29 +80,27 @@ class Clipper():
     Calcula a intersecção de uma reta com a borda da window, 
     dados dois pontos e uma regiao.
     """
-    def cohen_sutherland_intersect(vertex_1, vertex_2, region):
-        (x0,y0) = vertex_1
-        (x1,y1) = vertex_2
+    def cohen_sutherland_intersect(v0, v1, region):
 
         #Recalcula o ponto para os extremos
         if((region & RegionCode.LEFT.value) != 0b0000):
-            m = (y1-y0)/(x1-x0)
-            y0 = (m*(-1 - x0)) + y0
-            x0 = -1
+            m = (v1[1]-v0[1])/(v1[0]-v0[0])
+            v0[1] = (m*(-1 - v0[0])) + v0[1]
+            v0[0] = -1
         elif((region & RegionCode.RIGHT.value) != 0b0000):
-            m = (y1-y0)/(x1-x0)
-            y0 = ( m*(1 - x0)) + y0
-            x0 = 1
+            m = (v1[1]-v0[1])/(v1[0]-v0[0])
+            v0[1] = ( m*(1 - v0[0])) + v0[1]
+            v0[0] = 1
         if((region & RegionCode.TOP.value) != 0b0000):
-            m = (x1-x0)/(y1-y0)
-            x0 = x0 + m*(1 - y0)
-            y0 = 1
+            m = (v1[0]-v0[0])/(v1[1]-v0[1])
+            v0[0] = v0[0] + m*(1 - v0[1])
+            v0[1] = 1
         elif((region & RegionCode.BOTTOM.value) != 0b0000):
-            m = (x1-x0)/(y1-y0)
-            x0 = x0 + m*(-1 - y0)
-            y0 = -1
+            m = (v1[0]-v0[0])/(v1[1]-v0[1])
+            v0[0] = v0[0] + m*(-1 - v0[1])
+            v0[1] = -1
 
-        return (x0,y0)
+        return (v0[0],v0[1])
 
     """
     Calculates region code given a point
@@ -114,16 +112,15 @@ class Clipper():
         |    |
     0101|0100|0110
     """
-    def region_code(point):
-        (x,y) = point
+    def region_code(p):
         rc = 0
-        if(x < -1):
+        if(p[0] < -1):
             rc = rc | RegionCode.LEFT.value
-        if(x > 1):
+        if(p[0] > 1):
             rc = rc | RegionCode.RIGHT.value
-        if(y < -1):
+        if(p[1] < -1):
             rc = rc | RegionCode.BOTTOM.value
-        if(y > 1):
+        if(p[1] > 1):
             rc = rc | RegionCode.TOP.value
 
         return rc
@@ -140,19 +137,17 @@ class Clipper():
         Line deve ser uma lista com dois pontos.
         Cada ponto deve ser uma tupla com as coordanadas.
         """
-        [initial, final] = line
-        (x0,y0) = initial
-        (x1,y1) = final
+        [v0, v1] = line
 
-        p1 = -(x1 - x0)
+        p1 = -(v1[0] - v0[0])
         p2 = -p1
-        p3 = -(y1 - y0)
+        p3 = -(v1[1] - v0[1])
         p4 = -p3
         
-        q1 = x0 - (-1)
-        q2 = 1 - x0
-        q3 = y0 - (-1)
-        q4 = 1 - y0
+        q1 = v0[0] - (-1)
+        q2 = 1 - v0[0]
+        q3 = v0[1] - (-1)
+        q4 = 1 - v0[1]
         
         if ((p1 == 0 and q1 < 0) or (p2 == 0 and q2 < 0) or (p3 == 0 and q3 < 0) or (p4 == 0 and q4 < 0)):
             return None
@@ -174,8 +169,8 @@ class Clipper():
         if(zeta1 > zeta2):
             return None
         
-        (new_x0, new_y0) = initial
-        (new_x1, new_y1) = final
+        (new_x0, new_y0) = v0
+        (new_x1, new_y1) = v1
         
         if(zeta1 > 0):
             new_x0 = x0 + zeta1*(x1-x0)

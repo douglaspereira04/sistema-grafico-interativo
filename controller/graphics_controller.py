@@ -574,7 +574,14 @@ class GraphicsController:
         obj_list = []
         for ob in self.graphic.objects:
             if(len(ob.elements) == 1):
-                obj_list.append(ob.elements[0].obj_type.name + '(' + ob.name + ')')
+                _type = None
+
+                if(ob.elements[0].obj_type == ObjType.WIREFRAME and len(ob.elements[0].vertices) == 2):
+                    _type = ObjType.LINE
+                else:
+                    _type = ob.elements[0].obj_type
+
+                obj_list.append(_type.name + '(' + ob.name + ')')
             else:
                 obj_list.append('OBJECT (' + ob.name + ')')
 

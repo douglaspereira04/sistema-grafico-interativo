@@ -220,9 +220,6 @@ class Graphics:
             return translation_matrix @ rotation_matrix @ scaling_matrix
 
 
-
-
-
     """
     Transformação para viewport
      - Ajustado para a representação em sistema de coordenadas normalizado

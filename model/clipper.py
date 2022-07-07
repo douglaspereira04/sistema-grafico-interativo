@@ -80,27 +80,29 @@ class Clipper():
     Calcula a intersecção de uma reta com a borda da window, 
     dados dois pontos e uma regiao.
     """
-    def cohen_sutherland_intersect(v0, v1, region):
+    def cohen_sutherland_intersect(vertex_1, vertex_2, region):
+        (x0,y0) = (vertex_1[0],vertex_1[1])
+        (x1,y1) = (vertex_2[0],vertex_2[1])
 
         #Recalcula o ponto para os extremos
         if((region & RegionCode.LEFT.value) != 0b0000):
-            m = (v1[1]-v0[1])/(v1[0]-v0[0])
-            v0[1] = (m*(-1 - v0[0])) + v0[1]
-            v0[0] = -1
+            m = (y1-y0)/(x1-x0)
+            y0 = (m*(-1 - x0)) + y0
+            x0 = -1
         elif((region & RegionCode.RIGHT.value) != 0b0000):
-            m = (v1[1]-v0[1])/(v1[0]-v0[0])
-            v0[1] = ( m*(1 - v0[0])) + v0[1]
-            v0[0] = 1
+            m = (y1-y0)/(x1-x0)
+            y0 = ( m*(1 - x0)) + y0
+            x0 = 1
         if((region & RegionCode.TOP.value) != 0b0000):
-            m = (v1[0]-v0[0])/(v1[1]-v0[1])
-            v0[0] = v0[0] + m*(1 - v0[1])
-            v0[1] = 1
+            m = (x1-x0)/(y1-y0)
+            x0 = x0 + m*(1 - y0)
+            y0 = 1
         elif((region & RegionCode.BOTTOM.value) != 0b0000):
-            m = (v1[0]-v0[0])/(v1[1]-v0[1])
-            v0[0] = v0[0] + m*(-1 - v0[1])
-            v0[1] = -1
+            m = (x1-x0)/(y1-y0)
+            x0 = x0 + m*(-1 - y0)
+            y0 = -1
 
-        return (v0[0],v0[1])
+        return (x0,y0)
 
     """
     Calculates region code given a point
@@ -137,17 +139,19 @@ class Clipper():
         Line deve ser uma lista com dois pontos.
         Cada ponto deve ser uma tupla com as coordanadas.
         """
-        [v0, v1] = line
+        [initial, final] = line
+        (x0,y0) = (initial[0],initial[1])
+        (x1,y1) = (final[0],final[1])
 
-        p1 = -(v1[0] - v0[0])
+        p1 = -(x1 - x0)
         p2 = -p1
-        p3 = -(v1[1] - v0[1])
+        p3 = -(y1 - y0)
         p4 = -p3
         
-        q1 = v0[0] - (-1)
-        q2 = 1 - v0[0]
-        q3 = v0[1] - (-1)
-        q4 = 1 - v0[1]
+        q1 = x0 - (-1)
+        q2 = 1 - x0
+        q3 = y0 - (-1)
+        q4 = 1 - y0
         
         if ((p1 == 0 and q1 < 0) or (p2 == 0 and q2 < 0) or (p3 == 0 and q3 < 0) or (p4 == 0 and q4 < 0)):
             return None
@@ -169,8 +173,8 @@ class Clipper():
         if(zeta1 > zeta2):
             return None
         
-        (new_x0, new_y0) = v0
-        (new_x1, new_y1) = v1
+        (new_x0, new_y0) = initial
+        (new_x1, new_y1) = final
         
         if(zeta1 > 0):
             new_x0 = x0 + zeta1*(x1-x0)

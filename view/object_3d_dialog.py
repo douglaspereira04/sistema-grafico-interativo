@@ -155,9 +155,9 @@ class Object3DDialog(QDialog):
         if(_type=="Point"):
             self.coordinates.setPlaceholderText("(x,y,z)")
         elif(_type=="Bezier"):
-            self.coordinates.setPlaceholderText("(x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+            self.coordinates.setPlaceholderText("(x0,y0,z0),(x1,y1,z1),(x2,y2,z2),...,(xn,yn,zn)")
         elif(_type=="Spline"):
-            self.coordinates.setPlaceholderText("(x0,y0,0),(x1,y1,0),(x2,y2,0),...,(xn,yn,0)")
+            self.coordinates.setPlaceholderText("(x0,y0,z0),(x1,y1,z1),(x2,y2,z2),...,(xn,yn,zn)")
         elif(_type=="Line/Wireframe"):
             self.coordinates.setPlaceholderText("(x0,y0,z0),(x1,y1,z1),...,(xn,yn,zn)")
         elif(_type=="Object (Points/Lines/Wireframes)"):

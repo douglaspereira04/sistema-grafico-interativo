@@ -48,7 +48,7 @@ class Wireframe2D(Graphic2DElement):
     def normalize(self, vertices = None, normalization_matrix = None, line_clipping = None, d = None, viewport_transformation_matrix = None):
 
         if(vertices is None):
-            self.project(self.vertices, normalization_matrix, line_clipping, d, viewport_transformation_matrix) 
+            self.normalize(self.vertices, normalization_matrix, line_clipping, d, viewport_transformation_matrix) 
         else:
             viewport_points = []
 

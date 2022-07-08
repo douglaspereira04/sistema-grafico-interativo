@@ -37,10 +37,10 @@ class Point2D(Graphic2DElement):
     Retorna ponto projetado e clippado
     """
     def normalize(self, vertices = None, normalization_matrix = None, line_clipping = None, d = None, viewport_transformation_matrix = None):
-        scn_coords = Transformation2D.transform_point(self.coords , projection_matrix)
+        scn_coords = Transformation2D.transform_point(self.coords , normalization_matrix)
         scn_coords = Clipper.point_clipping(scn_coords)
         if(not(scn_coords is None)):
-            self.viewported =  Transformation2D.transform_point(scn_coords, viewport_transformation_matrix)
+            self.viewported =  [Transformation2D.transform_point(scn_coords, viewport_transformation_matrix)]
 
 
     """

@@ -119,12 +119,19 @@ class Graphics2D:
 
 
     def pan(self, axis, steps):
+        translation_vector = None
         if(axis == Axis.X):
-            axis = self.vrv.coords
+            translation_vector = np.array([steps, 0., 1.])
         elif(axis == Axis.Y):
-            axis = self.vup.coords
+            translation_vector = np.array([0., steps, 1.])
 
-        translation_matrix = Transformation2D.translation_matrix(axis[0]*steps, axis[1]*steps)
+        vup_angle = self.get_vup_angle()
+        rotation_matrix = Transformation2D.rotation_matrix(-vup_angle)
+
+        translation_vector = Transformation2D.transform_point(translation_vector,rotation_matrix)
+        (x,y,_) = translation_vector
+
+        translation_matrix = Transformation2D.translation_matrix(x,y)
 
         self.center.transform(translation_matrix)
 

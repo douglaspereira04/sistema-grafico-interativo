@@ -97,7 +97,7 @@ class Graphics2DController:
         x_diff = x_diff*(self.graphic.window_width()/self.graphic.viewport_width())
         y_diff = y_diff*(self.graphic.window_height()/self.graphic.viewport_height())
         if(x_diff != 0):
-            self.pan(Axis.X,x_diff,1)
+            self.pan(Axis.X,x_diff,-1)
 
         if(y_diff != 0):
             self.pan(Axis.Y,y_diff,1)
@@ -116,7 +116,7 @@ class Graphics2DController:
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1):
             if(y_diff != 0 or x_diff != 0):
-                transformation = Rotation2D(Rotation2DType.OBJECT_CENTER, x_diff+y_diff, 0, 0, 0)
+                transformation = Rotation2D(Rotation2DType.OBJECT_CENTER, x_diff+y_diff, 0, 0)
                 transformation_list.append(transformation)
         
         self.transform_object(transformation_list)
@@ -130,17 +130,12 @@ class Graphics2DController:
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1 and (x_diff != 0 or y_diff != 0)):
 
-            translation_vector = np.array([x_diff, -y_diff, 0., 1.])
-
-            (x,y,_) = self.graphic.center.coords
-            translation_matrix = Transformation2D.translation_matrix(-x,-y)
+            translation_vector = np.array([x_diff, -y_diff, 1.])
 
             vup_angle = self.graphic.get_vup_angle()
-            rotation_matrix = Transformation2D.rotation_matrix(vup_angle)
+            rotation_matrix = Transformation2D.rotation_matrix(-vup_angle)
 
-            t_projection_matrix = np.transpose(translation_matrix @ rotation_matrix)
-
-            translation_vector = Translation2D.transform_point(translation_vector,t_projection_matrix)
+            translation_vector = Transformation2D.transform_point(translation_vector,rotation_matrix)
             (x,y,_) = translation_vector
 
             transformation = Translation2D(x,y)
@@ -330,7 +325,7 @@ class Graphics2DController:
 
     def save_object(self):
 
-        dialog = ObjectDialog()
+        dialog = Object2DDialog()
 
         if dialog.exec():
             obj = None
@@ -373,7 +368,7 @@ class Graphics2DController:
             else:
                 _type = "Object (Points/Lines/Wireframes)"
 
-            dialog = ObjectDialog(self.view, name, coords, color, filled, _type)
+            dialog = Object2DDialog(self.view, name, coords, color, filled, _type)
             result = dialog.exec()
             if (result):
                 obj = None
@@ -467,7 +462,7 @@ class Graphics2DController:
             
             for obj in objects:
                 for element in obj.elements:
-                    element.project(None, normalization_matrix, line_clipping, d,viewport_transformation_matrix)
+                    element.normalize(None, normalization_matrix, line_clipping, d,viewport_transformation_matrix)
                     color = QtGui.QColor(element.color)
                     self.draw_element(element, color, painter)
 
@@ -582,7 +577,7 @@ class Graphics2DController:
         self.draw()
 
         self.update_graphics_info()
-        self.log("Rotate: ("+str(axis.name)+" axis, "+str(degrees*direction)+");")
+        self.log("Rotate: "+str(degrees*direction)+";")
 
 
     def rotate_button(self, direction):

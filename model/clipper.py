@@ -172,9 +172,9 @@ class Clipper():
 
         if(zeta1 > zeta2):
             return None
-        
-        (new_x0, new_y0) = initial
-        (new_x1, new_y1) = final
+
+        (new_x0,new_y0) = (initial[0],initial[1])
+        (new_x1,new_y1) = (final[0],final[1])
         
         if(zeta1 > 0):
             new_x0 = x0 + zeta1*(x1-x0)

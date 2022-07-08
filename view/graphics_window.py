@@ -99,7 +99,7 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         clipping_menu.addAction(self.lian_barsk)
         clipping_menu.addAction(self.cohen_sutherland)
 
-        projection_menu = menu_bar.addMenu('Projection')
+        self.projection_menu = menu_bar.addMenu('Projection')
         
         self.perspective = QAction('Perspective', self)
         self.perspective.setCheckable(True);
@@ -112,8 +112,8 @@ class GraphicsWindow(QtWidgets.QMainWindow):
         self.projection_group.addAction(self.orthogonal);
         self.projection_group.setExclusive(True)
 
-        projection_menu.addAction(self.perspective)
-        projection_menu.addAction(self.orthogonal)
+        self.projection_menu.addAction(self.perspective)
+        self.projection_menu.addAction(self.orthogonal)
 
         #test_menu = menu_bar.addMenu('Test')
         self.test_normalization = QAction('Normalization Demonstration', self)

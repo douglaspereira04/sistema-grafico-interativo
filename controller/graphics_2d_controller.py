@@ -1,14 +1,13 @@
 from view.object_dialog import ObjectDialog
 from view.transformation_dialog import TransformationDialog
-from model.graphics_3d.graphics_3d import Axis
-from model.graphics_3d.graphic_3d_element import Graphic3DElement
-from model.graphics_3d.graphic_3d_object import Graphic3DObject
-from model.graphics_3d.curve_3d import Curve3D
-from model.graphics_3d.point_3d import Point3D
-from model.graphics_3d.wireframe_3d import Wireframe3D
-from model.graphics_3d.bicubic_surface import BicubicSurface
+from model.graphics_2d.graphics_2d import Axis
+from model.graphics_2d.graphic_2d_element import Graphic2DElement
+from model.graphics_2d.graphic_2d_object import Graphic2DObject
+from model.graphics_2d.curve_2d import Curve2D
+from model.graphics_2d.point_2d import Point2D
+from model.graphics_2d.wireframe_2d import Wireframe2D
 from model.clipper import LineClipping
-from model.graphics_3d.transformation_3d import Translation3D, Scaling3D, Transformation3DType, Rotation3DType, Rotation3D, RotationAxis, Transformation3D
+from model.graphics_2d.transformation_2d import Translation2D, Scaling2D, Transformation2DType, Rotation2DType, Rotation2D, Transformation2D
 from model.obj_type import ObjType
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -22,7 +21,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint
 
 
-class GraphicsController:
+class Graphics2DController:
     def __init__(self, graphics, view):
         self.graphic = graphics
         self.view = view
@@ -41,8 +40,6 @@ class GraphicsController:
         self.view.side_menu.down.connect(lambda : self.pan_button(Axis.Y,-1))
         self.view.side_menu.left.connect(lambda : self.pan_button(Axis.X, 1))
         self.view.side_menu.right.connect(lambda : self.pan_button(Axis.X,-1))
-        self.view.side_menu.forward.connect(lambda : self.pan_button(Axis.Z, 1))
-        self.view.side_menu.backward.connect(lambda : self.pan_button(Axis.Z,-1))
 
 
         self.view.show()
@@ -63,9 +60,6 @@ class GraphicsController:
         self.view.lian_barsk.triggered.connect(self.config_clipping)
         self.view.cohen_sutherland.triggered.connect(self.config_clipping)
 
-        self.view.perspective.triggered.connect(self.config_projection)
-        self.view.orthogonal.triggered.connect(self.config_projection)
-
         self.view.side_menu.list.currentRowChanged.connect(self.list_selected)
         self.set_enable_object_options(False)
 
@@ -73,13 +67,26 @@ class GraphicsController:
 
         self.view.canvas.zoom.connect(self.canvas_scroll)
         self.view.canvas.pan.connect(self.canvas_pan)
-        self.view.canvas.rotate_xy_window.connect(self.canvas_rotate_xy)
-        self.view.canvas.rotate_z_window.connect(self.canvas_rotate_z)
+        self.view.canvas.rotate_z_window.connect(self.canvas_rotate)
         self.view.canvas.rotate.connect(self.object_rotate)
         self.view.canvas.scale.connect(self.object_scale)
         self.view.canvas.grab.connect(self.object_grab)
 
-        self.view.dop_input.editingFinished.connect(self.update_window_depth)
+        self.view.projection_menu.setEnabled(False)
+        self.view.side_menu.forward_label.setVisible(False)
+        self.view.side_menu.backward_label.setVisible(False)
+        self.view.side_menu.x_axis_label.setVisible(False)
+        self.view.side_menu.x_axis_check.setVisible(False)
+        self.view.side_menu.y_axis_label.setVisible(False)
+        self.view.side_menu.y_axis_check.setVisible(False)
+        self.view.side_menu.z_axis_label.setVisible(False)
+        self.view.side_menu.z_axis_check.setVisible(False)
+        self.view.projection_menu.setVisible(False)
+        for i in range (5,10):
+            self.view.canvas_control_layout.itemAt(i).widget().setVisible(False)
+        self.view.canvas_control_layout.itemAt(10).widget().setEnabled(False)
+
+
 
 
 
@@ -99,20 +106,11 @@ class GraphicsController:
         if(y_diff != 0):
             self.pan(Axis.Y,y_diff,1)
 
-
-    def canvas_rotate_xy(self):
-        (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
-        if(x_diff != 0):
-            self.rotate(x_diff,Axis.Y,-1)
-        if(y_diff != 0):
-            self.rotate(y_diff,Axis.X,1)
-
-    def canvas_rotate_z(self):
+    def canvas_rotate(self):
         (x_diff, y_diff) = self.view.canvas.get_mouse_movement()
 
         if(y_diff != 0 or x_diff != 0):
-            self.rotate(y_diff+x_diff,Axis.Z,1)
-
+            self.rotate(y_diff+x_diff,1)
 
 
     def object_rotate(self):
@@ -121,11 +119,8 @@ class GraphicsController:
         transformation_list = list()
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1):
-            if(y_diff != 0):
-                transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vpn.coords[:3], y_diff, 0, 0, 0)
-                transformation_list.append(transformation)
-            if(x_diff != 0):
-                transformation = Rotation3D(Rotation3DType.OBJECT_CENTER, RotationAxis.U, self.graphic.vup.coords[:3], x_diff, 0, 0, 0)
+            if(y_diff != 0 or x_diff != 0):
+                transformation = Rotation2D(Rotation2DType.OBJECT_CENTER, x_diff+y_diff, 0, 0, 0)
                 transformation_list.append(transformation)
         
         self.transform_object(transformation_list)
@@ -141,22 +136,18 @@ class GraphicsController:
 
             translation_vector = np.array([x_diff, -y_diff, 0., 1.])
 
-            (x,y,z,_) = self.graphic.cop.coords
-            translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
+            (x,y,_) = self.graphic.center.coords
+            translation_matrix = Transformation2D.translation_matrix(-x,-y)
 
-            (x_angle, y_angle, z_angle) = self.graphic.get_angles()
-            rotation_x = Transformation3D.rotation_x_matrix(x_angle)
-            rotation_y = Transformation3D.rotation_y_matrix(y_angle)
-            rotation_z = Transformation3D.rotation_z_matrix(z_angle)
-
-            rotation_matrix = rotation_x @ rotation_y @ rotation_z
+            vup_angle = self.graphic.get_vup_angle()
+            rotation_matrix = Transformation2D.rotation_matrix(vup_angle)
 
             t_projection_matrix = np.transpose(translation_matrix @ rotation_matrix)
 
-            translation_vector = Translation3D.transform_point(translation_vector,t_projection_matrix)
-            (x,y,z,_) = translation_vector
+            translation_vector = Translation2D.transform_point(translation_vector,t_projection_matrix)
+            (x,y,_) = translation_vector
 
-            transformation = Translation3D(x,y,z)
+            transformation = Translation2D(x,y)
             transformation_list = list()
             transformation_list.append(transformation)
             self.transform_object(transformation_list)
@@ -167,11 +158,10 @@ class GraphicsController:
 
         selected = self.view.side_menu.list.currentRow()
         if(selected != -1 and y_diff != 0):
-            transformation = Scaling3D(1-(0.01*y_diff))
+            transformation = Scaling2D(1-(0.01*y_diff))
             transformation_list = list()
             transformation_list.append(transformation)
             self.transform_object(transformation_list)
-
 
 
     def list_selected(self):
@@ -230,7 +220,7 @@ class GraphicsController:
 
             (objects, window_inf) = obj_data
             name = os.path.splitext(os.path.basename(file_name[0]))[0]
-            single_object = Graphic3DObject(name = name)
+            single_object = Graphic2DObject(name = name)
             for obj in objects:
                 single_object.elements += obj.elements
 
@@ -293,8 +283,7 @@ class GraphicsController:
 
         self.graphic.window = {
             "width": self.view.canvas.canvas.width(),
-            "height": self.view.canvas.canvas.height(),
-            "depth": self.graphic.window["depth"]
+            "height": self.view.canvas.canvas.height()
         }
 
 
@@ -310,26 +299,26 @@ class GraphicsController:
     def get_element(self, name, _list, _type, color, filled):
 
         if(len(_list) == 1):
-            return Point3D(coords=_list[0], color=color)
+            return Point2D(coords=_list[0], color=color)
 
         elif(_type == "Line/Wireframe" or _type == "Object (Points/Lines/Wireframes)"):
             vertices = list()
             for p in _list:
-                vertex = np.array([float(p[0]),float(p[1]),float(p[2]),1.0])
+                vertex = np.array([float(p[0]),float(p[1]),1.0])
                 vertices.append(vertex)
 
-            return Wireframe3D(vertices=vertices, color=color, filled=filled)
+            return Wireframe2D(vertices=vertices, color=color, filled=filled)
         elif(_type == "Spline" or _type == "Bezier"):
             control_points = list()
             for p in _list:
-                control_points.append(np.array([float(p[0]),float(p[1]),float(p[2]),1.0]))
+                control_points.append(np.array([float(p[0]),float(p[1]),1.0]))
 
             curve_type = None
             if(_type == "Spline"):
                 curve_type = ObjType.SPLINE
             elif(_type == "Bezier"):
                 curve_type = ObjType.BEZIER
-            return Curve3D(obj_type=curve_type, coords=control_points, color=color, filled=filled)
+            return Curve2D(obj_type=curve_type, coords=control_points, color=color, filled=filled)
         else:
             return None
 
@@ -337,27 +326,11 @@ class GraphicsController:
     def get_object(self, name, _object, color, filled, _type):
         element_list = list()
         
-        if(_type == "Bezier Surface" or _type == "Spline Surface"):
-
-            if(_type == "Bezier Surface"):
-                obj_type=ObjType.BEZIER_SURFACE
-            else:
-                obj_type=ObjType.SPLINE_SURFACE
-
-            shape = np.shape(_object)
-            coords = np.reshape(_object,((shape[0]*shape[1]), shape[2]))
-
-            points = [np.array([float(p[0]),float(p[1]),float(p[2]),1.0]) for p in coords]
-
-            element = BicubicSurface(obj_type=obj_type, coords=points, shape=shape, color=color, filled=filled)
+        for point_list in _object:
+            element = self.get_element(name, point_list, _type, color, filled)
             element_list.append(element)
-            
-        else:
-            for point_list in _object:
-                element = self.get_element(name, point_list, _type, color, filled)
-                element_list.append(element)
 
-        return Graphic3DObject(name, element_list)
+        return Graphic2DObject(name, element_list)
 
     def save_object(self):
 
@@ -397,10 +370,6 @@ class GraphicsController:
                     _type = "Point"
                 elif(_object.elements[0].obj_type == ObjType.WIREFRAME):
                     _type = "Line/Wireframe"
-                elif(_object.elements[0].obj_type == ObjType.BEZIER_SURFACE):
-                    _type = "Bezier Surface"
-                elif(_object.elements[0].obj_type == ObjType.SPLINE_SURFACE):
-                    _type = "Spline Surface"
                 elif(_object.elements[0].obj_type == ObjType.BEZIER):
                     _type = "Bezier"
                 elif(_object.elements[0].obj_type == ObjType.SPLINE):
@@ -462,19 +431,19 @@ class GraphicsController:
                 self.draw()
 
     def view_to_model_transformation(self, view_entry):
-        transformation_type = Transformation3DType[view_entry[0].name]
+        transformation_type = Transformation2DType[view_entry[0].name]
         transformation = None
 
-        if(transformation_type == Transformation3DType.ROTATION):
-            rotation_type = Rotation3DType[view_entry[1][0]]
+        if(transformation_type == Transformation2DType.ROTATION):
+            rotation_type = Rotation2DType[view_entry[1][0]]
             (degrees, x, y, z, axis, axis_vector) = (view_entry[1][1],view_entry[1][2],view_entry[1][3],view_entry[1][4],RotationAxis[view_entry[1][5]], view_entry[1][6])
-            transformation = Rotation3D(rotation_type, axis, axis_vector, degrees, x, y, z)
-        elif(transformation_type == Transformation3DType.TRANSLATION):
+            transformation = Rotation2D(rotation_type, degrees, x, y)
+        elif(transformation_type == Transformation2DType.TRANSLATION):
             (x, y, z) = view_entry[1]
-            transformation = Translation3D(x, y, z)
-        elif(transformation_type == Transformation3DType.SCALING):
+            transformation = Translation2D(x, y)
+        elif(transformation_type == Transformation2DType.SCALING):
             factor = view_entry[1]
-            transformation = Scaling3D(factor)
+            transformation = Scaling2D(factor)
 
         return transformation
 
@@ -493,65 +462,47 @@ class GraphicsController:
             painter.setBrush(QtGui.QBrush(color))
             for obj in objects:
                 for element in obj.elements:
-                    self.draw_projected_element(element, color, painter)
+                    self.draw_element(element, color, painter)
 
         else:
-            projection_normalization_matrix = self.graphic.projection_normalization_matrix()
+            normalization_matrix = self.graphic.normalization_matrix()
             viewport_transformation_matrix = self.graphic.viewport_transformation_matrix()
             d = 1/10
             
             for obj in objects:
                 for element in obj.elements:
-                    element.project(None, projection_normalization_matrix, line_clipping, d,viewport_transformation_matrix)
+                    element.project(None, normalization_matrix, line_clipping, d,viewport_transformation_matrix)
                     color = QtGui.QColor(element.color)
-                    self.draw_projected_element(element, color, painter)
+                    self.draw_element(element, color, painter)
 
         self.view.canvas.update()
 
     """
     Desenha com painter um dado elemento gráfico, com a cor color
     """
-    def draw_projected_element(self,element, color, painter):
-        projected = element.projected
+    def draw_element(self,element, color, painter):
+        viewported = element.viewported
         painter.setPen(color)
         painter.setBrush(QtGui.QBrush(color))
 
         if(element.obj_type == ObjType.POINT):
-            if(not (projected is None)):
-                painter.drawPoint(projected[0][0], projected[0][1])
+            if(not (viewported is None)):
+                painter.drawPoint(viewported[0][0], viewported[0][1])
 
         elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
-            if(len(projected) > 0):
-                for line in element.projected:
+            if(len(viewported) > 0):
+                for line in element.viewported:
                     painter.drawLine(line[0][0],line[0][1],line[1][0],line[1][1])
 
         elif((element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE or element.obj_type == ObjType.WIREFRAME) and element.filled):
-            if(not (projected is None)):
-                vertices = [QPoint(p[0], p[1]) for p in element.projected]
+            if(not (viewported is None)):
+                vertices = [QPoint(p[0], p[1]) for p in element.viewported]
                 polygon = QtGui.QPolygon(vertices)
                 painter.drawPolygon(polygon)
 
-        elif((element.obj_type == ObjType.BEZIER_SURFACE) or (element.obj_type == ObjType.SPLINE_SURFACE)):
-            if(element.filled):
-                for square in element.projected:
-                    vertices = [QPoint(p[0], p[1]) for p in square]
-                    polygon = QtGui.QPolygon(vertices)
-                    painter.drawPolygon(polygon)
-            else:
-                for square in element.projected:
-                    for i in range(1,len(square)):
-                        painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
-                    painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])
-
-    def draw(self,color = None, painter = None):
-        try:
-            if (painter is None):
-                painter = self.view.canvas.get_painter()
-            self.draw_objects(color, painter)
-        except TypeError as e:
-            self.graphic.pan(Axis.Z,0.001)
-            self.draw(color, painter)
-            return
+    def draw(self,color = None):
+        painter = self.view.canvas.get_painter()
+        self.draw_objects(color, painter)
 
         painter.end()
         if(color is None):
@@ -560,7 +511,7 @@ class GraphicsController:
 
 
     def erase(self):
-        self.draw(self.bg_color, None)
+        self.draw(self.bg_color)
 
     def draw_viewport_limits(self, color):
         width = self.graphic.viewport_width()
@@ -624,13 +575,13 @@ class GraphicsController:
         self.log("Panning: ("+str(axis.name)+" axis, "+str(step*direction)+");")
 
 
-    def rotate(self, step, axis, direction):
+    def rotate(self, step, direction):
 
 
         self.erase()
         degrees = step
 
-        self.graphic.rotate(axis, math.radians(degrees)*direction)
+        self.graphic.rotate(math.radians(degrees)*direction)
 
         self.draw()
 
@@ -641,15 +592,8 @@ class GraphicsController:
     def rotate_button(self, direction):
         self.reset_multiplier()
 
-        if(self.view.side_menu.x_axis_check.isChecked()):
-            axis = Axis.X
-        elif(self.view.side_menu.y_axis_check.isChecked()):
-            axis = Axis.Y
-        else:
-            axis = Axis.Z
-
         degrees = float(self.view.side_menu.step.text())
-        self.rotate(degrees, axis, direction)
+        self.rotate(degrees, direction)
 
 
     def log(self,text):
@@ -670,35 +614,11 @@ class GraphicsController:
 
         self.draw()
 
-
-    def config_projection(self):
-        self.erase()
-
-        if(self.view.perspective.isChecked()):
-            self.graphic.perspective = True
-        else:
-            self.graphic.perspective = False
-
-        self.draw()
-
-    def update_window_depth(self):
-        text = self.view.dop_input.text()
-        if(len(text)>0):
-            self.erase()
-            val = 2*float(eval(text))
-            self.graphic.set_window_depth(val)
-            self.draw()
-
-
     def update_graphics_info(self):
         v_w = self.graphic.viewport_width()
         v_h = self.graphic.viewport_height()
         w_w = self.graphic.window_width()
         w_h = self.graphic.window_height()
-        dop = self.graphic.window_depth()/2
-        cop = self.graphic.cop.coords
 
         self.view.viewport_info.setText(str(round(v_w,2))+" x "+ str(round(v_h,2)))
         self.view.window_info.setText(str(round(w_w,2))+" x "+ str(round(w_h,2)))
-        self.view.dop_input.setText(str(round(dop,2)))
-        self.view.cop_info.setText("("+str(round(cop[0],2))+","+str(round(cop[1],2))+","+str(round(cop[2],2))+")")

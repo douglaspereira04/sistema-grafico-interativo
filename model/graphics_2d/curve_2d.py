@@ -107,4 +107,4 @@ class Curve2D(Wireframe2D):
         else:
             vertices = Curve2D.forward_difference_points(d, self.vertices)
 
-        super().project(vertices, normalization_matrix, line_clipping, d, viewport_transformation_matrix)
+        super().normalize(vertices, normalization_matrix, line_clipping, d, viewport_transformation_matrix)

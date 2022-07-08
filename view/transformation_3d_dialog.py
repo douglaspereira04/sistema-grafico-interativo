@@ -17,7 +17,7 @@ class RotationType(Enum):
 
 
 
-class TransformationDialog(QDialog):
+class Transformation3DDialog(QDialog):
     def __init__(self, parent=None, name=None):
         super().__init__(parent)
         self.setWindowTitle("Trasform")
@@ -79,6 +79,7 @@ class TransformationDialog(QDialog):
 
         self.given_x.setValidator(QDoubleValidator());
         self.given_y.setValidator(QDoubleValidator());
+        self.given_z.setValidator(QDoubleValidator());
         self.degrees.setValidator(QDoubleValidator());
 
         self.axis = QtWidgets.QComboBox();
@@ -130,6 +131,7 @@ class TransformationDialog(QDialog):
 
         self.translation_x.setValidator(QDoubleValidator());
         self.translation_y.setValidator(QDoubleValidator());
+        self.translation_z.setValidator(QDoubleValidator());
 
         translation_layout.addRow("x: ", self.translation_x)
         translation_layout.addRow("y: ", self.translation_y)
@@ -252,6 +254,7 @@ class TransformationDialog(QDialog):
             self.degrees.setReadOnly(False)
             self.given_x.setReadOnly(False)
             self.given_y.setReadOnly(False)
+            self.given_z.setReadOnly(False)
 
     def world_center_toggled(self):
         if(self.world_center.isChecked()):
@@ -260,6 +263,8 @@ class TransformationDialog(QDialog):
             self.given_x.setText("")
             self.given_y.setReadOnly(True)
             self.given_y.setText("")
+            self.given_z.setReadOnly(True)
+            self.given_z.setText("")
 
     def object_center_toggled(self):
         if(self.object_center.isChecked()):
@@ -268,6 +273,8 @@ class TransformationDialog(QDialog):
             self.given_x.setText("")
             self.given_y.setReadOnly(True)
             self.given_y.setText("")
+            self.given_z.setReadOnly(True)
+            self.given_z.setText("")
 
     def get_transformations(self):
         return self.transformation_list

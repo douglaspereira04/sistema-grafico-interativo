@@ -1,5 +1,5 @@
 from view.object_2d_dialog import Object2DDialog
-from view.transformation_dialog import TransformationDialog
+from view.transformation_2d_dialog import Transformation2DDialog
 from model.graphics_2d.graphics_2d import Axis
 from model.graphics_2d.graphic_2d_element import Graphic2DElement
 from model.graphics_2d.graphic_2d_object import Graphic2DObject
@@ -404,7 +404,7 @@ class Graphics2DController:
             transformation_list = []
 
             if(transformation == True):
-                dialog = TransformationDialog(self.view, name)
+                dialog = Transformation2DDialog(self.view, name)
 
                 result = dialog.exec()
                 if (result):
@@ -427,10 +427,10 @@ class Graphics2DController:
 
         if(transformation_type == Transformation2DType.ROTATION):
             rotation_type = Rotation2DType[view_entry[1][0]]
-            (degrees, x, y, z, axis, axis_vector) = (view_entry[1][1],view_entry[1][2],view_entry[1][3],view_entry[1][4],RotationAxis[view_entry[1][5]], view_entry[1][6])
+            (degrees, x, y) = (view_entry[1][1],view_entry[1][2],view_entry[1][3])
             transformation = Rotation2D(rotation_type, degrees, x, y)
         elif(transformation_type == Transformation2DType.TRANSLATION):
-            (x, y, z) = view_entry[1]
+            (x, y) = view_entry[1]
             transformation = Translation2D(x, y)
         elif(transformation_type == Transformation2DType.SCALING):
             factor = view_entry[1]

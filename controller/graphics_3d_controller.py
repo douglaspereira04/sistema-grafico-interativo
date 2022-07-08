@@ -1,5 +1,5 @@
 from view.object_3d_dialog import Object3DDialog
-from view.transformation_dialog import TransformationDialog
+from view.transformation_3d_dialog import Transformation3DDialog
 from model.graphics_3d.graphics_3d import Axis
 from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.graphics_3d.graphic_3d_object import Graphic3DObject
@@ -451,7 +451,7 @@ class Graphics3DController:
             transformation_list = []
 
             if(transformation == True):
-                dialog = TransformationDialog(self.view, name)
+                dialog = Transformation3DDialog(self.view, name)
 
                 result = dialog.exec()
                 if (result):

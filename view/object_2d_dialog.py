@@ -5,7 +5,7 @@ from view.util.dialogs import show_error_box
 
 class Object2DDialog(QDialog):
 
-    def __init__(self, parent=None, name="", coords="", color="#000000", filled=False, _type=None):
+    def __init__(self, parent=None, name="", coords="(5,5),(10,5),(10,10),(5,10)", color="#000000", filled=False, _type=None):
         super().__init__(parent)
 
         self.setWindowTitle("Object")
@@ -24,6 +24,7 @@ class Object2DDialog(QDialog):
         self._type.addItem("Object (Points/Lines/Wireframes)")
         self._type.addItem("Spline")
         self._type.addItem("Bezier")
+        self._type.setCurrentIndex(1)
 
         if(_type != None):
             if(_type == "Point"):

@@ -79,6 +79,6 @@ class Wireframe2D(Graphic2DElement):
                 scn_vertices = [Transformation2D.transform_point(v, normalization_matrix) for v in vertices]
                 scn_vertices = Clipper.sutherland_hodgman_clipping(scn_vertices)
                 if(not (scn_vertices is None)):
-                    viewport_points =  [Transformation2D.transform_point(np.array([p[0], p[1],1.0]), viewport_transformation_matrix) for p in viewport_points]
+                    viewport_points =  [Transformation2D.transform_point(np.array([p[0], p[1],1.0]), viewport_transformation_matrix) for p in scn_vertices]
 
             self.viewported =  viewport_points

@@ -11,9 +11,9 @@ from view.graphics_window import GraphicsWindow
 
 if __name__ == "__main__":
         app = QtWidgets.QApplication(sys.argv)
-        graphics = Graphics3D()
+        graphics = Graphics2D()
         window = GraphicsWindow()
 
-        graphicsController = Graphics3DController(graphics, window)
+        graphicsController = Graphics2DController(graphics, window)
 
         sys.exit(app.exec_())

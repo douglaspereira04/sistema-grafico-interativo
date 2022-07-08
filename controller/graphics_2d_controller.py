@@ -38,8 +38,8 @@ class Graphics2DController:
 
         self.view.side_menu.up.connect(lambda : self.pan_button(Axis.Y,1))
         self.view.side_menu.down.connect(lambda : self.pan_button(Axis.Y,-1))
-        self.view.side_menu.left.connect(lambda : self.pan_button(Axis.X, 1))
-        self.view.side_menu.right.connect(lambda : self.pan_button(Axis.X,-1))
+        self.view.side_menu.left.connect(lambda : self.pan_button(Axis.X, -1))
+        self.view.side_menu.right.connect(lambda : self.pan_button(Axis.X,1))
 
 
         self.view.show()

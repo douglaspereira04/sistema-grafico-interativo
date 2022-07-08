@@ -199,7 +199,7 @@ class Transformation2DDialog(QDialog):
             show_error_box("Invalid point value")
             return
 
-        translation = (translation_x,translation_y, translation_z)
+        translation = (translation_x,translation_y)
         self.transformation_list.append((TransformationType.TRANSLATION, translation))
         self.list_transformations()
 

@@ -153,19 +153,14 @@ class Graphics3DController:
 
             translation_vector = np.array([x_diff, -y_diff, 0., 1.])
 
-            (x,y,z,_) = self.graphic.cop.coords
-            translation_matrix = Transformation3D.translation_matrix(-x,-y,-z)
-
             (x_angle, y_angle, z_angle) = self.graphic.get_angles()
-            rotation_x = Transformation3D.rotation_x_matrix(x_angle)
-            rotation_y = Transformation3D.rotation_y_matrix(y_angle)
-            rotation_z = Transformation3D.rotation_z_matrix(z_angle)
+            rotation_x = Transformation3D.rotation_x_matrix(-x_angle)
+            rotation_y = Transformation3D.rotation_y_matrix(-y_angle)
+            rotation_z = Transformation3D.rotation_z_matrix(-z_angle)
 
-            rotation_matrix = rotation_x @ rotation_y @ rotation_z
+            rotation_matrix = rotation_z @ rotation_y @ rotation_x
 
-            t_projection_matrix = np.transpose(translation_matrix @ rotation_matrix)
-
-            translation_vector = Translation3D.transform_point(translation_vector,t_projection_matrix)
+            translation_vector = Transformation3D.transform_point(translation_vector,rotation_matrix)
             (x,y,z,_) = translation_vector
 
             transformation = Translation3D(x,y,z)

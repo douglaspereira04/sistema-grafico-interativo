@@ -1,4 +1,4 @@
-from view.object_dialog import ObjectDialog
+from view.object_3d_dialog import Object3DDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphics_3d.graphics_3d import Axis
 from model.graphics_3d.graphic_3d_element import Graphic3DElement
@@ -43,8 +43,6 @@ class Graphics3DController:
         self.view.side_menu.right.connect(lambda : self.pan_button(Axis.X,-1))
         self.view.side_menu.forward.connect(lambda : self.pan_button(Axis.Z, 1))
         self.view.side_menu.backward.connect(lambda : self.pan_button(Axis.Z,-1))
-        self.view.side_menu.forward_label.setVisible(True)
-        self.view.side_menu.backward_label.setVisible(True)
 
         self.view.show()
 
@@ -91,12 +89,9 @@ class Graphics3DController:
         self.view.side_menu.y_axis_check.setVisible(True)
         self.view.side_menu.z_axis_label.setVisible(True)
         self.view.side_menu.z_axis_check.setVisible(True)
-        self.view.projection_menu.setVisible(True)
         for i in range (5,10):
             self.view.canvas_control_layout.itemAt(i).widget().setVisible(True)
         self.view.canvas_control_layout.itemAt(10).widget().setEnabled(True)
-
-
 
 
     def canvas_scroll(self):
@@ -378,7 +373,7 @@ class Graphics3DController:
 
     def save_object(self):
 
-        dialog = ObjectDialog()
+        dialog = Object3DDialog()
 
         if dialog.exec():
             obj = None
@@ -425,7 +420,7 @@ class Graphics3DController:
             else:
                 _type = "Object (Points/Lines/Wireframes)"
 
-            dialog = ObjectDialog(self.view, name, coords, color, filled, _type)
+            dialog = Object3DDialog(self.view, name, coords, color, filled, _type)
             result = dialog.exec()
             if (result):
                 obj = None

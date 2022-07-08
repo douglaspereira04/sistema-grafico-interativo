@@ -1,4 +1,4 @@
-from view.object_dialog import ObjectDialog
+from view.object_2d_dialog import Object2DDialog
 from view.transformation_dialog import TransformationDialog
 from model.graphics_2d.graphics_2d import Axis
 from model.graphics_2d.graphic_2d_element import Graphic2DElement
@@ -81,13 +81,9 @@ class Graphics2DController:
         self.view.side_menu.y_axis_check.setVisible(False)
         self.view.side_menu.z_axis_label.setVisible(False)
         self.view.side_menu.z_axis_check.setVisible(False)
-        self.view.projection_menu.setVisible(False)
         for i in range (5,10):
             self.view.canvas_control_layout.itemAt(i).widget().setVisible(False)
         self.view.canvas_control_layout.itemAt(10).widget().setEnabled(False)
-
-
-
 
 
     def canvas_scroll(self):

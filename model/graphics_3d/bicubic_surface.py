@@ -219,7 +219,7 @@ class BicubicSurface(Wireframe3D):
 
     def project(self, vertices = None, projection_matrix = None, line_clipping = None, d = None, viewport_transformation_matrix = None):
         control_matrix = np.reshape(self.vertices, (self.shape[0], self.shape[1], 4))
-        self.projected = list()
+        self.viewported = list()
 
         points_matrix = None
 
@@ -244,4 +244,4 @@ class BicubicSurface(Wireframe3D):
                         v = np.array([projected[k][0], projected[k][1],1.])
                         projected[k] =  Transformation3D.transform_point(v, viewport_transformation_matrix)
                     
-                    self.projected.append(projected)
+                    self.viewported.append(projected)

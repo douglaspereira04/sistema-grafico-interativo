@@ -42,7 +42,7 @@ class Point3D(Graphic3DElement):
         coords = np.array([x/w, y/w, 1])
         coords = Clipper.point_clipping(coords)
         if(not(coords is None)):
-            self.projected =  [Transformation3D.transform_point(coords, viewport_transformation_matrix)]
+            self.viewported =  [Transformation3D.transform_point(coords, viewport_transformation_matrix)]
 
 
     """

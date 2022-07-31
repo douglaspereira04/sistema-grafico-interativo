@@ -81,4 +81,4 @@ class Wireframe3D(Graphic3DElement):
                 if(not (projected_coords is None)):
                     projected_coords =  [Transformation3D.transform_point(np.array([p[0], p[1],1.0]), viewport_transformation_matrix) for p in projected_coords]
 
-            self.projected =  projected_coords
+            self.viewported =  projected_coords

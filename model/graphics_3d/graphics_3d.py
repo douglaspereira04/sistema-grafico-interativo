@@ -5,12 +5,7 @@ from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.graphics_3d.point_3d import Point3D
 from model.graphics_3d.transformation_3d import Transformation3D
 from model.clipper import LineClipping
-from enum import Enum
-
-class Axis(Enum):
-    X = 1
-    Y = 2
-    Z = 3
+from model.axis import Axis
 
 class Graphics3D:
     def __init__(self):

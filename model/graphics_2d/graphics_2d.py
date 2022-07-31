@@ -5,11 +5,8 @@ from model.graphics_2d.graphic_2d_element import Graphic2DElement
 from model.graphics_2d.point_2d import Point2D
 from model.graphics_2d.transformation_2d import Transformation2D
 from model.clipper import LineClipping
+from model.axis import Axis
 from enum import Enum
-
-class Axis(Enum):
-    X = 1
-    Y = 2
 
 class Graphics2D:
     def __init__(self):

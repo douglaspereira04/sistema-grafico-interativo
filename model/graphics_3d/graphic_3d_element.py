@@ -10,7 +10,7 @@ class Graphic3DElement:
         self.filled = filled
         self.id = uuid.uuid1()
         self.group = None
-        self.projected = None
+        self.viewported = None
 
     def __hash__(self):
         return hash(self.id)

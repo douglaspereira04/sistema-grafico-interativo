@@ -1,6 +1,6 @@
 from view.object_3d_dialog import Object3DDialog
 from view.transformation_3d_dialog import Transformation3DDialog
-from model.graphics_3d.graphics_3d import Axis
+from model.axis import Axis
 from model.graphics_3d.graphic_3d_element import Graphic3DElement
 from model.graphics_3d.graphic_3d_object import Graphic3DObject
 from model.graphics_3d.curve_3d import Curve3D
@@ -500,7 +500,7 @@ class Graphics3DController:
             painter.setBrush(QtGui.QBrush(color))
             for obj in objects:
                 for element in obj.elements:
-                    self.draw_projected_element(element, color, painter)
+                    self.draw_element(element, color, painter)
 
         else:
             projection_normalization_matrix = self.graphic.projection_normalization_matrix()
@@ -511,41 +511,41 @@ class Graphics3DController:
                 for element in obj.elements:
                     element.project(None, projection_normalization_matrix, line_clipping, d,viewport_transformation_matrix)
                     color = QtGui.QColor(element.color)
-                    self.draw_projected_element(element, color, painter)
+                    self.draw_element(element, color, painter)
 
         self.view.canvas.update()
 
     """
     Desenha com painter um dado elemento gráfico, com a cor color
     """
-    def draw_projected_element(self,element, color, painter):
-        projected = element.projected
+    def draw_element(self,element, color, painter):
+        viewported = element.viewported
         painter.setPen(color)
         painter.setBrush(QtGui.QBrush(color))
 
         if(element.obj_type == ObjType.POINT):
-            if(not (projected is None)):
-                painter.drawPoint(projected[0][0], projected[0][1])
+            if(not (viewported is None)):
+                painter.drawPoint(viewported[0][0], viewported[0][1])
 
         elif((element.obj_type == ObjType.WIREFRAME or element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE) and (not element.filled)):
-            if(len(projected) > 0):
-                for line in element.projected:
+            if(len(viewported) > 0):
+                for line in element.viewported:
                     painter.drawLine(line[0][0],line[0][1],line[1][0],line[1][1])
 
         elif((element.obj_type == ObjType.BEZIER or element.obj_type == ObjType.SPLINE or element.obj_type == ObjType.WIREFRAME) and element.filled):
-            if(not (projected is None)):
-                vertices = [QPoint(p[0], p[1]) for p in element.projected]
+            if(not (viewported is None)):
+                vertices = [QPoint(p[0], p[1]) for p in element.viewported]
                 polygon = QtGui.QPolygon(vertices)
                 painter.drawPolygon(polygon)
 
         elif((element.obj_type == ObjType.BEZIER_SURFACE) or (element.obj_type == ObjType.SPLINE_SURFACE)):
             if(element.filled):
-                for square in element.projected:
+                for square in element.viewported:
                     vertices = [QPoint(p[0], p[1]) for p in square]
                     polygon = QtGui.QPolygon(vertices)
                     painter.drawPolygon(polygon)
             else:
-                for square in element.projected:
+                for square in element.viewported:
                     for i in range(1,len(square)):
                         painter.drawLine(square[i-1][0],square[i-1][1],square[i][0],square[i][1])
                     painter.drawLine(square[0][0],square[0][1],square[-1][0],square[-1][1])

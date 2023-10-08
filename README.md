@@ -1,4 +1,4 @@
-# Computação Gráfica
+# Sistema gráfico interativo
 
 Projeto com Interface Gráfica Qt e Python 3
 
